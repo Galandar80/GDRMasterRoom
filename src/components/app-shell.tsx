@@ -67,6 +67,7 @@ import {
   updateMessagePinned,
   upsertMapCharacterPosition,
   updateRoomBySuperAdmin,
+  updateMediaAssetVisibility,
   uploadPublicFile,
   createMapFogArea,
   updateMapFogArea,
@@ -87,6 +88,8 @@ const SuperAdminRooms = dynamic(
   () => import("@/components/superadmin-rooms").then((module) => module.SuperAdminRooms),
   { loading: () => <AppLoading status="Caricamento pannello superadmin..." /> }
 );
+
+import { DiceRollAnimationOverlay } from "@/components/room/dice-roll-overlay";
 
 type View = "menu" | "create" | "join" | "sessions" | "character" | "player" | "master" | "superadmin";
 type CinematicEvent =
@@ -113,6 +116,7 @@ const MAP_SYNC_PREFIX = "__gdr_map_sync__:";
 export function AppShell() {
   const [view, setView] = useState<View>("menu");
   const [activeCue, setActiveCue] = useState<{ cueId: string; tone: string; message: string } | null>(null);
+  const [activeDiceOverlay, setActiveDiceOverlay] = useState<{ type: "critical" | "fumble"; rollerName: string; reason: string } | null>(null);
   const shakeTimeoutRef = useRef<number | null>(null);
   const activeShakeClassRef = useRef<string | null>(null);
   const cueTimeoutRef = useRef<number | null>(null);
@@ -389,6 +393,29 @@ export function AppShell() {
         "postgres_changes",
         { event: "*", schema: "public", table: "dice_requests", filter: `room_id=eq.${roomState.room.id}` },
         (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const incoming = payload.new as DiceRequest;
+            if (incoming.status === "rolled" && incoming.dice_sides === 20 && (incoming.dice_count === 1 || !incoming.dice_count) && incoming.result) {
+              if (incoming.result === 20 || incoming.result === 1) {
+                setRoomState((state) => {
+                  const prev = state.diceRequests.find((item) => item.id === incoming.id);
+                  if (prev && prev.status === "pending") {
+                    const char = state.characters.find((c) => c.user_id === incoming.target_user_id);
+                    const rollerName = char ? `${char.character_name} ${char.character_surname}` : "Un Eroe";
+                    setTimeout(() => {
+                      setActiveDiceOverlay({
+                        type: incoming.result === 20 ? "critical" : "fumble",
+                        rollerName,
+                        reason: stripDiceCountMarker(incoming.reason)
+                      });
+                    }, 100);
+                  }
+                  return updateCollectionEvent(state, "diceRequests", payload, "created_at", false);
+                });
+                return;
+              }
+            }
+          }
           setRoomState((state) => updateCollectionEvent(state, "diceRequests", payload, "created_at", false));
         }
       )
@@ -1740,6 +1767,16 @@ export function AppShell() {
           item.id === request.id ? { ...item, status: "rolled", result, rolled_at: new Date().toISOString() } : item
         )
       }));
+
+      if (demoMode) {
+        if (request.dice_sides === 20 && diceCount === 1 && (result === 20 || result === 1)) {
+          setActiveDiceOverlay({
+            type: result === 20 ? "critical" : "fumble",
+            rollerName: characterName,
+            reason
+          });
+        }
+      }
     } catch (diceError) {
       setError(readError(diceError));
     }
@@ -2303,6 +2340,26 @@ export function AppShell() {
     }
   }
 
+  async function updateMediaVisibility(asset: MediaAsset, visibility: MediaAsset["visibility"]) {
+    if (!isCurrentMaster) return;
+    try {
+      setError("");
+      if (supabase && !demoMode) {
+        await updateMediaAssetVisibility(supabase, roomState.profile, asset.id, visibility);
+      }
+      setRoomState((state) => ({
+        ...state,
+        mediaAssets: state.mediaAssets.map((item) =>
+          item.id === asset.id ? { ...item, visibility } : item
+        ),
+      }));
+      setStatus("Visibilità asset aggiornata");
+      logAction("Visibilità asset modificata", `${asset.title} -> ${visibility}`);
+    } catch (mediaError) {
+      setError(readError(mediaError));
+    }
+  }
+
   async function addPersonalNote(values: { title: string; content: string }) {
     if (!currentCharacter) return;
 
@@ -2481,6 +2538,7 @@ export function AppShell() {
           onUpdateCharacter={saveCharacterByMaster}
           onDeleteCharacter={kickPlayerCharacter}
           onCreateMediaAsset={addMediaAsset}
+          onUpdateMediaAssetVisibility={updateMediaVisibility}
           onDeleteMediaAsset={removeMediaAsset}
           onCreateMap={createMap}
           onSetActiveMap={setActiveMap}
@@ -2509,6 +2567,14 @@ export function AppShell() {
             }
             setActiveCue(null);
           }}
+        />
+      ) : null}
+      {activeDiceOverlay ? (
+        <DiceRollAnimationOverlay
+          type={activeDiceOverlay.type}
+          rollerName={activeDiceOverlay.rollerName}
+          reason={activeDiceOverlay.reason}
+          onClose={() => setActiveDiceOverlay(null)}
         />
       ) : null}
     </div>

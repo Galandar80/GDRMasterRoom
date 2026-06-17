@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, FileText, MessageCircle, MessageSquareLock, Send, Trash2 } from "lucide-react";
+import type React from "react";
 import { useMemo, useState } from "react";
 import type { Character, Message, Profile } from "@/lib/types";
 import { shortTime } from "@/lib/utils";
@@ -42,7 +43,21 @@ export function OffChatPanel({ messages, value, onChange, onSend, onDeleteMessag
             <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-white">{message.content}</p>
           </article>
         ))}
-        {!messages.length ? <SocialEmptyState title="Nessun messaggio OFF" text="Qui potete coordinarvi senza interrompere la scena." /> : null}
+        {!messages.length ? (
+          <SocialEmptyState
+            title="Nessun messaggio OFF"
+            text="Qui potete coordinarvi senza interrompere la scena."
+            actions={
+              <button
+                type="button"
+                className="rounded-lg border border-sky-300/25 bg-sky-500/10 px-3 py-2 text-xs text-sky-100 transition hover:bg-sky-500/15"
+                onClick={() => onChange("Pausa veloce: ")}
+              >
+                Prepara coordinamento
+              </button>
+            }
+          />
+        ) : null}
       </div>
       <form
         className="border-t border-white/10 p-3"
@@ -134,7 +149,23 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
             <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-white">{message.content}</p>
           </article>
         ))}
-        {!threadMessages.length ? <SocialEmptyState title="Nessun sussurro" text={isMaster ? "Seleziona un personaggio e invia un indizio riservato." : "I messaggi privati del Master appariranno qui."} /> : null}
+        {!threadMessages.length ? (
+          <SocialEmptyState
+            title="Nessun sussurro"
+            text={isMaster ? "Seleziona un personaggio e invia un indizio riservato." : "I messaggi privati del Master appariranno qui."}
+            actions={
+              recipientUserId ? (
+                <button
+                  type="button"
+                  className="rounded-lg border border-brass/25 bg-brass/10 px-3 py-2 text-xs text-brass transition hover:bg-brass/15"
+                  onClick={() => setText(isMaster ? "Indizio riservato: " : "Master, vorrei chiarire: ")}
+                >
+                  Prepara sussurro
+                </button>
+              ) : null
+            }
+          />
+        ) : null}
       </div>
       <form
         className="border-t border-white/10 p-3"
@@ -159,7 +190,7 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
               setText("");
             }}
           />
-          <button className="social-send-button social-send-button--private" type="submit" aria-label="Invia privato" title="Invia privato">
+          <button className="social-send-button social-send-button--private" type="submit" aria-label="Invia privato" title="Invia privato" disabled={!recipientUserId}>
             <Send size={18} />
           </button>
         </div>
@@ -168,11 +199,12 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
   );
 }
 
-function SocialEmptyState({ title, text }: { title: string; text: string }) {
+function SocialEmptyState({ title, text, actions }: { title: string; text: string; actions?: React.ReactNode }) {
   return (
     <div className="social-empty-state">
       <p>{title}</p>
       <span>{text}</span>
+      {actions ? <div className="mt-4 flex flex-wrap justify-center gap-2">{actions}</div> : null}
     </div>
   );
 }

@@ -19,47 +19,70 @@ export function DiceRequestPanel({
   const [visibility, setVisibility] = useState<"public" | "private">("public");
 
   return (
-    <section className="glass-panel rounded-lg p-4">
-      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brass">
-        <Dice5 size={16} /> Richiedi tiro
+    <section className="ui-panel-window relative p-5 shadow-lg rounded-xl border border-brass/25 bg-ink-950/90 overflow-hidden">
+      {/* Decorative Corners */}
+      <div className="absolute left-1.5 top-1.5 h-1.5 w-1.5 border-l border-t border-brass/40 pointer-events-none" />
+      <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 border-r border-t border-brass/40 pointer-events-none" />
+      <div className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 border-l border-b border-brass/40 pointer-events-none" />
+      <div className="absolute right-1.5 bottom-1.5 h-1.5 w-1.5 border-r border-b border-brass/40 pointer-events-none" />
+
+      <h2 className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-[0.24em] text-brass">
+        <Dice5 size={14} className="filter drop-shadow-[0_0_5px_rgba(200,163,93,0.3)]" /> Richiedi tiro
       </h2>
       <form
-        className="mt-4 grid gap-2"
+        className="mt-4 grid gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           onCreate({ diceCount, diceSides, reason: reason.trim(), targetUserId: targetUserId || null, visibility });
           setReason("");
         }}
       >
-        <div className="grid gap-2 sm:grid-cols-[7rem_1fr_1fr_1fr]">
-          <input
-            className="field px-3 py-2 text-sm"
-            aria-label="Numero dadi"
-            type="number"
-            min="1"
-            max="20"
-            value={diceCount}
-            onChange={(event) => setDiceCount(Math.max(1, Number(event.target.value)))}
-          />
-          <select className="field px-3 py-2 text-sm" value={diceSides} onChange={(event) => setDiceSides(Number(event.target.value))}>
-            {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
-              <option key={sides} value={sides}>d{sides}</option>
-            ))}
-          </select>
-          <select className="field px-3 py-2 text-sm" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)}>
-            <option value="">Tutti</option>
-            {characters.map((character) => (
-              <option key={character.id} value={character.user_id}>{character.character_name} {character.character_surname}</option>
-            ))}
-          </select>
-          <select className="field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "private")}>
-            <option value="public">Pubblico</option>
-            <option value="private">Privato</option>
-          </select>
+        <div className="grid gap-2 sm:grid-cols-[6.5rem_1fr_1fr_1fr]">
+          <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            Dadi
+            <input
+              className="field px-3 py-2 text-xs mt-1"
+              aria-label="Numero dadi"
+              type="number"
+              min="1"
+              max="20"
+              value={diceCount}
+              onChange={(event) => setDiceCount(Math.max(1, Number(event.target.value)))}
+            />
+          </label>
+          <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            Tipo
+            <select className="field px-3 py-2 text-xs mt-1" value={diceSides} onChange={(event) => setDiceSides(Number(event.target.value))}>
+              {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
+                <option key={sides} value={sides} className="bg-ink-950 text-stone-200">d{sides}</option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            Destinatario
+            <select className="field px-3 py-2 text-xs mt-1" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)}>
+              <option value="" className="bg-ink-950 text-stone-200">Tutti</option>
+              {characters.map((character) => (
+                <option key={character.id} value={character.user_id} className="bg-ink-950 text-stone-200">
+                  {character.character_name} {character.character_surname}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+            Visibilità
+            <select className="field px-3 py-2 text-xs mt-1" value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "private")}>
+              <option value="public" className="bg-ink-950 text-stone-200">Pubblico</option>
+              <option value="private" className="bg-ink-950 text-stone-200">Privato</option>
+            </select>
+          </label>
         </div>
-        <input className="field px-3 py-2 text-sm" placeholder="Motivo tiro, es. Percezione" value={reason} onChange={(event) => setReason(event.target.value)} />
-        <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-ember-400/25 bg-ember-500/10 px-3 py-2 text-sm font-medium text-ember-100 hover:bg-ember-500/20">
-          <Send size={16} /> Invia richiesta
+        <div className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+          Motivazione
+          <input className="field px-3 py-2 text-xs mt-1" placeholder="Es. Percezione o Storia..." value={reason} onChange={(event) => setReason(event.target.value)} />
+        </div>
+        <button className="ui-btn-fantasy w-full mt-1.5 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-serif text-xs font-bold uppercase tracking-wider text-stone-900 transition">
+          <Send size={13} /> Invia richiesta
         </button>
       </form>
     </section>
@@ -71,16 +94,22 @@ export function PlayerDicePanel({ requests, onRoll }: { requests: DiceRequest[];
   if (!pending.length) return null;
 
   return (
-    <section className="glass-panel rounded-lg p-4">
-      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brass">
-        <Dice5 size={16} /> Tiri richiesti
+    <section className="ui-panel-window relative p-5 shadow-lg rounded-xl border border-brass/25 bg-ink-950/90 overflow-hidden">
+      {/* Decorative Corners */}
+      <div className="absolute left-1.5 top-1.5 h-1.5 w-1.5 border-l border-t border-brass/40 pointer-events-none" />
+      <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 border-r border-t border-brass/40 pointer-events-none" />
+      <div className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 border-l border-b border-brass/40 pointer-events-none" />
+      <div className="absolute right-1.5 bottom-1.5 h-1.5 w-1.5 border-r border-b border-brass/40 pointer-events-none" />
+
+      <h2 className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-[0.24em] text-brass">
+        <Dice5 size={14} className="filter drop-shadow-[0_0_5px_rgba(200,163,93,0.3)]" /> Tiri richiesti
       </h2>
       <div className="mt-4 grid gap-2">
         {pending.map((request) => (
-          <article key={request.id} className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3">
+          <article key={request.id} className="flex items-center justify-between gap-3 rounded-lg border border-brass/15 bg-white/[0.02] p-3.5">
             <div>
-              <p className="text-sm font-semibold text-white">Tira {getDiceCount(request)}d{request.dice_sides}</p>
-              <p className="text-xs text-slate-400">{stripDiceCountMarker(request.reason) || "Tiro richiesto dal Master"}</p>
+              <p className="font-serif text-sm font-bold tracking-wide text-stone-100">Tira {getDiceCount(request)}d{request.dice_sides}</p>
+              <p className="text-xs text-stone-400 mt-0.5">{stripDiceCountMarker(request.reason) || "Tiro richiesto dal Master"}</p>
             </div>
             <button
               type="button"
@@ -91,7 +120,7 @@ export function PlayerDicePanel({ requests, onRoll }: { requests: DiceRequest[];
                 import("@/lib/sound-generator").then((mod) => mod.playUiDiceRoll());
                 onRoll(request);
               }}
-              className="rounded-lg bg-ember-500 px-3 py-2 text-sm font-semibold text-ink-900 hover:bg-ember-400"
+              className="ui-btn-fantasy flex items-center justify-center rounded px-4 py-2 font-serif text-xs font-bold uppercase tracking-wider text-stone-900 transition"
             >
               Tira
             </button>
@@ -173,27 +202,40 @@ export function SpotlightManager({
   const [userIds, setUserIds] = useState<string[]>(room.spotlight_user_ids ?? []);
 
   return (
-    <section className="glass-panel rounded-lg p-4">
-      <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brass">
-        <Eye size={16} /> Personaggio in conversazione
+    <section className="ui-panel-window relative p-5 shadow-lg rounded-xl border border-brass/25 bg-ink-950/90 overflow-hidden">
+      {/* Decorative Corners */}
+      <div className="absolute left-1.5 top-1.5 h-1.5 w-1.5 border-l border-t border-brass/40 pointer-events-none" />
+      <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 border-r border-t border-brass/40 pointer-events-none" />
+      <div className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 border-l border-b border-brass/40 pointer-events-none" />
+      <div className="absolute right-1.5 bottom-1.5 h-1.5 w-1.5 border-r border-b border-brass/40 pointer-events-none" />
+
+      <h2 className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-[0.24em] text-brass">
+        <Eye size={14} className="filter drop-shadow-[0_0_5px_rgba(200,163,93,0.3)]" /> Personaggio in conversazione
       </h2>
-      <div className="mt-4 grid gap-2">
-        <select className="field px-3 py-2 text-sm" value={npcId} onChange={(event) => setNpcId(event.target.value)}>
-          <option value="">Nessuno</option>
-          {npcs.map((npc) => <option key={npc.id} value={npc.id}>{npc.name}</option>)}
-        </select>
-        <select className="field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as "off" | "public" | "private")}>
-          <option value="off">Nascosto</option>
-          <option value="public">Pubblico</option>
-          <option value="private">Solo selezionati</option>
-        </select>
+      <div className="mt-4 grid gap-3">
+        <div className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+          Seleziona NPC
+          <select className="field px-3 py-2 text-xs mt-1" value={npcId} onChange={(event) => setNpcId(event.target.value)}>
+            <option value="" className="bg-ink-950 text-stone-200">Nessuno</option>
+            {npcs.map((npc) => <option key={npc.id} value={npc.id} className="bg-ink-950 text-stone-200">{npc.name}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
+          Visibilità
+          <select className="field px-3 py-2 text-xs mt-1" value={visibility} onChange={(event) => setVisibility(event.target.value as "off" | "public" | "private")}>
+            <option value="off" className="bg-ink-950 text-stone-200">Nascosto</option>
+            <option value="public" className="bg-ink-950 text-stone-200">Pubblico</option>
+            <option value="private" className="bg-ink-950 text-stone-200">Solo selezionati</option>
+          </select>
+        </div>
         {visibility === "private" ? (
-          <div className="grid gap-2">
+          <div className="grid gap-1.5 max-h-40 overflow-y-auto pr-1 mt-1 scrollbar-soft">
             {characters.map((character) => (
-              <label key={character.id} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-slate-200">
+              <label key={character.id} className="flex items-center justify-between rounded border border-brass/15 bg-white/[0.01] px-3 py-1.5 text-xs text-stone-300">
                 {character.character_name} {character.character_surname}
                 <input
                   type="checkbox"
+                  className="accent-brass"
                   checked={userIds.includes(character.user_id)}
                   onChange={() => setUserIds((ids) => (ids.includes(character.user_id) ? ids.filter((id) => id !== character.user_id) : [...ids, character.user_id]))}
                 />
@@ -201,7 +243,7 @@ export function SpotlightManager({
             ))}
           </div>
         ) : null}
-        <button type="button" onClick={() => onSave({ npcId: npcId || null, visibility, userIds })} className="rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-100 hover:bg-emerald-500/20">
+        <button type="button" onClick={() => onSave({ npcId: npcId || null, visibility, userIds })} className="ui-btn-fantasy w-full mt-1.5 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-serif text-xs font-bold uppercase tracking-wider text-stone-900 transition">
           Salva focus
         </button>
       </div>

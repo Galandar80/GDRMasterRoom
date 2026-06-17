@@ -58,9 +58,9 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
         <button
           type="button"
           onClick={onBack}
-          className="self-start inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-stone-300 hover:bg-white/[0.08] hover:text-white transition"
+          className="self-start inline-flex items-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-3.5 py-2 text-xs uppercase tracking-wider text-stone-300 hover:border-brass/55 hover:bg-brass/10 hover:text-white transition font-serif"
         >
-          <ArrowLeft size={16} /> Menu
+          <ArrowLeft size={14} /> Menu
         </button>
 
         <h1 className="mt-2 text-2xl font-serif font-bold uppercase tracking-wider text-brass">
@@ -70,38 +70,28 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
           Inserisci il codice fornito dal Master. Scegli Giocatore se devi creare o riprendere il tuo eroe, Master solo se quella stanza appartiene al tuo account.
         </p>
 
-        <div className="mt-2 grid gap-2 rounded-lg border border-white/5 bg-black/45 p-1 sm:grid-cols-2" role="tablist" aria-label="Modalita ingresso">
+        <div className="mt-2 grid gap-2 rounded-lg border border-brass/15 bg-black/45 p-1 sm:grid-cols-2" role="tablist" aria-label="Modalita ingresso">
           <button
             type="button"
             onClick={() => setMode("player")}
-            className={`rounded px-3 py-3 text-left transition duration-150 ${
-              mode === "player"
-                ? "bg-brass/25 text-brass border border-brass/45"
-                : "bg-transparent text-stone-400 border border-transparent hover:text-white"
-            }`}
+            className={`ui-tab-button justify-center text-center py-3 ${mode === "player" ? "is-active" : ""}`}
             role="tab"
             aria-selected={mode === "player"}
           >
             <span className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-wider">
               <UserRound size={15} /> Giocatore
             </span>
-            <span className="mt-1 block text-[11px] font-normal normal-case leading-4 opacity-75">Entro al tavolo con il mio personaggio.</span>
           </button>
           <button
             type="button"
             onClick={() => setMode("master")}
-            className={`rounded px-3 py-3 text-left transition duration-150 ${
-              mode === "master"
-                ? "bg-brass/25 text-brass border border-brass/45"
-                : "bg-transparent text-stone-400 border border-transparent hover:text-white"
-            }`}
+            className={`ui-tab-button justify-center text-center py-3 ${mode === "master" ? "is-active" : ""}`}
             role="tab"
             aria-selected={mode === "master"}
           >
             <span className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-wider">
               <Shield size={15} /> Master
             </span>
-            <span className="mt-1 block text-[11px] font-normal normal-case leading-4 opacity-75">Rientro nella regia di una mia stanza.</span>
           </button>
         </div>
 
@@ -141,7 +131,7 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
             <button
               type="button"
               onClick={pasteInviteCode}
-              className="grid w-12 place-items-center rounded-lg border border-white/10 bg-white/[0.04] text-brass transition hover:border-brass/40 hover:bg-brass/10"
+              className="grid w-12 place-items-center rounded-lg border border-brass/35 bg-black/45 text-brass transition hover:border-brass/55 hover:bg-brass/10"
               aria-label="Incolla codice dagli appunti"
             >
               <ClipboardPaste size={18} />

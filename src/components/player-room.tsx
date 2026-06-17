@@ -18,6 +18,8 @@ import type { DiceRequest } from "@/lib/types";
 import { parseCharacterMetadata } from "@/lib/character-metadata";
 import { rollDice as rollDiceValues } from "@/lib/game-random";
 import { playUiClick, playUiHover } from "@/lib/sound-generator";
+import { buildPlayerNotifications, notificationBadgeCount, notificationReadKey, notificationToneClass, readSeenNotificationKeys, writeSeenNotificationKeys, type SmartNotification } from "@/lib/notifications";
+import { buildPlayerEngagement } from "@/lib/engagement";
 
 
 type PlayerRoomProps = {
@@ -35,7 +37,7 @@ type PlayerRoomProps = {
 };
 
 type MobileTab = "chat" | "map" | "sheet" | "private" | "off";
-type UtilityPanel = "notes" | "inventory" | "private" | "map" | "sheet" | "help" | null;
+type UtilityPanel = "next" | "notes" | "inventory" | "private" | "map" | "sheet" | "help" | null;
 
 export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend, onOffSend, onTyping, onRollDice, onCreateNote, onLoadOlderMessages, onExportMessages }: PlayerRoomProps) {
   const [playerText, setPlayerText] = useState("");
@@ -49,6 +51,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
   const [seenInventoryIds, setSeenInventoryIds] = useState<Set<string>>(new Set());
   const prevHpRef = useRef<number | undefined>(undefined);
   const notificationBaselineRef = useRef(false);
+  const utilityTriggerRef = useRef<HTMLElement | null>(null);
   
   // Lifted local audio states
   const [localVolume, setLocalVolume] = useState<number>(55);
@@ -109,12 +112,18 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
   }, [currentCharacterItems]);
 
   const openUtility = (panel: Exclude<UtilityPanel, null>) => {
+    utilityTriggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     if (panel === "sheet") {
       setSheetCharacterId(currentCharacter?.id ?? null);
     }
     if (panel === "private") markPrivateSeen();
     if (panel === "inventory") markInventorySeen();
     setUtilityPanel(panel);
+  };
+
+  const closeUtility = () => {
+    setUtilityPanel(null);
+    window.requestAnimationFrame(() => utilityTriggerRef.current?.focus());
   };
 
   const openCharacterSheet = (characterId: string) => {
@@ -288,9 +297,16 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
           panel={utilityPanel}
           state={state}
           character={modalCharacter}
-          onClose={() => setUtilityPanel(null)}
+          onClose={closeUtility}
           onCreateNote={onCreateNote}
           onPrivateSend={onPrivateSend}
+          inventoryCount={currentCharacterItems.length}
+          privateCount={incomingPrivateMessages.length}
+          onOpenUtility={openUtility}
+          onOpenTab={(tab) => {
+            setMobileTab(tab);
+            setUtilityPanel(null);
+          }}
         />
       ) : null}
 
@@ -363,7 +379,10 @@ function PlayerHeader({
         <div className="grid gap-2 xl:min-w-[36rem]">
           {currentCharacter ? (
             <div className="player-current-strip">
-              <span className="h-12 w-12 shrink-0 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${currentCharacter.portrait_url})` }} />
+              <span
+                className={`h-12 w-12 shrink-0 rounded-lg bg-cover bg-center ${currentCharacter.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+                style={currentCharacter.portrait_url ? { backgroundImage: `url(${currentCharacter.portrait_url})` } : undefined}
+              />
               <span className="min-w-0">
                 <small>Stai interpretando</small>
                 <strong style={{ color: currentCharacter.color }}>{currentCharacter.character_name} {currentCharacter.character_surname}</strong>
@@ -371,13 +390,14 @@ function PlayerHeader({
               <span className="player-current-stat">PF {currentCharacter.hp}</span>
             </div>
           ) : null}
-          <div className="grid gap-2 sm:grid-cols-3 xl:grid-cols-6">
-            <HeaderAction icon={<ScrollText size={16} />} label="Note" onClick={() => onOpenUtility("notes")} />
-            <HeaderAction icon={<Backpack size={16} />} label="Inventario" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
-            <HeaderAction icon={<BookOpenText size={16} />} label="Sussurri" badge={privateCount} onClick={() => onOpenUtility("private")} />
-            <HeaderAction icon={<MapPinned size={16} />} label="Mappa" onClick={() => onOpenUtility("map")} />
-            <HeaderAction icon={immersiveMode ? <EyeOff size={16} /> : <Eye size={16} />} label={immersiveMode ? "UI" : "Immersione"} onClick={onToggleImmersive} />
-            <HeaderAction icon={<UserRound size={16} />} label="Scheda" onClick={() => onOpenUtility("sheet")} />
+          <div className="player-header-actions grid gap-2 sm:grid-cols-3 xl:grid-cols-7" aria-label="Strumenti rapidi giocatore">
+            <HeaderAction icon={<Sparkles size={16} />} label="Azioni" atlasArea="regia" onClick={() => onOpenUtility("next")} />
+            <HeaderAction icon={<ScrollText size={16} />} label="Note" atlasArea="scene" onClick={() => onOpenUtility("notes")} />
+            <HeaderAction icon={<Backpack size={16} />} label="Inventario" atlasArea="zaini" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
+            <HeaderAction icon={<BookOpenText size={16} />} label="Sussurri" atlasArea="chat" badge={privateCount} onClick={() => onOpenUtility("private")} />
+            <HeaderAction icon={<MapPinned size={16} />} label="Mappa" atlasArea="mappa" onClick={() => onOpenUtility("map")} />
+            <HeaderAction icon={immersiveMode ? <EyeOff size={16} /> : <Eye size={16} />} label={immersiveMode ? "UI" : "Immersione"} atlasArea="media" onClick={onToggleImmersive} />
+            <HeaderAction icon={<UserRound size={16} />} label="Scheda" atlasArea="eroi" onClick={() => onOpenUtility("sheet")} />
             <InfoTile label="Stanza" value={state.scene.title} />
             <InfoTile label="Codice invito" value={state.room.invite_code} copy />
           </div>
@@ -387,11 +407,25 @@ function PlayerHeader({
   );
 }
 
-function HeaderAction({ icon, label, badge, onClick }: { icon: React.ReactNode; label: string; badge?: number; onClick: () => void }) {
+function HeaderAction({
+  icon,
+  label,
+  atlasArea,
+  badge,
+  onClick
+}: {
+  icon: React.ReactNode;
+  label: string;
+  atlasArea: string;
+  badge?: number;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
       className="player-header-action"
+      data-atlas-area={atlasArea}
+      aria-label={`${label}${badge ? `, ${badge} nuove notifiche` : ""}`}
       onMouseEnter={() => {
         import("@/lib/sound-generator").then((mod) => mod.playUiHover());
       }}
@@ -424,7 +458,10 @@ function MobileCharacterStrip({ characters, currentUserId, onOpenCharacter }: { 
           onMouseEnter={playUiHover}
           className={character.user_id === currentUserId ? "is-current" : ""}
         >
-          <span className="h-10 w-10 shrink-0 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${character.portrait_url})` }} />
+          <span
+            className={`h-10 w-10 shrink-0 rounded-lg bg-cover bg-center ${character.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+            style={character.portrait_url ? { backgroundImage: `url(${character.portrait_url})` } : undefined}
+          />
           <span className="min-w-0">
             <strong style={{ color: character.color }}>{character.character_name}</strong>
             <small>PF {character.hp} · {character.visible_status}</small>
@@ -441,7 +478,11 @@ function PlayerUtilityModal({
   character,
   onClose,
   onCreateNote,
-  onPrivateSend
+  onPrivateSend,
+  inventoryCount,
+  privateCount,
+  onOpenUtility,
+  onOpenTab
 }: {
   panel: UtilityPanel;
   state: RoomState;
@@ -449,15 +490,27 @@ function PlayerUtilityModal({
   onClose: () => void;
   onCreateNote: (values: { title: string; content: string }) => void;
   onPrivateSend: (content: string, recipientUserId: string) => void;
+  inventoryCount: number;
+  privateCount: number;
+  onOpenUtility: (panel: Exclude<UtilityPanel, null>) => void;
+  onOpenTab: (tab: MobileTab) => void;
 }) {
   const [noteTitle, setNoteTitle] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [sheetTab, setSheetTab] = useState<"dossier" | "help">("dossier");
+  const modalRef = useRef<HTMLElement | null>(null);
+  const modalTitleId = panel ? `player-utility-title-${panel}` : "player-utility-title";
+
+  useEffect(() => {
+    if (panel) modalRef.current?.focus();
+  }, [panel]);
+
   if (!panel) return null;
 
   const characterItems = state.inventory.filter((item) => item.character_id === character.id);
   const characterNotes = state.notes.filter((note) => note.character_id === character.id);
   const titles = {
+    next: "Prossime azioni",
     notes: "Note personali",
     inventory: "Inventario",
     private: "Sussurri",
@@ -467,12 +520,57 @@ function PlayerUtilityModal({
   };
 
   return (
-    <div className={`player-utility-backdrop ${panel === "map" ? "player-utility-backdrop--fullscreen" : ""}`} role="dialog" aria-modal="true">
-      <section className={`player-utility-modal ${panel === "map" ? "player-utility-modal--fullscreen" : ""}`}>
+    <div
+      className={`player-utility-backdrop ${panel === "map" ? "player-utility-backdrop--fullscreen" : ""}`}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        ref={modalRef}
+        className={`player-utility-modal ${panel === "map" ? "player-utility-modal--fullscreen" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={modalTitleId}
+        tabIndex={-1}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            onClose();
+            return;
+          }
+
+          if (event.key !== "Tab") return;
+
+          const focusable = modalRef.current
+            ? Array.from(
+                modalRef.current.querySelectorAll<HTMLElement>(
+                  'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                )
+              ).filter((element) => !element.hasAttribute("disabled") && element.getAttribute("aria-hidden") !== "true")
+            : [];
+
+          if (!focusable.length) {
+            event.preventDefault();
+            modalRef.current?.focus();
+            return;
+          }
+
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
+        }}
+      >
         <header>
           <div>
             <p className="player-modal-kicker">Strumento giocatore</p>
-            <h2>{titles[panel]}</h2>
+            <h2 id={modalTitleId}>{titles[panel]}</h2>
           </div>
           <button
             type="button"
@@ -491,6 +589,17 @@ function PlayerUtilityModal({
             <X size={18} />
           </button>
         </header>
+
+        {panel === "next" ? (
+          <PlayerNextStepsPanel
+            state={state}
+            currentCharacter={character}
+            inventoryCount={inventoryCount}
+            privateCount={privateCount}
+            onOpenUtility={onOpenUtility}
+            onOpenTab={onOpenTab}
+          />
+        ) : null}
 
         {panel === "notes" ? (
           <div className="grid gap-4">
@@ -565,9 +674,9 @@ function PlayerUtilityModal({
         {panel === "sheet" ? (() => {
           const meta = parseCharacterMetadata(character.public_background);
           return (
-            <div className="grid gap-5">
+            <div className="player-sheet-atlas grid gap-5">
               {/* Tab Navigation */}
-              <div className="flex gap-2 border-b border-white/10 pb-3">
+              <div className="player-sheet-tabs flex gap-2 border-b border-white/10 pb-3">
                 <button
                   type="button"
                   onClick={() => {
@@ -599,19 +708,17 @@ function PlayerUtilityModal({
               </div>
 
               {sheetTab === "dossier" ? (
-                <div className="grid gap-6 md:grid-cols-[14rem_1fr]">
+                <div className="player-sheet-dossier grid gap-6 md:grid-cols-[14rem_1fr]">
                   {/* Left Column: Portrait & Stats */}
                   <div className="flex flex-col items-center gap-4 text-center">
-                    <div className="relative h-44 w-44 overflow-hidden rounded-xl border-2 border-brass/40 bg-black/40 shadow-lg">
+                    <div className="player-sheet-portrait relative h-44 w-44 overflow-hidden rounded-xl border-2 border-brass/40 bg-black/40 shadow-lg">
                       {character.portrait_url ? (
                         <div
                           className="h-full w-full bg-cover bg-center"
                           style={{ backgroundImage: `url(${character.portrait_url})` }}
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-brass/50 bg-brass/5">
-                          <UserRound size={48} />
-                        </div>
+                        <div className="atlas-placeholder atlas-placeholder--hero h-full w-full" />
                       )}
                     </div>
                     <div className="w-full">
@@ -625,7 +732,7 @@ function PlayerUtilityModal({
                     </div>
 
                     {/* Vitals Box */}
-                    <div className="w-full rounded-lg border border-white/5 bg-white/[0.01] p-3 text-left space-y-2.5">
+                    <div className="player-sheet-panel w-full rounded-lg border border-white/5 bg-white/[0.01] p-3 text-left space-y-2.5">
                       <div>
                         <div className="flex items-center justify-between text-xs font-bold text-slate-400">
                           <span className="flex items-center gap-1"><Heart size={12} className="text-red-500" /> Punti Ferita</span>
@@ -656,11 +763,11 @@ function PlayerUtilityModal({
                   <div className="space-y-4">
                     {/* Origin & Alignment */}
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-lg border border-white/5 bg-white/[0.01] p-3">
+                      <div className="player-sheet-panel rounded-lg border border-white/5 bg-white/[0.01] p-3">
                         <span className="block text-[10px] uppercase text-brass font-bold">Origine</span>
                         <p className="mt-1 text-sm text-stone-200">{meta.origin || "n/d"}</p>
                       </div>
-                      <div className="rounded-lg border border-white/5 bg-white/[0.01] p-3">
+                      <div className="player-sheet-panel rounded-lg border border-white/5 bg-white/[0.01] p-3">
                         <span className="block text-[10px] uppercase text-brass font-bold">Allineamento / Credo</span>
                         <p className="mt-1 text-sm text-stone-200">{meta.alignment || "Neutrale"}</p>
                       </div>
@@ -668,7 +775,7 @@ function PlayerUtilityModal({
 
                     {/* Traits & Appearance */}
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-lg border border-white/5 bg-white/[0.01] p-3">
+                      <div className="player-sheet-panel rounded-lg border border-white/5 bg-white/[0.01] p-3">
                         <span className="block text-[10px] uppercase text-brass font-bold">Tratti Speciali</span>
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {meta.traits.length > 0 ? (
@@ -682,20 +789,20 @@ function PlayerUtilityModal({
                           )}
                         </div>
                       </div>
-                      <div className="rounded-lg border border-white/5 bg-white/[0.01] p-3">
+                      <div className="player-sheet-panel rounded-lg border border-white/5 bg-white/[0.01] p-3">
                         <span className="block text-[10px] uppercase text-brass font-bold">Aspetto Fisico</span>
                         <p className="mt-1 text-sm text-stone-200 italic">{meta.appearance || "Nessun dettaglio descritto."}</p>
                       </div>
                     </div>
 
                     {/* Group Connection / Bond */}
-                    <div className="rounded-lg border border-white/5 bg-white/[0.01] p-3">
+                    <div className="player-sheet-panel rounded-lg border border-white/5 bg-white/[0.01] p-3">
                       <span className="block text-[10px] uppercase text-brass font-bold">Connessione / Legame Narrativo</span>
                       <p className="mt-1 text-sm text-stone-200">{meta.bond || "Nessun legame di gruppo specificato."}</p>
                     </div>
 
                     {/* Private Secret */}
-                    <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 p-4 shadow-[inset_0_0_12px_rgba(249,115,22,0.03)]">
+                    <div className="player-sheet-secret rounded-lg border border-amber-500/25 bg-amber-500/5 p-4 shadow-[inset_0_0_12px_rgba(249,115,22,0.03)]">
                       <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
                         <Lock size={12} />
                         <span>Segreto Privato (Solo tu e il Master)</span>
@@ -706,7 +813,7 @@ function PlayerUtilityModal({
                     </div>
 
                     {/* Public Biography */}
-                    <div className="rounded-lg border border-white/5 bg-white/[0.01] p-4">
+                    <div className="player-sheet-panel rounded-lg border border-white/5 bg-white/[0.01] p-4">
                       <span className="block text-[10px] uppercase text-brass font-bold mb-2">Biografia Pubblica</span>
                       <p className="text-sm leading-relaxed text-stone-300 whitespace-pre-line">
                         {meta.bio || "Nessuna biografia inserita."}
@@ -774,6 +881,136 @@ function InfoTile({ label, value, copy = false }: { label: string; value: string
   );
 }
 
+function PlayerNextStepsPanel({
+  state,
+  currentCharacter,
+  inventoryCount,
+  privateCount,
+  onOpenUtility,
+  onOpenTab
+}: {
+  state: RoomState;
+  currentCharacter?: RoomState["characters"][number];
+  inventoryCount: number;
+  privateCount: number;
+  onOpenUtility: (panel: Exclude<UtilityPanel, null>) => void;
+  onOpenTab: (tab: MobileTab) => void;
+}) {
+  const visibleMaps = state.maps.filter((map) => map.is_visible_to_players);
+  const isTurnActive = !state.room.turn_enabled || state.room.turn_order?.[state.room.current_turn_index ?? 0] === state.profile.id;
+  const steps = [
+    {
+      id: "chat",
+      done: state.messages.length > 0,
+      title: isTurnActive ? "Partecipa alla scena" : "Attendi il tuo turno",
+      detail: isTurnActive ? "La chat GDR e pronta per il tuo intervento." : "Il Master ha attivato l'ordine di turno.",
+      action: "Chat",
+      onClick: () => onOpenTab("chat")
+    },
+    {
+      id: "sheet",
+      done: Boolean(currentCharacter?.is_setup_complete),
+      title: "Controlla la scheda",
+      detail: currentCharacter ? `${currentCharacter.character_name} · PF ${currentCharacter.hp}` : "Completa identita e stato del personaggio.",
+      action: "Scheda",
+      onClick: () => onOpenUtility("sheet")
+    },
+    {
+      id: "map",
+      done: visibleMaps.length > 0,
+      title: "Orientati sulla mappa",
+      detail: visibleMaps.length ? `${visibleMaps.length} mappe disponibili.` : "Quando il Master pubblica una mappa, apparira qui.",
+      action: "Mappa",
+      onClick: () => onOpenTab("map")
+    },
+    {
+      id: "inventory",
+      done: inventoryCount > 0,
+      title: "Verifica inventario",
+      detail: inventoryCount ? `${inventoryCount} oggetti assegnati.` : "Gli oggetti del Master appariranno nello zaino.",
+      action: "Zaino",
+      onClick: () => onOpenUtility("inventory")
+    },
+    {
+      id: "private",
+      done: privateCount > 0,
+      title: "Leggi i sussurri",
+      detail: privateCount ? `${privateCount} messaggi privati ricevuti.` : "I messaggi segreti con il Master restano qui.",
+      action: "Privati",
+      onClick: () => onOpenUtility("private")
+    }
+  ];
+  const completed = steps.filter((step) => step.done).length;
+  const completionPercent = Math.round((completed / steps.length) * 100);
+  const nextStep = steps.find((step) => !step.done);
+  const engagement = useMemo(
+    () => buildPlayerEngagement(state, currentCharacter?.id, inventoryCount, privateCount),
+    [state, currentCharacter?.id, inventoryCount, privateCount]
+  );
+
+  return (
+    <section className="next-steps-panel player-next-steps rounded-xl border border-brass/20 bg-black/35 p-3 shadow-[0_0_24px_rgba(0,0,0,0.16)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-brass/80">Prossime azioni</p>
+          <h2 className="mt-1 font-serif text-lg text-stone-100">Tavolo giocatore</h2>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-1.5 text-xs text-emerald-100">
+          <Check size={13} /> {completed}/{steps.length}
+        </span>
+      </div>
+
+      <div className="progress-dashboard mt-3" aria-label={`Partecipazione giocatore completata al ${completionPercent} percento`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="progress-dashboard-label">Prontezza giocatore</span>
+          <strong>{completionPercent}%</strong>
+        </div>
+        <div className="progress-meter mt-2" aria-hidden="true">
+          <span style={{ width: `${completionPercent}%` }} />
+        </div>
+        <p className="mt-2 text-[11px] leading-4 text-stone-400">
+          {nextStep ? `Prossima azione consigliata: ${nextStep.title.toLowerCase()}.` : "Tutto pronto: puoi concentrarti sulla scena."}
+        </p>
+        <div className="achievement-strip mt-3" aria-label="Traguardi giocatore">
+          {engagement.milestones.slice(0, 7).map((milestone) => (
+            <span key={milestone.id} className={milestone.unlocked ? "is-unlocked" : ""} title={milestone.detail}>
+              <Check size={12} /> {milestone.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-stone-500">
+          Retention giocatore: {engagement.unlocked}/{engagement.total} traguardi · {engagement.score}%
+        </p>
+      </div>
+
+      <div className="next-steps-track mt-3 grid gap-2 md:grid-cols-5">
+        {steps.map((step) => (
+          <button
+            key={step.id}
+            type="button"
+            aria-label={`${step.done ? "Completato" : "Da completare"}: ${step.action}. ${step.title}. ${step.detail}`}
+            onMouseEnter={playUiHover}
+            onClick={() => {
+              playUiClick();
+              step.onClick();
+            }}
+            className={`next-steps-card rounded-lg border p-2.5 text-left transition hover:bg-white/[0.06] ${
+              step.done ? "border-emerald-400/25 bg-emerald-500/10" : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <span className="flex items-center justify-between gap-2">
+              <span className="font-serif text-[10px] uppercase tracking-[0.16em] text-brass">{step.action}</span>
+              <Check size={12} className={step.done ? "text-emerald-300" : "text-stone-500"} />
+            </span>
+            <strong className="mt-1.5 block text-xs text-stone-100">{step.title}</strong>
+            <span className="mt-1 block text-[11px] leading-4 text-stone-400">{step.detail}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function MobilePlayerTabs({ active, onChange }: { active: MobileTab; onChange: (tab: MobileTab) => void }) {
   const items: Array<{ id: MobileTab; label: string; icon: React.ReactNode }> = [
     { id: "chat", label: "Chat", icon: <MessageCircle size={15} /> },
@@ -789,6 +1026,8 @@ function MobilePlayerTabs({ active, onChange }: { active: MobileTab; onChange: (
         <button
           key={item.id}
           type="button"
+          aria-label={`Apri sezione ${item.label}`}
+          aria-current={active === item.id ? "page" : undefined}
           onClick={() => onChange(item.id)}
           className={`inline-flex items-center justify-center gap-1 rounded-md px-2 py-2 text-xs ${active === item.id ? "bg-ember-500 text-ink-900" : "text-slate-300"}`}
         >
@@ -840,13 +1079,36 @@ function PlayerActionHotbar({
   onMutedChange
 }: PlayerActionHotbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationStorageKey = `gdr_seen_notifications:${state.room.id}:${state.profile.id}:player`;
+  const [seenNotificationKeys, setSeenNotificationKeys] = useState<Set<string>>(() => readSeenNotificationKeys(notificationStorageKey));
+  const notificationPanelId = "player-notification-center";
 
   const visibleDiceRequests = state.diceRequests.filter(
     (request) => !request.target_user_id || request.target_user_id === state.profile.id
   );
+  const pendingDiceRequests = visibleDiceRequests.filter((request) => request.status === "pending");
   const spotlightVisible = state.room.spotlight_visibility !== "off" && Boolean(state.room.spotlight_npc_id);
   const spotlightNpc = spotlightVisible ? state.npcs.find((n) => n.id === state.room.spotlight_npc_id) : null;
-  const totalNotifications = visibleDiceRequests.length + (spotlightVisible ? 1 : 0) + unreadPrivateCount + unreadInventoryCount;
+  const smartNotifications = useMemo(
+    () => buildPlayerNotifications(state, unreadPrivateCount, unreadInventoryCount),
+    [state, unreadPrivateCount, unreadInventoryCount]
+  );
+  const unreadSmartNotifications = smartNotifications.filter((item) => !seenNotificationKeys.has(notificationReadKey(item)));
+  const totalNotifications = notificationBadgeCount(unreadSmartNotifications);
+  const criticalCount = smartNotifications.filter((item) => item.priority === "critical" || item.priority === "high").length;
+
+  const handleNotificationAction = (item: SmartNotification) => {
+    if (item.actionTarget === "private") onOpenUtility("private");
+    if (item.actionTarget === "inventory") onOpenUtility("inventory");
+    if (item.actionTarget === "map") onOpenUtility("map");
+    if (item.actionTarget === "scene") setShowNotifications(false);
+    setShowNotifications(false);
+    playUiClick();
+  };
+
+  useEffect(() => {
+    setSeenNotificationKeys(readSeenNotificationKeys(notificationStorageKey));
+  }, [notificationStorageKey]);
 
   return (
     <div className="player-action-hotbar fixed bottom-4 left-1/2 z-40 -translate-x-1/2 flex items-center gap-3 ui-hotbar-panel shadow-2xl transition-all duration-300">
@@ -858,14 +1120,20 @@ function PlayerActionHotbar({
           onClick={() => {
             const nextVisible = !showNotifications;
             setShowNotifications(nextVisible);
-            if (nextVisible) onMarkNotificationsSeen();
+            if (nextVisible) {
+              onMarkNotificationsSeen();
+              const nextSeen = new Set([...seenNotificationKeys, ...smartNotifications.map(notificationReadKey)]);
+              setSeenNotificationKeys(nextSeen);
+              writeSeenNotificationKeys(notificationStorageKey, nextSeen);
+            }
             playUiClick();
           }}
           onMouseEnter={playUiHover}
           className={`relative flex h-8 w-8 items-center justify-center rounded-full border transition ${showNotifications ? "border-brass bg-brass/20 text-brass" : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-brass/30 hover:bg-brass/15 hover:text-brass"}`}
           title="Notifiche attive"
-          aria-label="Apri notifiche attive"
+          aria-label={`${showNotifications ? "Chiudi" : "Apri"} notifiche attive${totalNotifications > 0 ? `, ${totalNotifications} presenti` : ""}`}
           aria-expanded={showNotifications}
+          aria-controls={notificationPanelId}
         >
           <Bell size={14} />
           {totalNotifications > 0 && (
@@ -876,23 +1144,59 @@ function PlayerActionHotbar({
         </button>
 
         {showNotifications && (
-          <div className="absolute bottom-12 left-0 z-50 w-64 rounded-xl border border-white/10 bg-ink-950/95 p-3 shadow-xl backdrop-blur-md space-y-2 text-left">
+          <div
+            id={notificationPanelId}
+            className="absolute bottom-12 left-0 z-50 w-72 rounded-xl border border-white/10 bg-ink-950/95 p-3 shadow-xl backdrop-blur-md space-y-2 text-left"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <h3 className="text-xs font-semibold text-brass uppercase tracking-wider flex items-center gap-1.5 pb-1.5 border-b border-white/5">
               <Bell size={12} /> Notifiche Attive
             </h3>
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
-              {visibleDiceRequests.map((req) => (
-                <div key={req.id} className="flex flex-col gap-1 rounded bg-white/[0.02] border border-white/5 p-2 text-[11px] text-slate-300">
+            {totalNotifications > 0 ? (
+              <div className="grid grid-cols-4 gap-1 text-center text-[10px] text-stone-300">
+                <span className="rounded border border-rose-300/20 bg-rose-500/10 px-1.5 py-1">{pendingDiceRequests.length} tiri</span>
+                <span className="rounded border border-brass/20 bg-brass/10 px-1.5 py-1">{spotlightVisible ? 1 : 0} focus</span>
+                <span className="rounded border border-amber-300/20 bg-amber-500/10 px-1.5 py-1">{unreadInventoryCount} zaino</span>
+                <span className="rounded border border-sky-300/20 bg-sky-500/10 px-1.5 py-1">{unreadPrivateCount} privati</span>
+              </div>
+            ) : null}
+            {smartNotifications.length ? (
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+                <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">
+                  {criticalCount ? `${criticalCount} priorita alte` : "Situazione sotto controllo"}
+                </p>
+                <div className="grid gap-1.5">
+                  {smartNotifications.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleNotificationAction(item)}
+                      className={`rounded border p-2 text-left text-[11px] transition hover:bg-white/[0.06] ${notificationToneClass(item.priority)}`}
+                    >
+                      <span className="block font-semibold">{item.title}</span>
+                      <span className="mt-0.5 block text-slate-300/80">{item.detail}</span>
+                      {item.actionLabel ? <span className="mt-1 block text-[10px] uppercase tracking-[0.15em] opacity-75">{item.actionLabel}</span> : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="space-y-1.5 max-h-64 overflow-y-auto scrollbar-soft">
+              {pendingDiceRequests.map((req) => (
+                <div key={req.id} className="flex flex-col gap-1 rounded border border-rose-300/20 bg-rose-500/10 p-2 text-[11px] text-rose-50">
                   <span className="font-semibold text-rose-300 flex items-center gap-1">
-                    <ShieldAlert size={11} /> Richiesta tiro dadi
+                    <ShieldAlert size={11} /> Priorita alta · Tiro richiesto
                   </span>
                   <span>Il Master richiede un tiro di <strong>d{req.dice_sides}</strong> per: &ldquo;{req.reason}&rdquo;</span>
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-rose-200/80">Apri il pannello dadi visibile nella scena</span>
                 </div>
               ))}
               {spotlightVisible && spotlightNpc && (
-                <div className="flex flex-col gap-0.5 rounded bg-white/[0.02] border border-white/5 p-2 text-[11px] text-slate-300">
+                <div className="flex flex-col gap-0.5 rounded border border-brass/20 bg-brass/10 p-2 text-[11px] text-stone-200">
                   <span className="font-semibold text-brass flex items-center gap-1">
-                    <Sparkles size={11} /> Evidenza (Spotlight)
+                    <Sparkles size={11} /> Spotlight narrativo
                   </span>
                   <span>L&apos;NPC <strong>{spotlightNpc.name}</strong> è in evidenza scenica.</span>
                 </div>
@@ -901,7 +1205,7 @@ function PlayerActionHotbar({
                 <button
                   type="button"
                   onClick={() => { onOpenUtility("inventory"); setShowNotifications(false); playUiClick(); }}
-                  className="w-full flex flex-col gap-0.5 text-left rounded bg-white/[0.02] border border-white/5 p-2 text-[11px] text-slate-300 hover:bg-brass/10 hover:border-brass/20 transition"
+                  className="w-full flex flex-col gap-0.5 text-left rounded border border-amber-300/20 bg-amber-500/10 p-2 text-[11px] text-amber-50 hover:bg-amber-500/15 transition"
                 >
                   <span className="font-semibold text-amber-300 flex items-center gap-1">
                     <Backpack size={11} /> Inventario
@@ -913,7 +1217,7 @@ function PlayerActionHotbar({
                 <button
                   type="button"
                   onClick={() => { onOpenUtility("private"); setShowNotifications(false); playUiClick(); }}
-                  className="w-full flex flex-col gap-0.5 text-left rounded bg-white/[0.02] border border-white/5 p-2 text-[11px] text-slate-300 hover:bg-brass/10 hover:border-brass/20 transition"
+                  className="w-full flex flex-col gap-0.5 text-left rounded border border-sky-300/20 bg-sky-500/10 p-2 text-[11px] text-sky-50 hover:bg-sky-500/15 transition"
                 >
                   <span className="font-semibold text-sky-300 flex items-center gap-1">
                     <MessageCircle size={11} /> Sussurri Master
@@ -1004,6 +1308,8 @@ function PlayerActionHotbar({
           onMouseEnter={playUiHover}
           className={`flex h-8 w-8 items-center justify-center rounded-full transition ${localMuted ? "text-rose-400 bg-rose-500/10 hover:bg-rose-500/20" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
           title={localMuted ? "Riattiva audio locale" : "Muta audio locale"}
+          aria-label={localMuted ? "Riattiva audio locale" : "Muta audio locale"}
+          aria-pressed={localMuted}
         >
           {localMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
         </button>

@@ -6,6 +6,8 @@ export type SpotlightVisibility = "off" | "public" | "private";
 export type SceneMediaType = "image" | "video";
 export type SceneVisibility = "public" | "private";
 export type MediaAssetType = "image" | "video" | "audio" | "sound" | "portrait" | "object" | "map";
+export type MediaAssetVisibility = "private" | "room" | "shared" | "global";
+export type MediaAssetApprovalStatus = "none" | "pending" | "approved" | "rejected";
 export type ChatFilter = "all" | "master" | "npc" | "player" | "off" | "dice" | "pinned";
 export type MapLevelType = "world" | "region" | "city" | "district" | "building" | "floor" | "room" | "custom";
 export type MapMarkerType = "mission" | "place" | "object" | "danger" | "event" | "portal" | "clue" | "custom";
@@ -187,6 +189,14 @@ export type MediaAsset = {
   url: string;
   tags?: string[];
   created_by?: string | null;
+  owner_id?: string | null;
+  visibility?: MediaAssetVisibility;
+  approval_status?: MediaAssetApprovalStatus;
+  file_size?: number;
+  mime_type?: string | null;
+  storage_bucket?: string | null;
+  storage_path?: string | null;
+  description?: string;
   created_at: string;
 };
 

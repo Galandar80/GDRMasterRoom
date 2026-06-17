@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowLeft, Clapperboard, Copy, ImageIcon, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, Clapperboard, Copy, ImageIcon, Sparkles } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import type { RoomState } from "@/lib/types";
+import { campaignPresets, type CampaignPreset } from "@/lib/campaign-presets";
 
 export type CreateGameValues = {
   campaignTitle: string;
@@ -27,6 +28,7 @@ type CreateGameFormProps = {
 };
 
 export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps) {
+  const [selectedPresetId, setSelectedPresetId] = useState<string>("");
   const [values, setValues] = useState<CreateGameValues>({
     campaignTitle: state.campaigns[0].title,
     genre: state.campaigns[0].genre,
@@ -44,15 +46,34 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
     setValues((current) => ({ ...current, [field]: value }));
   }
 
+  function applyPreset(preset: CampaignPreset) {
+    setSelectedPresetId(preset.id);
+    setValues((current) => ({
+      ...current,
+      campaignTitle: preset.campaignTitle,
+      genre: preset.genre,
+      description: preset.description,
+      coverImageUrl: preset.coverImageUrl,
+      coverImageFile: undefined,
+      roomName: preset.roomName,
+      maxPlayers: preset.maxPlayers,
+      sceneTitle: preset.sceneTitle,
+      sceneDescription: preset.sceneDescription,
+      sceneImageUrl: preset.sceneImageUrl,
+      sceneImageFile: undefined
+    }));
+  }
+
   return (
     <section className="mx-auto grid w-full max-w-6xl items-start gap-5 p-4 lg:grid-cols-[0.9fr_1.1fr]">
       <aside className="ui-panel-window self-start rounded-xl p-8 flex flex-col gap-4 text-white shadow-2xl relative">
         <button
           type="button"
           onClick={onBack}
-          className="self-start inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-stone-300 hover:bg-white/[0.08] hover:text-white transition"
+          aria-label="Torna al menu principale"
+          className="self-start inline-flex items-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-3.5 py-2 text-xs uppercase tracking-wider text-stone-300 hover:border-brass/55 hover:bg-brass/10 hover:text-white transition font-serif"
         >
-          <ArrowLeft size={16} /> Menu
+          <ArrowLeft size={14} /> Menu
         </button>
         
         <h1 className="mt-2 text-2xl font-serif font-bold uppercase tracking-wider text-brass">
@@ -61,6 +82,46 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
         <p className="text-xs leading-relaxed text-stone-400">
           Questo flusso prepara la campagna, la stanza virtuale e la scena iniziale del capitolo. Alla conferma entrerai direttamente nella cabina di regia del Master.
         </p>
+
+        <div className="mt-2 rounded-lg border border-brass/15 bg-black/25 p-4">
+          <p className="flex items-center gap-2 text-xs font-serif font-bold uppercase tracking-wider text-brass">
+            <Sparkles size={14} /> Template campagna
+          </p>
+          <p className="mt-2 text-[11px] leading-relaxed text-stone-400">
+            Scegli un preset per riempire campagna, stanza e scena iniziale. Puoi modificare tutto prima di creare la partita.
+          </p>
+          <div className="mt-3 grid gap-2">
+            {campaignPresets.map((preset) => (
+              <button
+                key={preset.id}
+                type="button"
+                onClick={() => applyPreset(preset)}
+                aria-label={`Applica template ${preset.title}: ${preset.summary}`}
+                className={`rounded-lg border px-3 py-2 text-left transition duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brass ${
+                  selectedPresetId === preset.id 
+                    ? "border-brass/65 bg-brass/15 shadow-[0_0_1.2rem_rgba(var(--color-brass-rgb),0.12)]" 
+                    : "border-brass/15 bg-black/24 hover:border-brass/35 hover:bg-black/34"
+                }`}
+                aria-pressed={selectedPresetId === preset.id}
+              >
+                <span className="flex items-start justify-between gap-2">
+                  <span>
+                    <strong className="block text-sm text-stone-100">{preset.title}</strong>
+                    <span className="mt-1 block text-[11px] leading-4 text-stone-400">{preset.summary}</span>
+                  </span>
+                  {selectedPresetId === preset.id ? <Check className="shrink-0 text-brass" size={15} /> : null}
+                </span>
+                <span className="mt-2 flex flex-wrap gap-1">
+                  {preset.tags.map((tag) => (
+                    <span key={tag} className="rounded border border-white/10 bg-black/24 px-1.5 py-0.5 text-[10px] text-stone-400">
+                      {tag}
+                    </span>
+                  ))}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="mt-4 rounded-lg border border-amber-600/30 bg-amber-950/15 p-4 relative overflow-hidden">
           <div className="flex items-center gap-2 text-xs font-serif font-bold uppercase tracking-wider text-brass">
@@ -129,7 +190,7 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
           <Field label="Descrizione scena" value={values.sceneDescription} onChange={(value) => update("sceneDescription", value)} textarea />
         </FormSection>
 
-        <button className="w-full flex items-center justify-center gap-2 ui-btn-fantasy py-3.5">
+        <button type="submit" className="w-full flex items-center justify-center gap-2 ui-btn-fantasy py-3.5">
           <Clapperboard size={16} /> Crea e apri cabina di regia
         </button>
       </form>
@@ -153,7 +214,7 @@ function FileField({
   return (
     <label className="grid gap-2 text-xs font-serif font-bold uppercase tracking-wider text-slate-300">
       {label}
-      <span className="rounded-lg border border-dashed border-brass/35 bg-black/45 px-3 py-3 text-center text-xs text-brass cursor-pointer hover:bg-brass/5 transition">
+      <span className="ui-file-upload-field">
         {file ? file.name : hint}
         <input className="sr-only" type="file" accept={accept} onChange={(event) => onChange(event.target.files?.[0])} />
       </span>

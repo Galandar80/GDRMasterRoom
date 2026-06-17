@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#e2b55f" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Backrest of the Director's Chair -->
+  <path d="M25 22h50M25 22v22M75 22v22" stroke-width="5" />
+  <rect x="30" y="27" width="40" height="13" fill="#e2b55f" fill-opacity="0.2" rx="1.5" stroke="none" />
+  
+  <!-- Seat of the Chair -->
+  <path d="M20 49h60" stroke-width="6" />
+  <path d="M22 49l2 15M78 49l-2 15" stroke-width="3.5" opacity="0.8" />
+  
+  <!-- Legs (X-shape) -->
+  <path d="M27 49l46 36M73 49L27 85" stroke-width="5" />
+  
+  <!-- Footrest and base stabilizer -->
+  <path d="M33 76h34M24 85h52" stroke-width="4" />
+  
+  <!-- Armrests -->
+  <path d="M18 41h10M72 41h10" stroke-width="4" />
+</svg>

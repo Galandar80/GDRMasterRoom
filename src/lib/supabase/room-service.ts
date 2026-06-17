@@ -53,6 +53,10 @@ export type AdminMediaOverview = {
   asset_type: "image" | "video" | "audio" | "sound" | "portrait" | "object";
   url: string;
   created_at?: string;
+  visibility?: MediaAsset["visibility"];
+  approval_status?: MediaAsset["approval_status"];
+  file_size?: number;
+  owner_id?: string | null;
 };
 
 export type UserSessionSummary = {
@@ -223,7 +227,31 @@ export async function listUserSessions(supabase: DatabaseClient, profile: Profil
   const unique = new Map<string, UserSessionSummary>();
   [...masterSessions, ...playerSessions].forEach((session) => unique.set(session.id, session));
 
-  return Array.from(unique.values()).sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
+  const sessions = Array.from(unique.values());
+  const roomIds = Array.from(new Set(sessions.map((session) => session.roomId).filter(Boolean)));
+  const latestActivityByRoom = new Map<string, string>();
+
+  if (roomIds.length) {
+    const { data: latestMessages } = await supabase
+      .from("messages")
+      .select("room_id,created_at")
+      .in("room_id", roomIds)
+      .order("created_at", { ascending: false })
+      .limit(Math.max(50, roomIds.length * 8));
+
+    ((latestMessages ?? []) as any[]).forEach((message) => {
+      if (!latestActivityByRoom.has(message.room_id)) {
+        latestActivityByRoom.set(message.room_id, message.created_at);
+      }
+    });
+  }
+
+  return sessions
+    .map((session) => ({
+      ...session,
+      lastActivityAt: latestActivityByRoom.get(session.roomId) ?? session.lastActivityAt
+    }))
+    .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
 }
 
 export async function listAllRoomsForSuperAdmin(supabase: DatabaseClient, profile: Profile): Promise<AdminRoomOverview[]> {
@@ -362,7 +390,11 @@ export async function listAllMediaForSuperAdmin(supabase: DatabaseClient, profil
     title: asset.title,
     asset_type: asset.asset_type,
     url: asset.url,
-    created_at: asset.created_at
+    created_at: asset.created_at,
+    visibility: asset.visibility ?? "room",
+    approval_status: asset.approval_status ?? "none",
+    file_size: Number(asset.file_size ?? 0),
+    owner_id: asset.owner_id ?? asset.created_by ?? null
   }));
 
   return [...sceneMedia, ...audioMedia, ...soundMedia, ...assetMedia].sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
@@ -1232,8 +1264,21 @@ export async function createMediaAsset(
   supabase: DatabaseClient,
   roomId: string,
   profile: Profile,
-  values: { title: string; assetType: MediaAsset["asset_type"]; url: string; tags: string[] }
+  values: {
+    title: string;
+    assetType: MediaAsset["asset_type"];
+    url: string;
+    tags: string[];
+    visibility?: MediaAsset["visibility"];
+    approvalStatus?: MediaAsset["approval_status"];
+    fileSize?: number;
+    mimeType?: string | null;
+    storageBucket?: string | null;
+    storagePath?: string | null;
+    description?: string;
+  }
 ) {
+  const visibility = values.visibility ?? "room";
   const { data, error } = await supabase
     .from("media_assets")
     .insert({
@@ -1242,8 +1287,80 @@ export async function createMediaAsset(
       asset_type: values.assetType,
       url: values.url,
       tags: values.tags,
-      created_by: profile.id
+      created_by: profile.id,
+      owner_id: profile.id,
+      visibility,
+      approval_status: values.approvalStatus ?? (visibility === "global" ? "pending" : "none"),
+      file_size: values.fileSize ?? 0,
+      mime_type: values.mimeType ?? null,
+      storage_bucket: values.storageBucket ?? null,
+      storage_path: values.storagePath ?? extractPublicStoragePath(values.url, values.storageBucket ?? undefined),
+      description: values.description ?? ""
     })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as MediaAsset;
+}
+
+export async function listReusableMediaAssets(supabase: DatabaseClient, profile: Profile, roomId?: string): Promise<MediaAsset[]> {
+  const queries = [
+    supabase.from("media_assets").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false }),
+    supabase.from("media_assets").select("*").eq("visibility", "shared").order("created_at", { ascending: false }),
+    supabase.from("media_assets").select("*").eq("visibility", "global").eq("approval_status", "approved").order("created_at", { ascending: false })
+  ];
+
+  if (roomId) {
+    queries.push(supabase.from("media_assets").select("*").eq("room_id", roomId).order("created_at", { ascending: false }));
+  }
+
+  const results = await Promise.all(queries);
+  const merged = new Map<string, MediaAsset>();
+  for (const result of results) {
+    if (result.error) throw result.error;
+    for (const asset of (result.data ?? []) as MediaAsset[]) {
+      merged.set(asset.id, asset);
+    }
+  }
+
+  return [...merged.values()].sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
+}
+
+export async function updateMediaAssetVisibility(
+  supabase: DatabaseClient,
+  profile: Profile,
+  assetId: string,
+  visibility: MediaAsset["visibility"]
+) {
+  const { data, error } = await supabase
+    .from("media_assets")
+    .update({
+      visibility,
+      approval_status: visibility === "global" ? "pending" : "none"
+    })
+    .eq("id", assetId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as MediaAsset;
+}
+
+export async function updateMediaAssetApproval(
+  supabase: DatabaseClient,
+  profile: Profile,
+  assetId: string,
+  approvalStatus: Exclude<MediaAsset["approval_status"], undefined>
+) {
+  if (!isSuperAdmin(profile)) {
+    throw new Error("Accesso superadmin non autorizzato.");
+  }
+
+  const { data, error } = await supabase
+    .from("media_assets")
+    .update({ approval_status: approvalStatus })
+    .eq("id", assetId)
     .select("*")
     .single();
 
@@ -1258,6 +1375,14 @@ export async function deleteMediaAsset(supabase: DatabaseClient, asset: MediaAss
 
   const { error } = await supabase.from("media_assets").delete().eq("id", asset.id);
   if (error) throw error;
+}
+
+function extractPublicStoragePath(url: string, bucket?: string) {
+  if (!url || !bucket) return null;
+  const marker = `/object/public/${bucket}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  return decodeURIComponent(url.slice(index + marker.length).split("?")[0] ?? "");
 }
 
 export async function upsertPresence(supabase: DatabaseClient, roomId: string, profile: Profile, displayName: string) {

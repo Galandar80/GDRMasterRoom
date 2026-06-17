@@ -191,6 +191,7 @@ export function ChatPanel({
       }
     });
   }, [feedItems, filter, search]);
+  const hasActiveMessageFilters = filter !== "all" || Boolean(search.trim());
 
   const activeTyping = typing.filter((item) => item.user_id !== currentUserId && item.channel === "gdr" && Date.now() - new Date(item.updated_at).getTime() < 6000);
   const prevMessagesLength = useRef(messages.length);
@@ -556,8 +557,38 @@ export function ChatPanel({
         {!filteredFeed.length ? (
           <div className="story-empty-state">
             <MessageCircle size={24} />
-            <p>Nessun messaggio da mostrare.</p>
-            <span>La scena e ancora silenziosa: il primo intervento aprira il registro narrativo.</span>
+            <p>{hasActiveMessageFilters ? "Nessun risultato nei filtri." : "Nessun messaggio da mostrare."}</p>
+            <span>
+              {hasActiveMessageFilters
+                ? "La chat contiene altri canali o parole chiave: torna alla vista completa per orientarti."
+                : "La scena e ancora silenziosa: prepara un primo intervento o apri con una cue narrativa."}
+            </span>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {hasActiveMessageFilters ? (
+                <button
+                  type="button"
+                  className="rounded-lg border border-brass/25 bg-brass/10 px-3 py-2 text-xs font-medium text-brass transition hover:bg-brass/15"
+                  onClick={() => {
+                    setFilter("all");
+                    setSearch("");
+                  }}
+                >
+                  Mostra tutto
+                </button>
+              ) : (
+                narrativeModes.slice(0, 3).map((mode) => (
+                  <button
+                    key={mode.id}
+                    type="button"
+                    className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-stone-200 transition hover:border-brass/25 hover:bg-brass/10 hover:text-brass"
+                    onClick={() => insertNarrativeTag(mode.tag)}
+                    disabled={disabled}
+                  >
+                    Inizia con {mode.label.toLowerCase()}
+                  </button>
+                ))
+              )}
+            </div>
           </div>
         ) : null}
       </div>
