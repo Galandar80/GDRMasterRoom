@@ -1,18 +1,17 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, Loader2, LogOut, MessageSquareText, Sparkles, X } from "lucide-react";
-import { CampaignLobby } from "@/components/campaign-lobby";
 import { CharacterSetupForm, type CharacterSetupValues } from "@/components/lobby/character-setup-form";
 import { CreateGameForm, type CreateGameValues } from "@/components/lobby/create-game-form";
 import { JoinRoomForm, type JoinMode } from "@/components/lobby/join-room-form";
+import { SessionSwitcher } from "@/components/lobby/session-switcher";
 import { StartMenu } from "@/components/lobby/start-menu";
-import { MasterControlRoom } from "@/components/master-control-room";
-import { PlayerRoom } from "@/components/player-room";
-import { SuperAdminRooms } from "@/components/superadmin-rooms";
 import { demoRoomState } from "@/lib/demo-data";
 import { cardDeckLabel, drawCard, encodeDiceReason, getDiceCount, rollDice as rollDiceValues, stripDiceCountMarker, type CardDeckType } from "@/lib/game-random";
 import { clearSupabaseAuthStorage, createClient, demoMode } from "@/lib/supabase/client";
+import { isConfiguredSuperadmin } from "@/lib/superadmin";
 import { playUiCinematicDanger, playUiCinematicReveal, playUiCinematicVision, playUiCinematicChapter, playUiCinematicEarthquake } from "@/lib/sound-generator";
 import {
   createGameInSupabase,
@@ -43,6 +42,7 @@ import {
   joinRoomByCode,
   listAllRoomsForSuperAdmin,
   listAllMediaForSuperAdmin,
+  listUserSessions,
   exportRoomMessages,
   duplicateNarrativeMap,
   loadInitialRoomState,
@@ -67,15 +67,31 @@ import {
   updateMessagePinned,
   upsertMapCharacterPosition,
   updateRoomBySuperAdmin,
+  updateMediaAssetVisibility,
   uploadPublicFile,
   createMapFogArea,
   updateMapFogArea,
   deleteMapFogArea
 } from "@/lib/supabase/room-service";
-import type { AdminMediaOverview, AdminRoomOverview } from "@/lib/supabase/room-service";
+import type { AdminMediaOverview, AdminRoomOverview, UserSessionSummary } from "@/lib/supabase/room-service";
 import type { AudioTrack, DiceRequest, InventoryItem, MapCharacterPosition, MapFogArea, MediaAsset, Message, NarrativeMap, Npc, Room, RoomState, Scene, SceneMediaType, SceneVisibility, SoundEffect } from "@/lib/types";
 
-type View = "menu" | "create" | "join" | "character" | "player" | "master" | "superadmin";
+const MasterControlRoom = dynamic(
+  () => import("@/components/master-control-room").then((module) => module.MasterControlRoom),
+  { loading: () => <AppLoading status="Caricamento cabina di regia..." /> }
+);
+const PlayerRoom = dynamic(
+  () => import("@/components/player-room").then((module) => module.PlayerRoom),
+  { loading: () => <AppLoading status="Caricamento stanza giocatore..." /> }
+);
+const SuperAdminRooms = dynamic(
+  () => import("@/components/superadmin-rooms").then((module) => module.SuperAdminRooms),
+  { loading: () => <AppLoading status="Caricamento pannello superadmin..." /> }
+);
+
+import { DiceRollAnimationOverlay } from "@/components/room/dice-roll-overlay";
+
+type View = "menu" | "create" | "join" | "sessions" | "character" | "player" | "master" | "superadmin";
 type CinematicEvent =
   | { id: string; kind: "scene"; title: string; detail: string; imageUrl?: string; mediaType?: SceneMediaType }
   | { id: string; kind: "npc"; title: string; detail: string; imageUrl?: string }
@@ -100,6 +116,7 @@ const MAP_SYNC_PREFIX = "__gdr_map_sync__:";
 export function AppShell() {
   const [view, setView] = useState<View>("menu");
   const [activeCue, setActiveCue] = useState<{ cueId: string; tone: string; message: string } | null>(null);
+  const [activeDiceOverlay, setActiveDiceOverlay] = useState<{ type: "critical" | "fumble"; rollerName: string; reason: string } | null>(null);
   const shakeTimeoutRef = useRef<number | null>(null);
   const activeShakeClassRef = useRef<string | null>(null);
   const cueTimeoutRef = useRef<number | null>(null);
@@ -120,6 +137,8 @@ export function AppShell() {
   const [actionLog, setActionLog] = useState<{ id: string; label: string; detail?: string; created_at: string }[]>([]);
   const [adminRooms, setAdminRooms] = useState<AdminRoomOverview[]>([]);
   const [adminMedia, setAdminMedia] = useState<AdminMediaOverview[]>([]);
+  const [userSessions, setUserSessions] = useState<UserSessionSummary[]>([]);
+  const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const [cinematicEvent, setCinematicEvent] = useState<CinematicEvent | null>(null);
   const sceneEventRef = useRef(roomState.scene.id);
   const spotlightEventRef = useRef(roomState.room.spotlight_npc_id ?? "");
@@ -138,7 +157,7 @@ export function AppShell() {
   const isCurrentMaster = roomState.profile.role === "master";
   const isCurrentPlayer = roomState.profile.role === "player";
   const hasCurrentSession = demoMode || roomState.room.id !== demoRoomState.room.id;
-  const isSuperAdmin = roomState.profile.email.toLowerCase() === "galandar@gmail.com";
+  const isSuperAdmin = isConfiguredSuperadmin(roomState.profile);
 
   function logAction(label: string, detail?: string) {
     setActionLog((items) => [{ id: crypto.randomUUID(), label, detail, created_at: new Date().toISOString() }, ...items].slice(0, 12));
@@ -374,6 +393,29 @@ export function AppShell() {
         "postgres_changes",
         { event: "*", schema: "public", table: "dice_requests", filter: `room_id=eq.${roomState.room.id}` },
         (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const incoming = payload.new as DiceRequest;
+            if (incoming.status === "rolled" && incoming.dice_sides === 20 && (incoming.dice_count === 1 || !incoming.dice_count) && incoming.result) {
+              if (incoming.result === 20 || incoming.result === 1) {
+                setRoomState((state) => {
+                  const prev = state.diceRequests.find((item) => item.id === incoming.id);
+                  if (prev && prev.status === "pending") {
+                    const char = state.characters.find((c) => c.user_id === incoming.target_user_id);
+                    const rollerName = char ? `${char.character_name} ${char.character_surname}` : "Un Eroe";
+                    setTimeout(() => {
+                      setActiveDiceOverlay({
+                        type: incoming.result === 20 ? "critical" : "fumble",
+                        rollerName,
+                        reason: stripDiceCountMarker(incoming.reason)
+                      });
+                    }, 100);
+                  }
+                  return updateCollectionEvent(state, "diceRequests", payload, "created_at", false);
+                });
+                return;
+              }
+            }
+          }
           setRoomState((state) => updateCollectionEvent(state, "diceRequests", payload, "created_at", false));
         }
       )
@@ -634,7 +676,7 @@ export function AppShell() {
 
   async function openSuperAdminPanel() {
     if (!isSuperAdmin || !supabase || demoMode) {
-      setError("Pannello superadmin disponibile solo per galandar@gmail.com con Supabase attivo.");
+      setError("Pannello superadmin disponibile solo per gli account configurati in NEXT_PUBLIC_SUPERADMIN_EMAILS con Supabase attivo.");
       return;
     }
 
@@ -660,6 +702,89 @@ export function AppShell() {
       setAdminMedia(media);
     } catch (adminError) {
       setError(readError(adminError));
+    }
+  }
+
+  function currentSessionSummary(): UserSessionSummary | null {
+    if (!hasCurrentSession) return null;
+
+    return {
+      id: `${isCurrentMaster ? "master" : "player"}:${roomState.room.id}`,
+      roomId: roomState.room.id,
+      campaignId: roomState.room.campaign_id,
+      campaignTitle: roomState.campaigns[0]?.title ?? "Campagna",
+      campaignStatus: roomState.campaigns[0]?.status,
+      roomName: roomState.room.name,
+      inviteCode: roomState.room.invite_code,
+      role: isCurrentMaster ? "master" : "player",
+      playerCount: roomState.characters.length,
+      maxPlayers: roomState.room.max_players ?? 4,
+      characterName: currentCharacter
+        ? `${currentCharacter.character_name} ${currentCharacter.character_surname}`.trim()
+        : undefined,
+      isSetupComplete: currentCharacter?.is_setup_complete,
+      createdAt: roomState.campaigns[0]?.created_at ?? new Date().toISOString(),
+      lastActivityAt: roomState.messages.at(-1)?.created_at ?? roomState.scene.created_at ?? new Date().toISOString()
+    };
+  }
+
+  async function refreshUserSessions() {
+    if (!supabase || demoMode) {
+      const current = currentSessionSummary();
+      setUserSessions(current ? [current] : []);
+      return;
+    }
+
+    try {
+      setError("");
+      setIsLoadingSessions(true);
+      const sessions = await listUserSessions(supabase, roomState.profile);
+      setUserSessions(sessions);
+    } catch (sessionsError) {
+      setError(readError(sessionsError));
+    } finally {
+      setIsLoadingSessions(false);
+    }
+  }
+
+  async function openSessionsPanel() {
+    setView("sessions");
+    await refreshUserSessions();
+  }
+
+  async function openUserSession(session: UserSessionSummary) {
+    if (!supabase || demoMode) {
+      setRoomState((state) => ({ ...state, profile: { ...state.profile, role: session.role } }));
+      setView(session.role === "master" ? "master" : "player");
+      return;
+    }
+
+    try {
+      setError("");
+      const selectedState = await loadRoomState(supabase, session.roomId, { ...roomState.profile, role: session.role });
+
+      if (session.role === "master") {
+        setRoomState({ ...selectedState, profile: { ...selectedState.profile, role: "master" } });
+        setStatus("Sessione Master aperta");
+        setView("master");
+        return;
+      }
+
+      const playerState = { ...selectedState, profile: { ...selectedState.profile, role: "player" as const } };
+      const existingCharacter = playerState.characters.find((character) => character.user_id === playerState.profile.id);
+      setRoomState(playerState);
+
+      if (existingCharacter?.is_setup_complete) {
+        setPendingPlayerRoom(null);
+        setStatus("Sessione giocatore aperta");
+        setView("player");
+      } else {
+        setPendingPlayerRoom(playerState);
+        setStatus("Completa il personaggio per questa sessione");
+        setView("character");
+      }
+    } catch (sessionsError) {
+      setError(readError(sessionsError));
     }
   }
 
@@ -1034,7 +1159,6 @@ export function AppShell() {
       setError("");
       let imageUrl = values.imageUrl;
       let videoUrl = values.videoUrl ?? "";
-      console.log("[updateMasterScene] START — sceneId:", sceneId, "title:", values.title, "supabase:", !!supabase, "demoMode:", demoMode, "isCurrentMaster:", isCurrentMaster);
       if (supabase && !demoMode) {
         if (values.imageFile) {
           imageUrl = await uploadPublicFile(supabase, "scene-images", values.imageFile, `rooms/${roomState.room.id}/scenes`);
@@ -1080,8 +1204,8 @@ export function AppShell() {
               tags: ["scena"]
             });
             setRoomState((state) => ({ ...state, mediaAssets: [asset, ...state.mediaAssets.filter((item) => item.id !== asset.id)] }));
-          } catch (assetErr) {
-            console.warn("[updateMasterScene] createMediaAsset failed (non-blocking):", assetErr);
+          } catch {
+            // Media-library sync is best effort; the scene itself has already been saved.
           }
         }
       } else {
@@ -1110,7 +1234,6 @@ export function AppShell() {
       }
       setStatus("Scena modificata");
     } catch (sceneError) {
-      console.error("[updateMasterScene] ERROR:", sceneError);
       setError(readError(sceneError));
     }
   }
@@ -1644,6 +1767,16 @@ export function AppShell() {
           item.id === request.id ? { ...item, status: "rolled", result, rolled_at: new Date().toISOString() } : item
         )
       }));
+
+      if (demoMode) {
+        if (request.dice_sides === 20 && diceCount === 1 && (result === 20 || result === 1)) {
+          setActiveDiceOverlay({
+            type: result === 20 ? "critical" : "fumble",
+            rollerName: characterName,
+            reason
+          });
+        }
+      }
     } catch (diceError) {
       setError(readError(diceError));
     }
@@ -2207,6 +2340,26 @@ export function AppShell() {
     }
   }
 
+  async function updateMediaVisibility(asset: MediaAsset, visibility: MediaAsset["visibility"]) {
+    if (!isCurrentMaster) return;
+    try {
+      setError("");
+      if (supabase && !demoMode) {
+        await updateMediaAssetVisibility(supabase, roomState.profile, asset.id, visibility);
+      }
+      setRoomState((state) => ({
+        ...state,
+        mediaAssets: state.mediaAssets.map((item) =>
+          item.id === asset.id ? { ...item, visibility } : item
+        ),
+      }));
+      setStatus("Visibilità asset aggiornata");
+      logAction("Visibilità asset modificata", `${asset.title} -> ${visibility}`);
+    } catch (mediaError) {
+      setError(readError(mediaError));
+    }
+  }
+
   async function addPersonalNote(values: { title: string; content: string }) {
     if (!currentCharacter) return;
 
@@ -2276,6 +2429,31 @@ export function AppShell() {
           onSignOut={signOut}
           isSuperAdmin={isSuperAdmin}
           onSuperAdmin={openSuperAdminPanel}
+          onSessions={openSessionsPanel}
+          currentSession={
+            hasCurrentSession
+              ? {
+                  campaignTitle: roomState.campaigns[0]?.title ?? "Campagna",
+                  roomName: roomState.room.name,
+                  inviteCode: roomState.room.invite_code,
+                  sceneTitle: roomState.scene.title,
+                  role: isCurrentMaster ? "master" : "player",
+                  playerCount: roomState.characters.length
+                }
+              : undefined
+          }
+          onResumeMaster={isCurrentMaster && hasCurrentSession ? () => setView("master") : undefined}
+          onResumePlayer={hasCurrentSession ? () => setView("player") : undefined}
+        />
+      ) : null}
+
+      {view === "sessions" ? (
+        <SessionSwitcher
+          sessions={userSessions}
+          isLoading={isLoadingSessions}
+          onBack={() => setView("menu")}
+          onRefresh={refreshUserSessions}
+          onOpenSession={openUserSession}
         />
       ) : null}
 
@@ -2293,7 +2471,13 @@ export function AppShell() {
 
       {view === "create" ? <CreateGameForm state={roomState} onBack={() => setView("menu")} onCreate={createGame} /> : null}
 
-      {view === "join" ? <JoinRoomForm room={roomState.room} onBack={() => setView("menu")} onJoin={joinRoom} /> : null}
+      {view === "join" ? (
+        <JoinRoomForm
+          suggestedInviteCode={hasCurrentSession ? roomState.room.invite_code : undefined}
+          onBack={() => setView("menu")}
+          onJoin={joinRoom}
+        />
+      ) : null}
 
       {view === "character" ? (
         <CharacterSetupForm defaultName={roomState.profile.username} onBack={() => setView("join")} onCreate={createCharacter} />
@@ -2354,6 +2538,7 @@ export function AppShell() {
           onUpdateCharacter={saveCharacterByMaster}
           onDeleteCharacter={kickPlayerCharacter}
           onCreateMediaAsset={addMediaAsset}
+          onUpdateMediaAssetVisibility={updateMediaVisibility}
           onDeleteMediaAsset={removeMediaAsset}
           onCreateMap={createMap}
           onSetActiveMap={setActiveMap}
@@ -2382,6 +2567,14 @@ export function AppShell() {
             }
             setActiveCue(null);
           }}
+        />
+      ) : null}
+      {activeDiceOverlay ? (
+        <DiceRollAnimationOverlay
+          type={activeDiceOverlay.type}
+          rollerName={activeDiceOverlay.rollerName}
+          reason={activeDiceOverlay.reason}
+          onClose={() => setActiveDiceOverlay(null)}
         />
       ) : null}
     </div>
@@ -2432,7 +2625,7 @@ function AppLoading({ status }: { status: string }) {
 
 function StatusBar({ status, error, onSignOut }: { status: string; error: string; onSignOut: () => void }) {
   return (
-    <div className={`app-status-bar ${error ? "is-error" : ""}`}>
+    <div className={`app-status-bar ${error ? "is-error" : ""}`} role={error ? "alert" : "status"} aria-live={error ? "assertive" : "polite"}>
       <div className="app-status-content">
         <span className="app-status-icon" aria-hidden="true">
           {error ? <AlertTriangle size={16} /> : status.toLowerCase().includes("caric") ? <Sparkles size={16} /> : <CheckCircle2 size={16} />}

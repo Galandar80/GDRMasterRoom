@@ -1,13 +1,14 @@
 "use client";
 
 import {
+  Activity,
   BookOpen,
+  Clock,
   Crown,
   DoorOpen,
   Dices,
   LogOut,
   Moon,
-  Plus,
   Settings,
   Shield,
   Sparkles,
@@ -26,6 +27,10 @@ type StartMenuProps = {
   onSignOut?: () => void;
   isSuperAdmin?: boolean;
   onSuperAdmin?: () => void;
+  onSessions?: () => void;
+  currentSession?: ActiveSessionSummary;
+  onResumeMaster?: () => void;
+  onResumePlayer?: () => void;
 };
 
 export function StartMenu({
@@ -33,7 +38,11 @@ export function StartMenu({
   onJoin,
   onSignOut,
   isSuperAdmin = false,
-  onSuperAdmin
+  onSuperAdmin,
+  onSessions,
+  currentSession,
+  onResumeMaster,
+  onResumePlayer
 }: StartMenuProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -305,6 +314,8 @@ export function StartMenu({
               </p>
             </div>
 
+
+
             <div className="mt-8 grid gap-4">
               <button
                 type="button"
@@ -314,15 +325,37 @@ export function StartMenu({
                   onCreate();
                 }}
                 className="premium-action premium-action-ember"
+                data-atlas-action="create"
               >
                 <span className="premium-action-icon">
-                  <Plus size={34} />
+                  <span className="atlas-icon atlas-icon--regia" aria-hidden="true" />
                 </span>
                 <span>
                   <span className="block font-serif text-xl uppercase tracking-[0.14em] text-stone-100">Crea partita</span>
                   <span className="mt-1 block text-sm text-stone-200/70">Nuova campagna / nuova stanza</span>
                 </span>
               </button>
+
+              {onSessions ? (
+                <button
+                  type="button"
+                  onMouseEnter={playUiHover}
+                  onClick={() => {
+                    playUiClick();
+                    onSessions();
+                  }}
+                  className="premium-action premium-action-violet"
+                  data-atlas-action="sessions"
+                >
+                  <span className="premium-action-icon">
+                    <span className="atlas-icon atlas-icon--media" aria-hidden="true" />
+                  </span>
+                  <span>
+                    <span className="block font-serif text-xl uppercase tracking-[0.14em] text-stone-100">Le tue sessioni</span>
+                    <span className="mt-1 block text-sm text-stone-200/70">Scegli tra regie e personaggi attivi</span>
+                  </span>
+                </button>
+              ) : null}
 
               <button
                 type="button"
@@ -332,9 +365,10 @@ export function StartMenu({
                   onJoin();
                 }}
                 className="premium-action premium-action-violet"
+                data-atlas-action="join"
               >
                 <span className="premium-action-icon">
-                  <DoorOpen size={30} />
+                  <span className="atlas-icon atlas-icon--mappa" aria-hidden="true" />
                 </span>
                 <span>
                   <span className="block font-serif text-xl uppercase tracking-[0.14em] text-stone-100">Entra con codice stanza</span>
@@ -351,9 +385,10 @@ export function StartMenu({
                     onSuperAdmin();
                   }}
                   className="premium-action premium-action-emerald"
+                  data-atlas-action="superadmin"
                 >
                   <span className="premium-action-icon">
-                    <Shield size={29} />
+                    <span className="atlas-icon atlas-icon--superadmin" aria-hidden="true" />
                   </span>
                   <span>
                     <span className="block font-serif text-xl uppercase tracking-[0.14em] text-stone-100">Superadmin</span>
@@ -387,6 +422,20 @@ export function StartMenu({
   );
 }
 
+type ActiveSessionSummary = {
+  campaignTitle: string;
+  campaignStatus?: string;
+  roomName: string;
+  inviteCode: string;
+  sceneTitle: string;
+  role: "master" | "player";
+  playerCount: number;
+  maxPlayers?: number;
+  characterName?: string;
+  isSetupComplete?: boolean;
+  lastActivityAt?: string;
+};
+
 function Feature({ icon, title, text }: { icon: ReactNode; title: string; text: string }) {
   return (
     <div className="flex items-start gap-4 px-7 py-5">
@@ -396,6 +445,162 @@ function Feature({ icon, title, text }: { icon: ReactNode; title: string; text: 
         <span className="mt-2 block text-sm leading-5 text-stone-300/72">{text}</span>
       </span>
     </div>
+  );
+}
+
+function ActiveSessionPanel({
+  session,
+  onResumeMaster,
+  onResumePlayer,
+  onSessions
+}: {
+  session: ActiveSessionSummary;
+  onResumeMaster?: () => void;
+  onResumePlayer?: () => void;
+  onSessions?: () => void;
+}) {
+  const canResumeMaster = session.role === "master" && onResumeMaster;
+  const playerCapacity = `${session.playerCount}/${session.maxPlayers ?? 4}`;
+  const roleLabel = session.role === "master" ? "Master" : "Giocatore";
+  const setupLabel = session.role === "master" ? "Regia pronta" : session.isSetupComplete ? "Personaggio pronto" : "Scheda da completare";
+  const statusLabel = campaignStatusLabel(session.campaignStatus);
+  const activityLabel = formatActivity(session.lastActivityAt);
+
+  return (
+    <section
+      className="mt-6 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-left shadow-[0_0_34px_rgba(16,185,129,0.1)]"
+      aria-label="Sessione attiva"
+    >
+      <div className="flex items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-emerald-300/30 bg-black/30 text-emerald-200">
+          <Sparkles size={20} />
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-serif text-xs uppercase tracking-[0.22em] text-emerald-200/90">Sessione attiva</p>
+            <span className="rounded-full border border-emerald-300/25 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-100">
+              {roleLabel}
+            </span>
+          </div>
+          <h3 className="mt-1 truncate font-serif text-lg uppercase tracking-[0.12em] text-stone-100">{session.campaignTitle}</h3>
+          <div className="mt-2 grid gap-1 text-xs leading-5 text-stone-300/78">
+            <span className="truncate">Stanza: {session.roomName}</span>
+            <span className="truncate">Scena: {session.sceneTitle}</span>
+            <span>
+              Codice {session.inviteCode} · {playerCapacity} posti · {statusLabel}
+            </span>
+            {session.characterName ? <span className="truncate">Personaggio: {session.characterName}</span> : null}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <SessionSignal icon={<Activity size={14} />} label={setupLabel} tone={session.isSetupComplete === false ? "warn" : "good"} />
+        <SessionSignal icon={<Clock size={14} />} label={activityLabel} tone="calm" />
+      </div>
+
+      <div className={`mt-4 grid gap-2 ${canResumeMaster && onResumePlayer ? "sm:grid-cols-2" : ""}`}>
+        {canResumeMaster ? (
+          <ResumeButton
+            icon={<Crown size={20} />}
+            title="Rientra in regia"
+            text="Gestisci scene, audio e giocatori"
+            onClick={onResumeMaster}
+          />
+        ) : null}
+        {onResumePlayer ? (
+          <ResumeButton
+            icon={<DoorOpen size={20} />}
+            title={session.role === "master" ? "Vista giocatore" : "Rientra nella stanza"}
+            text={session.role === "master" ? "Controlla cosa vede il tavolo" : "Riprendi la sessione"}
+            onClick={onResumePlayer}
+          />
+        ) : null}
+        {onSessions ? (
+          <ResumeButton
+            icon={<BookOpen size={20} />}
+            title="Gestisci sessioni"
+            text="Apri elenco, filtri e rientro rapido"
+            onClick={onSessions}
+          />
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function SessionSignal({ icon, label, tone }: { icon: ReactNode; label: string; tone: "good" | "warn" | "calm" }) {
+  const toneClass =
+    tone === "good"
+      ? "border-emerald-300/25 bg-emerald-400/10 text-emerald-100"
+      : tone === "warn"
+        ? "border-amber-300/30 bg-amber-400/10 text-amber-100"
+        : "border-brass/20 bg-black/22 text-stone-200/78";
+
+  return (
+    <span className={`flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-xs leading-4 ${toneClass}`}>
+      <span className="shrink-0">{icon}</span>
+      <span>{label}</span>
+    </span>
+  );
+}
+
+function campaignStatusLabel(status?: string) {
+  if (status === "archived") return "Archiviata";
+  if (status === "paused") return "In pausa";
+  return "Attiva";
+}
+
+function formatActivity(value?: string) {
+  if (!value) return "Attivita non disponibile";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Attivita non disponibile";
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
+
+  if (diffMinutes < 1) return "Attiva ora";
+  if (diffMinutes < 60) return `${diffMinutes} min fa`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? "ora" : "ore"} fa`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} ${diffDays === 1 ? "giorno" : "giorni"} fa`;
+
+  return date.toLocaleDateString("it-IT", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function ResumeButton({
+  icon,
+  title,
+  text,
+  onClick
+}: {
+  icon: ReactNode;
+  title: string;
+  text: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onMouseEnter={playUiHover}
+      onClick={() => {
+        playUiClick();
+        onClick();
+      }}
+      className="rounded-lg border border-brass/25 bg-black/32 px-3 py-3 text-left transition duration-200 hover:border-brass/55 hover:bg-brass/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brass"
+    >
+      <span className="flex items-start gap-2">
+        <span className="mt-0.5 text-brass">{icon}</span>
+        <span className="min-w-0">
+          <span className="block font-serif text-sm uppercase tracking-[0.13em] text-stone-100">{title}</span>
+          <span className="mt-1 block text-xs leading-5 text-stone-300/72">{text}</span>
+        </span>
+      </span>
+    </button>
   );
 }
 

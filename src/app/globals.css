@@ -590,6 +590,202 @@ button:hover {
   transform: translateY(-1px);
 }
 
+/* ==========================================================================
+   Atlante Vivo asset system
+   ========================================================================== */
+
+:root {
+  --atlas-empty-scroll: url("/assets/atlas/vignettes/empty-scroll.png");
+  --atlas-empty-archive: url("/assets/atlas/vignettes/archive-shelf.png");
+  --atlas-empty-portrait: url("/assets/atlas/vignettes/hooded-portrait.png");
+  --atlas-empty-bell: url("/assets/atlas/vignettes/silent-bell.png");
+  --atlas-empty-envelope: url("/assets/atlas/vignettes/sealed-envelope.png");
+  --atlas-empty-compass: url("/assets/atlas/vignettes/compass-token.png");
+  --atlas-table: url("/assets/atlas/living-atlas-table.png");
+  --atlas-ui-corner: url("/assets/atlas/ui/panel-corner.png");
+  --atlas-ui-divider: url("/assets/atlas/ui/ornate-divider.png");
+  --atlas-ui-frame: url("/assets/atlas/ui/panel-frame.png");
+  --atlas-ui-plaque: url("/assets/atlas/ui/navbar-plaque.png");
+  --atlas-ui-button: url("/assets/atlas/ui/button-plate.png?v=3");
+  --atlas-ui-ring: url("/assets/atlas/ui/rune-ring.png");
+  --atlas-texture-parchment: url("/assets/atlas/textures/dark-parchment.png");
+  --atlas-texture-metal: url("/assets/atlas/textures/burnished-metal.png");
+  --atlas-texture-glass: url("/assets/atlas/textures/smoky-glass.png");
+  --atlas-texture-gold: url("/assets/atlas/textures/worn-gold.png");
+  --atlas-texture-ink: url("/assets/atlas/textures/ink-wash.png");
+  --atlas-texture-wood: url("/assets/atlas/textures/old-wood.png");
+  --atlas-action-watermark: url("/assets/atlas/icons/regia.png");
+  --atlas-area-watermark: url("/assets/atlas/icons/regia.png");
+}
+
+.atlas-icon {
+  display: inline-block;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: drop-shadow(0 0 0.55rem rgba(var(--color-brass-rgb), 0.22));
+}
+
+.atlas-icon--regia { background-image: url("/assets/atlas/icons/regia.svg"); }
+.atlas-icon--scene { background-image: url("/assets/atlas/icons/scene.png"); }
+.atlas-icon--mappa { background-image: url("/assets/atlas/icons/mappa.svg"); }
+.atlas-icon--chat { background-image: url("/assets/atlas/icons/chat.png"); }
+.atlas-icon--eroi { background-image: url("/assets/atlas/icons/eroi.png"); }
+.atlas-icon--audio { background-image: url("/assets/atlas/icons/audio.png"); }
+.atlas-icon--media { background-image: url("/assets/atlas/icons/media.svg"); }
+.atlas-icon--zaini { background-image: url("/assets/atlas/icons/zaini.png"); }
+.atlas-icon--soundbar { background-image: url("/assets/atlas/icons/soundbar.png"); }
+.atlas-icon--superadmin { background-image: url("/assets/atlas/icons/superadmin.svg"); }
+
+.atlas-placeholder {
+  display: block;
+  aspect-ratio: 1 / 1;
+  border-radius: 0.75rem;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(var(--color-brass-rgb), 0.18), 0 1rem 2.5rem rgba(0, 0, 0, 0.34);
+}
+
+.atlas-placeholder--hero { background-image: url("/assets/atlas/placeholders/unknown-hero.png"); }
+.atlas-placeholder--npc { background-image: url("/assets/atlas/placeholders/shadow-npc.png"); }
+.atlas-placeholder--master { background-image: url("/assets/atlas/placeholders/master.png"); }
+.atlas-placeholder--creature { background-image: url("/assets/atlas/placeholders/creature.png"); }
+.atlas-placeholder--object { background-image: url("/assets/atlas/placeholders/object.png"); }
+.atlas-placeholder--location { background-image: url("/assets/atlas/placeholders/location.png"); }
+
+:where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel) {
+  position: relative;
+  background-image:
+    linear-gradient(180deg, rgba(12, 13, 18, 0.92), rgba(5, 6, 10, 0.98)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+:where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel)::after {
+  content: "";
+  position: absolute;
+  inset: 0.5rem;
+  pointer-events: none;
+  border-radius: inherit;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.075);
+  box-shadow: inset 0 0 1.1rem rgba(var(--color-brass-rgb), 0.035);
+}
+
+.atlas-divider {
+  min-height: 1.15rem;
+  background-image: var(--atlas-ui-divider);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: min(28rem, 100%) auto;
+}
+
+.atlas-plaque {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24);
+  background-image:
+    linear-gradient(180deg, rgba(8, 8, 12, 0.82), rgba(3, 4, 8, 0.92)),
+    var(--atlas-ui-plaque);
+  background-position: center;
+  background-size: cover;
+}
+
+:where(.director-empty-state, .story-empty-state, .player-modal-empty, .player-rail-empty, .social-empty-state, .player-empty-copy, .map-empty-state) {
+  position: relative;
+  overflow: hidden;
+}
+
+:where(.director-empty-state, .story-empty-state, .player-modal-empty, .player-rail-empty, .social-empty-state, .map-empty-state)::before {
+  content: "";
+  display: block;
+  width: min(9.5rem, 48vw);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto 0.8rem;
+  border-radius: 1rem;
+  background-image: var(--atlas-empty-scroll);
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.72;
+  filter: saturate(0.9) brightness(0.9);
+}
+
+.director-empty-state::before { background-image: var(--atlas-empty-archive); }
+.story-empty-state::before { background-image: var(--atlas-empty-scroll); }
+.player-modal-empty::before { background-image: var(--atlas-empty-portrait); }
+.player-rail-empty::before { background-image: var(--atlas-empty-portrait); }
+.social-empty-state::before { background-image: var(--atlas-empty-envelope); }
+.map-empty-state::before { background-image: var(--atlas-empty-compass); }
+
+@keyframes atlas-panel-open {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.992);
+    filter: brightness(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes atlas-sigil-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(var(--color-brass-rgb), 0);
+  }
+  50% {
+    box-shadow: 0 0 1.7rem rgba(var(--color-brass-rgb), 0.2);
+  }
+}
+
+:where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .player-utility-modal) {
+  animation: atlas-panel-open 220ms ease both;
+}
+
+:where(.notification-badge, .story-status-badge, .director-live-chip) {
+  animation: atlas-sigil-pulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .player-utility-modal, .notification-badge, .story-status-badge, .director-live-chip) {
+    animation: none !important;
+  }
+}
+
+.atlas-medallion {
+  position: relative;
+  display: grid;
+  width: var(--atlas-medallion-size, 5.5rem);
+  aspect-ratio: 1 / 1;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.34);
+  background:
+    radial-gradient(circle, rgba(255, 231, 181, 0.08), transparent 58%),
+    var(--atlas-medallion-image, var(--atlas-empty-scroll)) center / cover no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 243, 218, 0.08),
+    inset 0 0 1.4rem rgba(0, 0, 0, 0.5),
+    0 0 2.2rem rgba(var(--color-brass-rgb), 0.13);
+  filter: saturate(0.94) contrast(1.06);
+}
+
+.atlas-medallion::after {
+  content: "";
+  position: absolute;
+  inset: 0.35rem;
+  border-radius: inherit;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.18);
+  background: var(--atlas-ui-ring) center / contain no-repeat;
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
 button:active {
   transform: translateY(0);
 }
@@ -597,6 +793,22 @@ button:active {
 :where(button, a, input, textarea, select):focus-visible {
   outline: 2px solid rgba(251, 191, 36, 0.88);
   outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  button:hover,
+  button:active {
+    transform: none !important;
+  }
 }
 
 .app-loading-shell {
@@ -1235,7 +1447,8 @@ button:active {
   text-align: left;
   isolation: isolate;
   overflow: hidden;
-  transition: transform 180ms ease, filter 180ms ease;
+  background-blend-mode: normal, soft-light, screen;
+  transition: transform 180ms ease, filter 180ms ease, border-color 180ms ease;
 }
 
 .premium-action:hover {
@@ -1248,25 +1461,64 @@ button:active {
   position: absolute;
   inset: 0.35rem;
   z-index: -1;
-  border: 1px solid rgba(255, 255, 255, 0.13);
+  border: 1px solid rgba(var(--color-brass-rgb), 0.2);
   border-radius: 0.35rem;
+  background:
+    linear-gradient(90deg, rgba(255, 236, 192, 0.05), transparent 24%, transparent 76%, rgba(255, 236, 192, 0.05)),
+    var(--atlas-ui-frame) center / 100% 100% no-repeat;
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.premium-action::after {
+  content: "";
+  position: absolute;
+  inset: auto 1rem 0.45rem 5.7rem;
+  height: 0.55rem;
+  z-index: -1;
+  background: var(--atlas-ui-divider) center / min(24rem, 100%) auto no-repeat;
+  opacity: 0.22;
+  pointer-events: none;
 }
 
 .premium-action-icon {
+  position: relative;
   display: grid;
   height: 3.8rem;
   width: 3.8rem;
   place-items: center;
   border-radius: 999px;
   border: 1px solid rgba(255, 224, 179, 0.36);
-  background: rgba(0, 0, 0, 0.22);
+  background:
+    radial-gradient(circle, rgba(255, 225, 181, 0.12), transparent 60%),
+    rgba(0, 0, 0, 0.24);
   color: #ffe1b5;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.08),
+    0 0 1.4rem rgba(var(--color-brass-rgb), 0.12);
+  overflow: hidden;
+}
+
+.premium-action-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0.35rem;
+  border-radius: inherit;
+  background: var(--atlas-ui-ring) center / contain no-repeat;
+  opacity: 0.42;
+  mix-blend-mode: screen;
+}
+
+.premium-action-icon > svg {
+  position: relative;
+  z-index: 1;
 }
 
 .premium-action-ember {
   border: 1px solid rgba(var(--color-brass-rgb), 0.82);
   background:
     linear-gradient(90deg, rgba(122, 49, 9, 0.96), rgba(100, 44, 10, 0.72)),
+    var(--atlas-texture-metal),
     radial-gradient(circle at 82% 50%, rgba(var(--color-brass-rgb), 0.42), transparent 18rem);
   box-shadow: 0 0 32px rgba(249, 115, 22, 0.3), inset 0 0 28px rgba(255, 199, 115, 0.1);
 }
@@ -1275,6 +1527,7 @@ button:active {
   border: 1px solid rgba(168, 85, 247, 0.76);
   background:
     linear-gradient(90deg, rgba(47, 21, 74, 0.95), rgba(31, 20, 51, 0.78)),
+    var(--atlas-texture-ink),
     radial-gradient(circle at 84% 50%, rgba(168, 85, 247, 0.28), transparent 18rem);
   box-shadow: 0 0 30px rgba(126, 34, 206, 0.28), inset 0 0 26px rgba(216, 180, 254, 0.08);
 }
@@ -1283,6 +1536,7 @@ button:active {
   border: 1px solid rgba(52, 211, 153, 0.62);
   background:
     linear-gradient(90deg, rgba(6, 78, 59, 0.9), rgba(13, 45, 44, 0.78)),
+    var(--atlas-texture-glass),
     radial-gradient(circle at 84% 50%, rgba(52, 211, 153, 0.2), transparent 18rem);
   box-shadow: 0 0 26px rgba(16, 185, 129, 0.18), inset 0 0 26px rgba(167, 243, 208, 0.06);
 }
@@ -2159,6 +2413,72 @@ button:active {
   }
 }
 
+@media (max-width: 1023px) {
+  .director-workbench {
+    gap: 0.85rem;
+  }
+
+  .director-sidebar {
+    display: flex !important;
+    min-height: auto;
+    gap: 0.55rem;
+    margin-inline: -0.1rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0.75rem !important;
+    scroll-padding-inline: 0.75rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .director-sidebar > p {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    display: inline-flex;
+    min-height: 2.95rem;
+    flex: 0 0 auto;
+    align-items: center;
+    border-right: 1px solid rgba(var(--color-brass-rgb), 0.14);
+    background: linear-gradient(90deg, rgba(8, 9, 13, 0.96), rgba(8, 9, 13, 0.74));
+    padding: 0 0.85rem 0 0.25rem !important;
+  }
+
+  .director-nav-link {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 8.8rem;
+    min-height: 2.95rem;
+    margin-bottom: 0;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 640px) {
+  .director-control-room {
+    padding: 0.65rem !important;
+  }
+
+  .director-sidebar {
+    border-radius: 0.8rem !important;
+    padding: 0.55rem !important;
+  }
+
+  .director-sidebar > p {
+    min-height: 2.75rem;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+  }
+
+  .director-nav-link {
+    min-width: 7.65rem;
+    min-height: 2.75rem;
+    padding: 0.58rem 0.7rem;
+    font-size: 0.78rem;
+  }
+}
+
 .player-room-shell {
   background: #020307;
 }
@@ -2356,6 +2676,10 @@ button:active {
   background: #dc2626;
   color: white;
   font-size: 0.7rem;
+}
+
+.player-header-actions {
+  min-width: 0;
 }
 
 .player-info-tile {
@@ -2759,6 +3083,16 @@ button:active {
     radial-gradient(circle at top left, rgba(var(--color-brass-rgb), 0.08), transparent 16rem);
   box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.64);
   padding: 1rem;
+}
+
+.player-utility-modal:focus {
+  outline: none;
+}
+
+.player-utility-modal:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(var(--color-brass-rgb), 0.2),
+    0 2rem 5rem rgba(0, 0, 0, 0.64);
 }
 
 .player-modal-compose {
@@ -3660,6 +3994,235 @@ button:active {
   text-align: center;
 }
 
+.next-steps-panel {
+  overflow: hidden;
+}
+
+.next-steps-track {
+  min-width: 0;
+}
+
+.next-steps-card {
+  min-height: 7.1rem;
+  touch-action: manipulation;
+}
+
+.next-steps-card:focus-visible {
+  border-color: rgba(var(--color-brass-rgb), 0.62) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--color-brass-rgb), 0.14),
+    0 0 22px rgba(var(--color-brass-rgb), 0.22) !important;
+}
+
+.progress-dashboard {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.75rem;
+  background:
+    linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(var(--color-brass-rgb), 0.08)),
+    rgba(0, 0, 0, 0.24);
+  padding: 0.8rem;
+}
+
+.progress-dashboard-label {
+  color: rgba(var(--color-brass-rgb), 0.82);
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.progress-dashboard strong {
+  color: rgb(209, 250, 229);
+  font-size: 0.82rem;
+}
+
+.progress-meter {
+  height: 0.42rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.progress-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgb(52, 211, 153), rgb(var(--color-brass-rgb)));
+  box-shadow: 0 0 18px rgba(52, 211, 153, 0.22);
+  transition: width 260ms ease;
+}
+
+.achievement-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.achievement-strip span {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.25rem 0.55rem;
+  color: rgb(120, 113, 108);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.achievement-strip span.is-unlocked {
+  border-color: rgba(52, 211, 153, 0.26);
+  background: rgba(16, 185, 129, 0.11);
+  color: rgb(187, 247, 208);
+}
+
+.achievement-strip svg {
+  flex-shrink: 0;
+}
+
+.session-command-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24);
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(135deg, rgba(var(--color-brass-rgb), 0.13), rgba(124, 58, 237, 0.09)),
+    rgba(0, 0, 0, 0.36);
+  padding: 1rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 42px rgba(0, 0, 0, 0.26);
+}
+
+.session-command-button {
+  display: inline-flex;
+  min-height: 2.85rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.38);
+  border-radius: 0.7rem;
+  background: rgba(var(--color-brass-rgb), 0.16);
+  padding: 0.7rem 1rem;
+  color: rgb(var(--color-brass-rgb));
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+  white-space: nowrap;
+}
+
+.session-command-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--color-brass-rgb), 0.58);
+  background: rgba(var(--color-brass-rgb), 0.22);
+}
+
+.session-command-button:focus-visible {
+  outline: 2px solid rgba(var(--color-brass-rgb), 0.65);
+  outline-offset: 3px;
+}
+
+.session-signal-pill {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid;
+  border-radius: 999px;
+  padding: 0.25rem 0.58rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.session-signal-pill svg {
+  flex-shrink: 0;
+}
+
+@media (max-width: 1023px) {
+  .next-steps-track {
+    display: flex !important;
+    gap: 0.55rem;
+    margin-left: -0.15rem;
+    margin-right: -0.15rem;
+    overflow-x: auto;
+    padding: 0 0.15rem 0.45rem;
+    scroll-snap-type: x proximity;
+  }
+
+  .next-steps-track::-webkit-scrollbar {
+    height: 0.35rem;
+  }
+
+  .next-steps-track::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 999px;
+  }
+
+  .next-steps-track::-webkit-scrollbar-thumb {
+    background: rgba(var(--color-brass-rgb), 0.42);
+    border-radius: 999px;
+  }
+
+  .next-steps-card {
+    flex: 0 0 min(17rem, 78vw);
+    min-height: 6.6rem;
+    scroll-snap-align: start;
+  }
+
+  .session-command-card {
+    grid-template-columns: 1fr;
+  }
+
+  .session-command-button {
+    width: 100%;
+  }
+
+  .mobile-player-tabs button,
+  .player-action-hotbar button {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    touch-action: manipulation;
+  }
+
+  .mobile-player-tabs button[aria-current="page"] {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 0 18px rgba(245, 158, 11, 0.22);
+  }
+}
+
+@media (max-width: 640px) {
+  .next-steps-panel {
+    border-radius: 0.85rem !important;
+    padding: 0.85rem !important;
+  }
+
+  .next-steps-panel h2 {
+    font-size: 1rem;
+  }
+
+  .next-steps-card {
+    flex-basis: min(15.25rem, 82vw);
+    padding: 0.7rem !important;
+  }
+}
+
 @media (max-width: 1023px) {
   .player-room-shell {
     padding-bottom: 1rem;
@@ -3667,6 +4230,31 @@ button:active {
 
   .player-room-header {
     padding: 0.9rem;
+  }
+
+  .player-header-actions {
+    display: flex !important;
+    gap: 0.55rem;
+    margin-inline: -0.15rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding: 0 0.15rem 0.45rem;
+    scroll-padding-inline: 0.15rem;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .player-header-actions .player-header-action {
+    flex: 0 0 auto;
+    min-width: 7.35rem;
+    min-height: 2.85rem;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+
+  .player-header-actions .player-info-tile {
+    flex: 0 0 min(13.5rem, 74vw);
+    min-height: 2.85rem;
   }
 
   .player-logo-mark {
@@ -3732,8 +4320,21 @@ button:active {
     padding: 0.65rem;
   }
 
+  .player-room-header {
+    padding: 0.75rem !important;
+  }
+
   .player-room-header h1 {
     font-size: 1.45rem;
+  }
+
+  .player-current-strip {
+    min-height: 3.1rem;
+  }
+
+  .player-current-strip > span:first-child {
+    height: 2.5rem !important;
+    width: 2.5rem !important;
   }
 
   .player-session-kicker,
@@ -3752,9 +4353,15 @@ button:active {
   }
 
   .player-header-action {
-    min-height: 2.85rem;
+    min-height: 2.95rem;
+    min-width: 6.75rem;
     padding: 0.45rem 0.55rem;
     font-size: 0.78rem;
+  }
+
+  .player-header-action span {
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .player-current-stat {
@@ -4771,8 +5378,7 @@ select.field:focus {
 /* 4. Hotbar panel frame background */
 .ui-hotbar-panel {
   max-width: calc(100vw - 2rem) !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
+  overflow: visible !important;
   border: 1px solid rgba(var(--color-brass-rgb), 0.24) !important;
   border-radius: 0.75rem !important;
   background:
@@ -4790,6 +5396,12 @@ select.field:focus {
 
 .ui-hotbar-panel::-webkit-scrollbar {
   display: none !important;
+}
+
+.ui-hotbar-panel [id$="-notification-center"] {
+  z-index: 130 !important;
+  max-height: min(26rem, calc(100vh - 7rem));
+  overflow-y: auto;
 }
 
 .player-action-hotbar.ui-hotbar-panel {
@@ -5190,6 +5802,122 @@ select.field:focus {
   color: rgba(226, 232, 240, 0.72) !important;
 }
 
+.session-empty-state,
+:where(.director-empty-state, .story-empty-state, .player-modal-empty, .player-rail-empty, .social-empty-state, .map-empty-state) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-style: solid !important;
+  border-color: rgba(var(--color-brass-rgb), 0.2) !important;
+  background:
+    linear-gradient(180deg, rgba(10, 11, 16, 0.76), rgba(4, 5, 8, 0.94)),
+    var(--atlas-texture-parchment) center / cover no-repeat !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.035),
+    inset 0 1.2rem 3rem rgba(255, 241, 210, 0.02),
+    0 1.2rem 3rem rgba(0, 0, 0, 0.22);
+}
+
+.session-empty-state::before,
+:where(.director-empty-state, .story-empty-state, .player-modal-empty, .player-rail-empty, .social-empty-state, .map-empty-state)::before {
+  content: "";
+  display: block;
+  width: min(11rem, 48vw);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto 1rem;
+  border-radius: 1.15rem;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.9;
+  filter:
+    saturate(0.96)
+    contrast(1.04)
+    drop-shadow(0 1rem 1.8rem rgba(0, 0, 0, 0.42));
+}
+
+.session-empty-state::after,
+:where(.director-empty-state, .story-empty-state, .player-modal-empty, .player-rail-empty, .social-empty-state, .map-empty-state)::after {
+  content: "";
+  position: absolute;
+  inset: 0.65rem;
+  z-index: -1;
+  border-radius: inherit;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.11);
+  background:
+    var(--atlas-ui-corner) left top / 4.4rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 4.4rem auto no-repeat,
+    radial-gradient(circle at 50% 14%, rgba(var(--color-brass-rgb), 0.08), transparent 12rem);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+:where(.director-empty-state svg, .story-empty-state svg, .player-modal-empty svg, .player-rail-empty svg, .social-empty-state svg, .map-empty-state svg) {
+  display: none;
+}
+
+.director-empty-state::before { background-image: var(--atlas-empty-archive) !important; }
+.story-empty-state::before { background-image: var(--atlas-empty-scroll) !important; }
+.player-modal-empty::before { background-image: var(--atlas-empty-portrait) !important; }
+.player-rail-empty::before { background-image: var(--atlas-empty-portrait) !important; }
+.social-empty-state::before { background-image: var(--atlas-empty-envelope) !important; }
+.map-empty-state::before { background-image: var(--atlas-empty-compass) !important; }
+.session-empty-state--master::before { background-image: var(--atlas-empty-scroll); }
+.session-empty-state--player::before { background-image: var(--atlas-empty-portrait); }
+.session-empty-state--search::before,
+.session-empty-state--all::before { background-image: var(--atlas-empty-compass); }
+
+.session-empty-state h2,
+:where(.director-empty-state p, .story-empty-state p, .player-modal-empty p, .player-rail-empty p, .social-empty-state p, .map-empty-state p) {
+  color: #f7e7c2 !important;
+  text-shadow: 0 0 1.1rem rgba(var(--color-brass-rgb), 0.12);
+}
+
+.session-empty-state p,
+:where(.director-empty-state span, .story-empty-state span, .player-modal-empty span, .player-rail-empty span, .social-empty-state span, .map-empty-state span, .player-empty-copy) {
+  color: rgba(226, 232, 240, 0.76) !important;
+}
+
+.premium-menu-panel,
+:where(.director-card, .glass-panel, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel) {
+  background-blend-mode: normal, soft-light, screen !important;
+}
+
+:where(.director-card, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    var(--atlas-ui-corner) left 0.55rem top 0.55rem / 3.25rem auto no-repeat,
+    var(--atlas-ui-corner) right 0.55rem top 0.55rem / 3.25rem auto no-repeat,
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.055), transparent 22%, transparent 78%, rgba(var(--color-brass-rgb), 0.055));
+  opacity: 0.36;
+  pointer-events: none;
+}
+
+.premium-menu-panel {
+  background-image:
+    linear-gradient(180deg, rgba(11, 11, 16, 0.88), rgba(4, 5, 9, 0.96)),
+    var(--atlas-texture-glass),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.12), transparent 18rem) !important;
+}
+
+.atlas-placeholder {
+  background-color: rgba(0, 0, 0, 0.46);
+  background-size: cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--color-brass-rgb), 0.18),
+    inset 0 -1.2rem 2.4rem rgba(0, 0, 0, 0.36),
+    0 0.75rem 1.7rem rgba(0, 0, 0, 0.3);
+}
+
+.director-identity-token .atlas-placeholder {
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 999px;
+}
+
 .story-message {
   overflow: hidden;
 }
@@ -5392,4 +6120,4347 @@ select.field:focus {
     line-height: 1.1 !important;
     white-space: normal !important;
   }
+}
+
+/* ==========================================================================
+   Atlante Vivo v2 final layer
+   This block intentionally sits at the end: it restrains earlier experimental
+   Atlas rules so assets behave as materials and ornaments, not overlays.
+   ========================================================================== */
+
+:where(.director-card, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel)::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0 !important;
+  z-index: -1 !important;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.04), transparent 20%, transparent 80%, rgba(var(--color-brass-rgb), 0.04)),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.06), transparent 16rem) !important;
+  opacity: 1 !important;
+  pointer-events: none;
+}
+
+:where(.director-card, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel)::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0.65rem !important;
+  z-index: -1 !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.08) !important;
+  border-radius: inherit;
+  background: none !important;
+  box-shadow: inset 0 0 1.1rem rgba(255, 238, 196, 0.025) !important;
+  pointer-events: none;
+}
+
+.story-chat-panel,
+.master-command-panel {
+  background-image:
+    linear-gradient(180deg, rgba(8, 9, 13, 0.955), rgba(3, 4, 8, 0.99)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.story-chat-header,
+.master-command-panel > header,
+.player-utility-modal > header {
+  position: relative;
+  overflow: hidden;
+  background-image:
+    linear-gradient(90deg, rgba(8, 8, 12, 0.98), rgba(30, 23, 14, 0.66), rgba(8, 8, 12, 0.98)),
+    var(--atlas-ui-plaque) !important;
+  background-position: center, right center !important;
+  background-repeat: no-repeat !important;
+  background-size: auto, min(30rem, 82%) 100% !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.story-chat-header::after,
+.master-command-panel > header::after,
+.player-utility-modal > header::after {
+  content: "";
+  position: absolute;
+  left: clamp(1rem, 7vw, 7rem);
+  right: clamp(1rem, 7vw, 7rem);
+  bottom: -0.55rem;
+  height: 1rem;
+  background: var(--atlas-ui-divider) center / min(24rem, 100%) auto no-repeat;
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.player-utility-modal::before,
+.map-tool-panel::before {
+  background:
+    var(--atlas-ui-corner) left 0.8rem top 0.8rem / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right 0.8rem top 0.8rem / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) left 0.8rem bottom 0.8rem / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right 0.8rem bottom 0.8rem / 2.15rem auto no-repeat,
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.035), transparent 25%, transparent 75%, rgba(var(--color-brass-rgb), 0.035)) !important;
+  opacity: 0.3 !important;
+}
+
+.story-chat-panel::before,
+.master-command-panel::before,
+.director-card::before {
+  background:
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.035), transparent 22%, transparent 78%, rgba(var(--color-brass-rgb), 0.035)),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.055), transparent 15rem) !important;
+  opacity: 1 !important;
+}
+
+.premium-action::before {
+  background:
+    linear-gradient(90deg, rgba(4, 3, 2, 0.72), rgba(20, 13, 8, 0.25), rgba(4, 3, 2, 0.68)),
+    var(--atlas-ui-button) center / 100% 100% no-repeat !important;
+  opacity: 0.56 !important;
+}
+
+.premium-action::after {
+  background:
+    radial-gradient(circle, rgba(255, 231, 181, 0.16), transparent 58%),
+    var(--atlas-action-watermark) center / contain no-repeat !important;
+  opacity: 0.16 !important;
+}
+
+.premium-action[data-atlas-action="create"] { --atlas-action-watermark: url("/assets/atlas/icons/regia.svg"); }
+.premium-action[data-atlas-action="sessions"] { --atlas-action-watermark: url("/assets/atlas/icons/media.svg"); }
+.premium-action[data-atlas-action="join"] { --atlas-action-watermark: url("/assets/atlas/icons/mappa.svg"); }
+.premium-action[data-atlas-action="superadmin"] { --atlas-action-watermark: url("/assets/atlas/icons/superadmin.svg"); }
+
+.director-nav-link::after,
+.player-header-action::after {
+  content: "";
+  position: absolute;
+  inset: 0.2rem 0.45rem 0.2rem auto;
+  width: 2.4rem;
+  background: var(--atlas-area-watermark) center / contain no-repeat;
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: -1;
+}
+
+[data-atlas-area="regia"] { --atlas-area-watermark: url("/assets/atlas/icons/regia.png"); }
+[data-atlas-area="scene"],
+[data-atlas-area="scenes"] { --atlas-area-watermark: url("/assets/atlas/icons/scene.png"); }
+[data-atlas-area="mappa"] { --atlas-area-watermark: url("/assets/atlas/icons/mappa.png"); }
+[data-atlas-area="chat"] { --atlas-area-watermark: url("/assets/atlas/icons/chat.png"); }
+[data-atlas-area="eroi"] { --atlas-area-watermark: url("/assets/atlas/icons/eroi.png"); }
+[data-atlas-area="audio"] { --atlas-area-watermark: url("/assets/atlas/icons/audio.png"); }
+[data-atlas-area="media"] { --atlas-area-watermark: url("/assets/atlas/icons/media.png"); }
+[data-atlas-area="zaini"] { --atlas-area-watermark: url("/assets/atlas/icons/zaini.png"); }
+[data-atlas-area="soundbar"] { --atlas-area-watermark: url("/assets/atlas/icons/soundbar.png"); }
+[data-atlas-area="superadmin"] { --atlas-area-watermark: url("/assets/atlas/icons/superadmin.png"); }
+
+.director-control-room,
+.player-room-shell {
+  background-image:
+    linear-gradient(180deg, rgba(2, 3, 7, 0.955), rgba(2, 3, 7, 0.99)),
+    radial-gradient(circle at 20% 0%, rgba(var(--color-brass-rgb), 0.075), transparent 32rem),
+    var(--atlas-table) !important;
+  background-position: center, center, center top !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+}
+
+:where(.director-empty-state, .story-empty-state, .player-modal-empty, .player-rail-empty, .social-empty-state, .map-empty-state, .session-empty-state)::after {
+  background:
+    var(--atlas-ui-corner) left top / 2.25rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 2.25rem auto no-repeat !important;
+  opacity: 0.24 !important;
+}
+
+/* Fase 2: primary screens refinement */
+
+.premium-action {
+  border-width: 1px !important;
+  box-shadow:
+    0 0.9rem 2.2rem rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 244, 218, 0.055),
+    inset 0 0 2.2rem rgba(255, 226, 181, 0.04) !important;
+}
+
+.premium-action .premium-action-icon {
+  flex-shrink: 0;
+}
+
+.premium-action-icon > svg {
+  filter: drop-shadow(0 0 0.55rem rgba(var(--color-brass-rgb), 0.42));
+}
+
+.director-status-tile,
+.player-info-tile {
+  background-image:
+    linear-gradient(180deg, rgba(13, 13, 17, 0.82), rgba(5, 6, 10, 0.94)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border-color: rgba(var(--color-brass-rgb), 0.14) !important;
+}
+
+.director-status-tile::before,
+.player-info-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0.35rem auto 0.35rem 0.45rem;
+  width: 2.2rem;
+  background: var(--atlas-ui-divider) left center / auto 100% no-repeat;
+  opacity: 0.09;
+  pointer-events: none;
+}
+
+.story-chat-panel .story-filter-pill,
+.story-density-toggle,
+.story-status-badge {
+  position: relative;
+  z-index: 2;
+}
+
+.story-chat-panel input,
+.story-chat-panel textarea,
+.master-command-panel input,
+.master-command-panel textarea,
+.master-command-panel select,
+.player-utility-modal input,
+.player-utility-modal textarea,
+.player-utility-modal select {
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 7, 0.88), rgba(0, 0, 0, 0.72)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.story-chat-panel textarea,
+.master-command-panel textarea,
+.player-utility-modal textarea {
+  color: #f7ead0 !important;
+}
+
+.story-chat-panel textarea::placeholder,
+.master-command-panel textarea::placeholder,
+.player-utility-modal textarea::placeholder {
+  color: rgba(224, 209, 181, 0.58) !important;
+}
+
+.player-sheet-atlas {
+  position: relative;
+  isolation: isolate;
+}
+
+.player-sheet-atlas::before {
+  content: "";
+  position: absolute;
+  inset: 2.7rem 0 0;
+  z-index: -1;
+  border-radius: 1rem;
+  background:
+    var(--atlas-ui-corner) left top / 2.25rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 2.25rem auto no-repeat,
+    linear-gradient(180deg, rgba(15, 13, 10, 0.58), rgba(5, 5, 8, 0.82)),
+    var(--atlas-texture-parchment) center / cover no-repeat;
+  opacity: 0.72;
+}
+
+.player-sheet-tabs {
+  position: relative;
+}
+
+.player-sheet-tabs::after {
+  content: "";
+  position: absolute;
+  left: 6rem;
+  right: 6rem;
+  bottom: -0.55rem;
+  height: 1rem;
+  background: var(--atlas-ui-divider) center / min(22rem, 100%) auto no-repeat;
+  opacity: 0.24;
+  pointer-events: none;
+}
+
+.player-sheet-dossier {
+  padding: clamp(0.3rem, 1vw, 0.8rem);
+}
+
+.player-sheet-portrait {
+  border-color: rgba(var(--color-brass-rgb), 0.44) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.12), transparent 68%),
+    rgba(0, 0, 0, 0.5) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.08),
+    0 1rem 2.4rem rgba(0, 0, 0, 0.42) !important;
+}
+
+.player-sheet-panel,
+.player-sheet-secret {
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 8, 0.62), rgba(3, 4, 7, 0.78)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border-color: rgba(var(--color-brass-rgb), 0.13) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 244, 218, 0.025);
+}
+
+.player-sheet-secret {
+  border-color: rgba(245, 158, 11, 0.32) !important;
+  background-image:
+    linear-gradient(180deg, rgba(46, 27, 8, 0.58), rgba(8, 5, 3, 0.78)),
+    var(--atlas-texture-ink) !important;
+}
+
+.player-sheet-panel span,
+.player-sheet-secret span {
+  color: #e5bc6a !important;
+  letter-spacing: 0.06em;
+}
+
+.player-sheet-panel p,
+.player-sheet-secret p {
+  color: rgba(250, 244, 232, 0.86) !important;
+}
+
+.player-sheet-panel strong {
+  color: #fff4df !important;
+}
+
+.map-tool-panel {
+  background-image:
+    linear-gradient(180deg, rgba(10, 10, 12, 0.92), rgba(2, 3, 6, 0.985)),
+    var(--atlas-texture-wood) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.director-tool-emblem {
+  background:
+    radial-gradient(circle, rgba(255, 231, 181, 0.13), transparent 62%),
+    var(--atlas-ui-ring) center / 112% 112% no-repeat,
+    rgba(0, 0, 0, 0.34) !important;
+  border-color: rgba(var(--color-brass-rgb), 0.32) !important;
+}
+
+@media (max-width: 640px) {
+  .player-sheet-atlas::before {
+    inset: 3.2rem -0.2rem 0;
+  }
+
+  .player-sheet-tabs {
+    overflow-x: auto;
+    padding-bottom: 0.65rem;
+  }
+
+  .player-sheet-tabs::after {
+    left: 2rem;
+    right: 2rem;
+  }
+}
+
+/* Fase 3: secondary surfaces and remaining Atlas assets */
+
+.off-chat-panel,
+.private-thread-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-image:
+    linear-gradient(180deg, rgba(7, 9, 14, 0.94), rgba(3, 4, 8, 0.985)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.off-chat-panel::before,
+.private-thread-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0.7rem;
+  z-index: -1;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.08);
+  border-radius: inherit;
+  background:
+    var(--atlas-ui-corner) left top / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 2.15rem auto no-repeat;
+  opacity: 0.26;
+  pointer-events: none;
+}
+
+.off-chat-panel > header,
+.private-thread-panel > header {
+  position: relative;
+  overflow: hidden;
+  background-image:
+    linear-gradient(90deg, rgba(8, 8, 12, 0.96), rgba(22, 19, 15, 0.58), rgba(8, 8, 12, 0.96)),
+    var(--atlas-ui-plaque) !important;
+  background-position: center, right center;
+  background-size: auto, min(24rem, 80%) 100%;
+  background-repeat: no-repeat;
+  background-blend-mode: normal, soft-light;
+}
+
+.off-message-card,
+.private-message-card {
+  border-color: rgba(var(--color-brass-rgb), 0.12) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.032), rgba(0, 0, 0, 0.12)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.social-empty-state {
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 9, 0.68), rgba(3, 4, 8, 0.92)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.social-empty-state::before {
+  background-image: var(--atlas-empty-envelope) !important;
+}
+
+.off-chat-panel .social-empty-state::before {
+  background-image: var(--atlas-empty-bell) !important;
+}
+
+.director-media-card,
+.admin-media-card,
+.admin-room-card,
+.admin-metric-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.director-media-card,
+.admin-media-card {
+  border-color: rgba(var(--color-brass-rgb), 0.15) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 12, 14, 0.8), rgba(4, 5, 8, 0.95)),
+    var(--atlas-texture-wood) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.035),
+    0 1rem 2.4rem rgba(0, 0, 0, 0.22);
+}
+
+.director-media-card::before,
+.admin-media-card::before {
+  background:
+    radial-gradient(circle at 92% 8%, rgba(var(--color-brass-rgb), 0.1), transparent 8rem),
+    var(--atlas-area-watermark) right 0.85rem top 0.75rem / 3rem auto no-repeat !important;
+  opacity: 0.18 !important;
+  z-index: -1;
+}
+
+.director-media-card--image,
+.director-media-card--map,
+.admin-media-card--image {
+  --atlas-area-watermark: url("/assets/atlas/icons/scene.png");
+}
+
+.director-media-card--portrait,
+.admin-media-card--portrait {
+  --atlas-area-watermark: url("/assets/atlas/icons/eroi.png");
+}
+
+.director-media-card--audio,
+.director-media-card--sound,
+.admin-media-card--audio,
+.admin-media-card--sound {
+  --atlas-area-watermark: url("/assets/atlas/icons/audio.png");
+}
+
+.director-media-card--video,
+.admin-media-card--video {
+  --atlas-area-watermark: url("/assets/atlas/icons/media.png");
+}
+
+.director-media-card--object,
+.admin-media-card--object {
+  --atlas-area-watermark: url("/assets/atlas/icons/zaini.png");
+}
+
+.director-media-card .aspect-video,
+.admin-media-card .aspect-video {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.12);
+  background-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.director-media-filterbar button {
+  background-image:
+    linear-gradient(180deg, rgba(15, 14, 11, 0.68), rgba(4, 5, 8, 0.86)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.superadmin-atlas-header {
+  background-image:
+    linear-gradient(180deg, rgba(12, 12, 15, 0.9), rgba(4, 5, 9, 0.97)),
+    radial-gradient(circle at 88% 12%, rgba(var(--color-brass-rgb), 0.12), transparent 20rem),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+}
+
+.superadmin-atlas-header::before {
+  background:
+    var(--atlas-ui-corner) left 0.8rem top 0.8rem / 2.4rem auto no-repeat,
+    var(--atlas-ui-corner) right 0.8rem top 0.8rem / 2.4rem auto no-repeat,
+    url("/assets/atlas/icons/superadmin.png") right 1.2rem bottom 1rem / 5.5rem auto no-repeat !important;
+  opacity: 0.18 !important;
+}
+
+.admin-metric-card {
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.18)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.admin-metric-card::after {
+  content: "";
+  position: absolute;
+  inset: 0.4rem 0.5rem 0.4rem auto;
+  width: 3.2rem;
+  background: var(--atlas-area-watermark) center / contain no-repeat;
+  opacity: 0.12;
+  pointer-events: none;
+}
+
+.admin-room-card {
+  background-image:
+    linear-gradient(180deg, rgba(14, 13, 11, 0.86), rgba(4, 5, 8, 0.96)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.admin-room-card::before {
+  background:
+    var(--atlas-empty-compass) right 1rem center / 5rem auto no-repeat,
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.035), transparent 38%) !important;
+  opacity: 0.14 !important;
+}
+
+.director-media-grid > p {
+  min-height: 12rem;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(var(--color-brass-rgb), 0.18);
+  border-radius: 0.9rem;
+  background:
+    linear-gradient(180deg, rgba(10, 10, 12, 0.74), rgba(3, 4, 8, 0.92)),
+    var(--atlas-texture-parchment) center / cover no-repeat;
+}
+
+/* ==========================================================================
+   Atlante Vivo v3 - proprietary product language
+   ========================================================================== */
+
+:root {
+  --atlas-v3-radius: 0.78rem;
+  --atlas-v3-gold: rgb(226, 181, 95);
+  --atlas-v3-cream: rgb(255, 241, 212);
+  --atlas-v3-muted: rgba(235, 224, 205, 0.72);
+  --atlas-v3-border: rgba(var(--color-brass-rgb), 0.2);
+  --atlas-v3-border-strong: rgba(var(--color-brass-rgb), 0.38);
+  --atlas-v3-shadow: 0 1.25rem 3.2rem rgba(0, 0, 0, 0.34);
+  --atlas-v3-inset: inset 0 0 0 1px rgba(255, 242, 213, 0.045), inset 0 1.4rem 3rem rgba(255, 230, 180, 0.018);
+}
+
+@keyframes atlas-v3-sigil {
+  0%, 100% {
+    filter: brightness(1);
+    box-shadow: 0 0 0 rgba(var(--color-brass-rgb), 0);
+  }
+  50% {
+    filter: brightness(1.12);
+    box-shadow: 0 0 1.4rem rgba(var(--color-brass-rgb), 0.16);
+  }
+}
+
+@keyframes atlas-v3-sweep {
+  0% { transform: translateX(-130%); opacity: 0; }
+  28% { opacity: 0.65; }
+  100% { transform: translateX(130%); opacity: 0; }
+}
+
+.atlas-app-shell:not([data-view="menu"]) {
+  color: var(--atlas-v3-cream);
+}
+
+.atlas-app-shell:not([data-view="menu"])::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 6%, rgba(var(--color-brass-rgb), 0.1), transparent 22rem),
+    radial-gradient(circle at 84% 10%, rgba(94, 43, 112, 0.1), transparent 24rem),
+    linear-gradient(180deg, rgba(1, 2, 5, 0.84), rgba(1, 2, 5, 0.97)),
+    var(--atlas-table) center top / cover no-repeat;
+  background-blend-mode: normal, normal, normal, soft-light;
+}
+
+.atlas-app-shell :where(.glass-panel, .ui-panel-window, .director-card, .director-tool-panel, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel, .off-chat-panel, .private-thread-panel, .soundbar-modal) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--atlas-v3-border) !important;
+  border-radius: var(--atlas-v3-radius) !important;
+  background-image:
+    linear-gradient(180deg, rgba(14, 14, 18, 0.89), rgba(4, 5, 9, 0.975)),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.07), transparent 17rem),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+  box-shadow: var(--atlas-v3-shadow), var(--atlas-v3-inset) !important;
+}
+
+.atlas-app-shell :where(.glass-panel, .ui-panel-window, .director-card, .director-tool-panel, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel, .off-chat-panel, .private-thread-panel, .soundbar-modal)::after {
+  content: "" !important;
+  position: absolute;
+  inset: 0.58rem !important;
+  z-index: -1 !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.09) !important;
+  border-radius: calc(var(--atlas-v3-radius) - 0.18rem);
+  background:
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.035), transparent 16%, transparent 84%, rgba(var(--color-brass-rgb), 0.035)) !important;
+  pointer-events: none;
+}
+
+.atlas-app-shell :where(.ui-panel-window, .player-utility-modal, .map-tool-panel, .soundbar-modal)::before {
+  background:
+    var(--atlas-ui-corner) left 0.72rem top 0.72rem / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right 0.72rem top 0.72rem / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) left 0.72rem bottom 0.72rem / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right 0.72rem bottom 0.72rem / 2.15rem auto no-repeat,
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.055), transparent 15rem) !important;
+  opacity: 0.24 !important;
+}
+
+.atlas-app-shell :where(.director-tool-heading, .master-panel-header, .social-panel-header, .story-chat-header, .player-utility-modal > header, .off-chat-panel > header, .private-thread-panel > header, .ui-panel-window > header) {
+  position: relative;
+  border-bottom-color: rgba(var(--color-brass-rgb), 0.16) !important;
+  background-image:
+    linear-gradient(90deg, rgba(5, 5, 8, 0.94), rgba(38, 29, 17, 0.62), rgba(5, 5, 8, 0.94)),
+    var(--atlas-ui-plaque) !important;
+  background-position: center, right center !important;
+  background-size: auto, min(34rem, 86%) 100% !important;
+  background-repeat: no-repeat !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.atlas-app-shell :where(h1, h2, h3, .director-form-title, .social-panel-kicker, .player-modal-kicker) {
+  text-shadow: 0 0 0.9rem rgba(var(--color-brass-rgb), 0.13);
+}
+
+.atlas-app-shell :where(.director-tool-heading h2, .story-chat-header h2, .player-utility-modal h2, .ui-panel-window h1, .ui-panel-window h2) {
+  color: var(--atlas-v3-cream) !important;
+}
+
+.premium-menu-panel {
+  border-color: rgba(var(--color-brass-rgb), 0.32) !important;
+  background-image:
+    linear-gradient(180deg, rgba(7, 6, 8, 0.9), rgba(3, 3, 6, 0.96)),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.13), transparent 18rem),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+}
+
+.premium-menu-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0.85rem;
+  border-radius: 1.1rem;
+  background:
+    var(--atlas-ui-corner) left top / 2.2rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 2.2rem auto no-repeat,
+    var(--atlas-ui-corner) left bottom / 2.2rem auto no-repeat,
+    var(--atlas-ui-corner) right bottom / 2.2rem auto no-repeat;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.premium-action {
+  min-height: 5.35rem;
+  border-radius: 0.82rem !important;
+  border-color: rgba(var(--color-brass-rgb), 0.48) !important;
+  transform-origin: center;
+}
+
+.premium-action::before {
+  inset: 0.32rem !important;
+  border-radius: 0.6rem !important;
+  background:
+    linear-gradient(90deg, rgba(3, 3, 4, 0.76), rgba(56, 32, 15, 0.28), rgba(3, 3, 4, 0.74)),
+    var(--atlas-ui-button) center / 100% 100% no-repeat !important;
+  opacity: 0.78 !important;
+}
+
+.premium-action::after {
+  width: 5.8rem !important;
+  opacity: 0.22 !important;
+  filter: drop-shadow(0 0 1rem rgba(var(--color-brass-rgb), 0.22));
+}
+
+.premium-action:hover {
+  border-color: rgba(255, 217, 151, 0.72) !important;
+  filter: brightness(1.08) saturate(1.06);
+  transform: translateY(-2px) scale(1.006);
+}
+
+.premium-action:hover::before,
+.ui-btn-fantasy:hover::before,
+.director-primary-action:hover::before,
+.director-save-action:hover::before,
+.session-command-button:hover::before {
+  animation: atlas-v3-sweep 950ms ease;
+}
+
+.premium-action-icon {
+  height: 3.65rem !important;
+  width: 3.65rem !important;
+  border-color: rgba(255, 225, 170, 0.42) !important;
+  background:
+    radial-gradient(circle, rgba(255, 233, 190, 0.16), transparent 58%),
+    var(--atlas-ui-ring) center / 124% 124% no-repeat,
+    rgba(0, 0, 0, 0.45) !important;
+}
+
+.premium-action-icon .atlas-icon {
+  width: 2.35rem;
+  height: 2.35rem;
+  filter: drop-shadow(0 0 0.8rem rgba(var(--color-brass-rgb), 0.36));
+}
+
+.atlas-app-shell :where(.ui-btn-fantasy, .director-primary-action, .director-save-action, .director-secondary-action, .director-session-button, .director-small-button, .director-toolbar-button, .director-icon-button, .player-modal-primary, .session-command-button, .social-send-button, .director-cue-button, .director-cinematic-button, .map-viewer-toolbar button, .map-indicator-actions button, .map-indicator-toggles button, .premium-icon-button) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.28) !important;
+  background-image:
+    linear-gradient(180deg, rgba(73, 45, 19, 0.42), rgba(15, 10, 6, 0.78)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: var(--atlas-v3-cream) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.05),
+    0 0.6rem 1.3rem rgba(0, 0, 0, 0.2);
+}
+
+.atlas-app-shell :where(.ui-btn-fantasy, .director-primary-action, .director-save-action, .director-secondary-action, .director-session-button, .director-small-button, .director-toolbar-button, .director-icon-button, .player-modal-primary, .session-command-button, .social-send-button, .director-cue-button, .director-cinematic-button)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(110deg, transparent 0%, rgba(255, 233, 188, 0.18) 46%, transparent 58%),
+    var(--atlas-ui-button) center / 100% 100% no-repeat;
+  opacity: 0.22;
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+
+.atlas-app-shell :where(.ui-btn-fantasy, .director-primary-action, .director-save-action, .director-secondary-action, .director-session-button, .director-small-button, .director-toolbar-button, .director-icon-button, .player-modal-primary, .session-command-button, .social-send-button, .director-cue-button, .director-cinematic-button, .map-viewer-toolbar button, .map-indicator-actions button, .map-indicator-toggles button, .premium-icon-button):hover {
+  border-color: rgba(255, 221, 159, 0.5) !important;
+  background-color: rgba(var(--color-brass-rgb), 0.08) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.07),
+    0 0.85rem 1.7rem rgba(0, 0, 0, 0.26),
+    0 0 1.2rem rgba(var(--color-brass-rgb), 0.08);
+}
+
+.atlas-app-shell :where(.director-sidebar, .player-action-hotbar.ui-hotbar-panel, .director-topbar, .mobile-player-tabs) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.2) !important;
+  background-image:
+    linear-gradient(180deg, rgba(8, 7, 8, 0.9), rgba(2, 3, 6, 0.97)),
+    var(--atlas-ui-plaque),
+    var(--atlas-texture-metal) !important;
+  background-position: center, center, center !important;
+  background-size: auto, cover, cover !important;
+  background-blend-mode: normal, soft-light, soft-light !important;
+  box-shadow: 0 1rem 2.4rem rgba(0, 0, 0, 0.28), var(--atlas-v3-inset) !important;
+}
+
+.director-nav-link,
+.player-header-action,
+.player-menu-button {
+  border-radius: 0.62rem !important;
+  border-color: rgba(var(--color-brass-rgb), 0.13) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.18)),
+    var(--atlas-texture-glass) !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.director-nav-link.is-active,
+.player-header-action:hover,
+.player-menu-button:hover {
+  border-color: rgba(var(--color-brass-rgb), 0.42) !important;
+  background-image:
+    linear-gradient(180deg, rgba(var(--color-brass-rgb), 0.14), rgba(0, 0, 0, 0.18)),
+    var(--atlas-texture-gold) !important;
+  color: #fff4dc !important;
+}
+
+.atlas-app-shell :where(.field, input.field, textarea.field, select.field) {
+  border-radius: 0.62rem !important;
+  border-color: rgba(var(--color-brass-rgb), 0.16) !important;
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 7, 0.86), rgba(0, 0, 0, 0.68)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: var(--atlas-v3-cream) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 241, 210, 0.025);
+}
+
+.atlas-app-shell :where(.field, input.field, textarea.field, select.field):focus {
+  border-color: rgba(255, 221, 159, 0.62) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--color-brass-rgb), 0.12),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04),
+    0 0 1.4rem rgba(var(--color-brass-rgb), 0.08) !important;
+}
+
+.atlas-app-shell :where(.field::placeholder, input.field::placeholder, textarea.field::placeholder) {
+  color: rgba(228, 214, 188, 0.48) !important;
+}
+
+.atlas-app-shell :where(.story-status-badge, .scene-stage-badge, .scene-stage-private-badge, .social-panel-badge, .director-live-chip, .notification-badge, .ui-dice-badge, .player-header-action strong, [class*="badge"]) {
+  border-radius: 999px !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.28) !important;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(255, 233, 188, 0.16), transparent 68%),
+    var(--atlas-texture-gold) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: #fff1c8 !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 241, 210, 0.05), 0 0 1rem rgba(var(--color-brass-rgb), 0.07);
+}
+
+.notification-badge,
+.story-status-badge,
+.director-live-chip {
+  animation: atlas-v3-sigil 2.6s ease-in-out infinite;
+}
+
+.atlas-app-shell :where(.app-status-bar) {
+  border-color: rgba(var(--color-brass-rgb), 0.25) !important;
+  background-image:
+    linear-gradient(90deg, rgba(8, 7, 8, 0.96), rgba(35, 25, 13, 0.72), rgba(8, 7, 8, 0.96)),
+    var(--atlas-ui-plaque) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow: 0 0.8rem 2rem rgba(0, 0, 0, 0.28);
+}
+
+.atlas-app-shell table,
+.atlas-app-shell .admin-table {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.14);
+  border-radius: 0.78rem;
+  background:
+    linear-gradient(180deg, rgba(9, 9, 12, 0.86), rgba(3, 4, 8, 0.96)),
+    var(--atlas-texture-parchment) center / cover no-repeat;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.atlas-app-shell :where(th, td) {
+  border-bottom: 1px solid rgba(var(--color-brass-rgb), 0.08);
+}
+
+.atlas-app-shell th {
+  background:
+    linear-gradient(180deg, rgba(var(--color-brass-rgb), 0.11), rgba(0, 0, 0, 0.12)),
+    var(--atlas-texture-metal) center / cover no-repeat;
+  color: #f4d596;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.atlas-app-shell :where([role="tooltip"], .tooltip, .tippy-box) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24) !important;
+  border-radius: 0.55rem !important;
+  background:
+    linear-gradient(180deg, rgba(10, 9, 8, 0.96), rgba(3, 4, 7, 0.98)),
+    var(--atlas-texture-parchment) center / cover no-repeat !important;
+  color: var(--atlas-v3-cream) !important;
+  box-shadow: 0 0.85rem 1.8rem rgba(0, 0, 0, 0.34), var(--atlas-v3-inset);
+}
+
+.app-loading-shell {
+  background:
+    linear-gradient(180deg, rgba(1, 2, 5, 0.86), rgba(1, 2, 5, 0.98)),
+    var(--atlas-table) center / cover no-repeat !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.app-loading-card {
+  border-color: rgba(var(--color-brass-rgb), 0.28) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 9, 0.9), rgba(3, 4, 8, 0.97)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.app-loading-orb {
+  background:
+    radial-gradient(circle, rgba(255, 231, 181, 0.12), transparent 58%),
+    var(--atlas-ui-ring) center / 125% 125% no-repeat,
+    rgba(0, 0, 0, 0.38) !important;
+  color: var(--atlas-v3-gold) !important;
+}
+
+.app-loading-line {
+  background:
+    linear-gradient(90deg, transparent, rgba(var(--color-brass-rgb), 0.24), transparent),
+    var(--atlas-ui-divider) center / 100% auto no-repeat !important;
+}
+
+.cinematic-event-card {
+  border-color: rgba(var(--color-brass-rgb), 0.34) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 10, 9, 0.92), rgba(3, 4, 8, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+.cinematic-event-symbol,
+.app-loading-orb,
+.premium-logo-mark {
+  animation: atlas-v3-sigil 3.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-badge,
+  .story-status-badge,
+  .director-live-chip,
+  .cinematic-event-symbol,
+  .app-loading-orb,
+  .premium-logo-mark {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .atlas-app-shell :where(.glass-panel, .ui-panel-window, .director-card, .director-tool-panel, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel, .off-chat-panel, .private-thread-panel, .soundbar-modal) {
+    border-radius: 0.72rem !important;
+  }
+
+  .premium-action {
+    min-height: 4.9rem;
+  }
+
+  .premium-action-icon {
+    height: 3.1rem !important;
+    width: 3.1rem !important;
+  }
+
+  .premium-action-icon .atlas-icon {
+    width: 2rem;
+    height: 2rem;
+  }
+}
+
+/* Menu action plates: the Atlas asset becomes the button body, not decoration */
+
+.premium-action {
+  --menu-plate-accent: rgba(var(--color-brass-rgb), 0.64);
+  --menu-plate-glow: rgba(var(--color-brass-rgb), 0.12);
+  --menu-plate-rgb: var(--color-brass-rgb);
+  min-height: 6rem !important;
+  border-style: solid !important;
+  border-width: 14px 20px 14px 20px !important;
+  border-image-source: var(--atlas-ui-button) !important;
+  border-image-slice: 70 100 70 100 fill !important;
+  border-image-repeat: stretch !important;
+  background: none !important;
+  filter: drop-shadow(0 0.5rem 1rem rgba(0, 0, 0, 0.5)) drop-shadow(0 0 0.6rem var(--menu-plate-glow)) !important;
+  padding: 0 1rem 0 0.5rem !important;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1.25rem;
+  text-align: left;
+  isolation: isolate;
+  overflow: visible !important;
+}
+
+.premium-action-ember {
+  --menu-plate-accent: rgba(216, 139, 63, 0.76);
+  --menu-plate-glow: rgba(249, 115, 22, 0.16);
+  --menu-plate-rgb: 216, 139, 63;
+}
+
+.premium-action-violet {
+  --menu-plate-accent: rgba(169, 92, 230, 0.72);
+  --menu-plate-glow: rgba(168, 85, 247, 0.14);
+  --menu-plate-rgb: 169, 92, 230;
+}
+
+.premium-action-emerald {
+  --menu-plate-accent: rgba(50, 190, 143, 0.7);
+  --menu-plate-glow: rgba(16, 185, 129, 0.14);
+  --menu-plate-rgb: 50, 190, 143;
+}
+
+.premium-action::before {
+  display: none !important;
+}
+
+.premium-action::after {
+  inset: 0.45rem 0.8rem 0.45rem auto !important;
+  width: 4rem !important;
+  height: auto !important;
+  border-radius: 0.45rem;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 239, 207, 0.08), transparent),
+    var(--atlas-action-watermark) center / contain no-repeat !important;
+  opacity: 0.06 !important;
+  filter: saturate(0.65) brightness(1.18) drop-shadow(0 0 1rem var(--menu-plate-glow));
+}
+
+.premium-action > span:not(.premium-action-icon) {
+  position: relative;
+  z-index: 2;
+  display: block;
+  min-width: 0;
+  padding-right: 5rem !important;
+}
+
+.premium-action > span:not(.premium-action-icon)::before {
+  content: "";
+  position: absolute;
+  left: -0.25rem;
+  right: 0;
+  top: 50%;
+  z-index: -1;
+  height: 72%;
+  transform: translateY(-50%);
+  border-radius: 0.4rem;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0.18), transparent);
+  pointer-events: none;
+}
+
+.premium-action-icon {
+  height: 3.45rem !important;
+  width: 3.45rem !important;
+  border-color: color-mix(in srgb, var(--menu-plate-accent) 70%, rgba(255, 241, 210, 0.18)) !important;
+  background:
+    radial-gradient(circle, rgba(255, 238, 205, 0.12), transparent 54%),
+    var(--atlas-ui-ring) center / 128% 128% no-repeat,
+    rgba(0, 0, 0, 0.68) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.06),
+    inset 0 0 1.2rem rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(0, 0, 0, 0.55),
+    0 0 1rem var(--menu-plate-glow) !important;
+}
+
+.premium-action-icon .atlas-icon {
+  width: 2.15rem !important;
+  height: 2.15rem !important;
+  opacity: 0.86;
+  background-size: contain !important;
+  background-position: center !important;
+  filter:
+    saturate(0.75)
+    contrast(1.12)
+    brightness(1.05)
+    drop-shadow(0 0 0.45rem rgba(var(--menu-plate-rgb), 0.38));
+}
+
+.premium-action span:not(.premium-action-icon) span:first-child {
+  color: #fff5de !important;
+  letter-spacing: 0.12em !important;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.85),
+    0 0 0.85rem rgba(var(--menu-plate-rgb), 0.18) !important;
+}
+
+.premium-action span:not(.premium-action-icon) span:last-child {
+  color: rgba(244, 229, 201, 0.76) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.72);
+}
+
+.premium-action:hover {
+  border-color: color-mix(in srgb, var(--menu-plate-accent) 92%, white 8%) !important;
+  background:
+    linear-gradient(90deg, rgba(5, 4, 4, 0.94), rgba(16, 11, 7, 0.76) 46%, rgba(4, 4, 6, 0.91)),
+    var(--atlas-texture-wood) center / cover no-repeat !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 241, 210, 0.045),
+    0 0 2.1rem color-mix(in srgb, var(--menu-plate-accent) 35%, transparent),
+    0 1.05rem 2.25rem rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.065) !important;
+  transform: translateY(-2px) scale(1.004);
+}
+
+.premium-action:hover::before {
+  filter: saturate(0.92) contrast(1.12) brightness(0.98);
+}
+
+.premium-action:hover::after {
+  opacity: 0.17 !important;
+}
+
+.premium-action:hover .premium-action-icon {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.08),
+    inset 0 0 1.2rem rgba(0, 0, 0, 0.5),
+    0 0 1.35rem color-mix(in srgb, var(--menu-plate-accent) 45%, transparent) !important;
+}
+
+.premium-action:active {
+  transform: translateY(0) scale(0.998) !important;
+}
+
+@media (max-width: 640px) {
+  .premium-action {
+    grid-template-columns: 3.2rem minmax(0, 1fr) !important;
+    min-height: 4.95rem !important;
+    padding: 0.75rem 0.85rem !important;
+  }
+
+  .premium-action::after {
+    width: 4.4rem !important;
+    opacity: 0.08 !important;
+  }
+
+  .premium-action > span:not(.premium-action-icon) {
+    padding-right: 1.4rem;
+  }
+
+  .premium-action span:not(.premium-action-icon) span:first-child {
+    font-size: 1rem !important;
+    line-height: 1.12;
+  }
+}
+
+/* ==========================================================================
+   Atlante Vivo Overhauled Immersive Styles (V3 Premium Enhancements)
+   ========================================================================== */
+
+/* Immersive background for non-menu shell views */
+.atlas-app-shell:not([data-view="menu"])::before {
+  background:
+    radial-gradient(circle at 15% 15%, rgba(var(--color-brass-rgb), 0.12), transparent 30rem),
+    radial-gradient(circle at 85% 15%, rgba(139, 92, 246, 0.08), transparent 30rem),
+    linear-gradient(180deg, rgba(2, 3, 7, 0.91), rgba(1, 2, 5, 0.99)),
+    var(--atlas-table) center top / cover no-repeat !important;
+}
+
+/* Premium Form Panel Window (Create, Join, Setup Forms) */
+.atlas-app-shell :where(.ui-panel-window) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.3) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 14, 0.95), rgba(4, 4, 7, 0.99)),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.075), transparent 20rem),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+  box-shadow:
+    0 1.5rem 3rem rgba(0, 0, 0, 0.65),
+    var(--atlas-v3-inset) !important;
+}
+
+/* Ornate corner frame ornaments inside panel windows */
+.atlas-app-shell :where(.ui-panel-window)::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0.58rem !important;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    var(--atlas-ui-corner) left top / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) left bottom / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right bottom / 2.15rem auto no-repeat !important;
+  opacity: 0.38 !important;
+}
+
+/* Premium tab button controls */
+.atlas-app-shell :where(.ui-tab-button, [role="tab"]) {
+  position: relative;
+  isolation: isolate;
+  border-radius: 0.62rem !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.22) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.25)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: rgba(244, 229, 201, 0.72) !important;
+  font-family: var(--font-cinzel), serif;
+  font-weight: 700;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.atlas-app-shell :where(.ui-tab-button, [role="tab"]):hover {
+  border-color: rgba(var(--color-brass-rgb), 0.48) !important;
+  color: #fff6de !important;
+  background-color: rgba(var(--color-brass-rgb), 0.06) !important;
+  transform: translateY(-1px);
+}
+
+.atlas-app-shell :where(.ui-tab-button, [role="tab"])[aria-selected="true"],
+.atlas-app-shell :where(.ui-tab-button, [role="tab"]).is-active {
+  border-color: rgba(var(--color-brass-rgb), 0.65) !important;
+  background-image:
+    linear-gradient(180deg, rgba(var(--color-brass-rgb), 0.16), rgba(0, 0, 0, 0.28)),
+    var(--atlas-ui-plaque) !important;
+  color: #ffeed0 !important;
+  text-shadow: 0 0 0.85rem rgba(var(--color-brass-rgb), 0.3) !important;
+  box-shadow:
+    0 0.45rem 1.1rem rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.06) !important;
+  transform: translateY(0) !important;
+}
+
+/* Premium Ornate Dashboard Metrics */
+.atlas-app-shell :where(.admin-metric-card) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24) !important;
+  background-image:
+    linear-gradient(180deg, rgba(32, 24, 15, 0.45), rgba(12, 8, 4, 0.84)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: var(--atlas-v3-cream) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.05),
+    0 0.5rem 1.25rem rgba(0, 0, 0, 0.38) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.atlas-app-shell :where(.admin-metric-card):hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 221, 159, 0.52) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.08),
+    0 0.85rem 1.9rem rgba(0, 0, 0, 0.48),
+    0 0 1.35rem rgba(var(--color-brass-rgb), 0.12) !important;
+}
+
+/* Premium Ornate Cards (Rooms, Sessions, Media) */
+.atlas-app-shell :where(.admin-room-card, .admin-media-card, .session-card, [class*="-card"]:not(.admin-metric-card)) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.2) !important;
+  border-radius: 0.85rem !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 15, 0.91), rgba(5, 5, 8, 0.98)),
+    var(--atlas-texture-wood) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04),
+    0 0.65rem 1.45rem rgba(0, 0, 0, 0.44) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.atlas-app-shell :where(.admin-room-card:hover, .admin-media-card:hover, .session-card:hover) {
+  border-color: rgba(var(--color-brass-rgb), 0.38) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.06),
+    0 0.85rem 1.95rem rgba(0, 0, 0, 0.54),
+    0 0 1.2rem rgba(var(--color-brass-rgb), 0.06) !important;
+}
+
+/* Redesign recommended session card (Quest style) */
+.atlas-app-shell :where(.session-command-card) {
+  border: 1px solid rgba(216, 139, 63, 0.42) !important;
+  background-image:
+    linear-gradient(180deg, rgba(32, 20, 10, 0.91), rgba(6, 6, 8, 0.985)),
+    var(--atlas-texture-wood) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 230, 180, 0.08),
+    0 0 2rem rgba(249, 115, 22, 0.09),
+    0 1rem 2.6rem rgba(0, 0, 0, 0.55) !important;
+  padding: 1.5rem !important;
+  border-radius: 0.95rem !important;
+}
+
+/* Recommended session action CTA button */
+.atlas-app-shell :where(.session-command-button) {
+  border-radius: 0.62rem !important;
+  font-family: var(--font-cinzel), serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border: 1px solid rgba(255, 221, 159, 0.4) !important;
+  background-image:
+    linear-gradient(180deg, rgba(147, 51, 234, 0.38), rgba(15, 10, 6, 0.78)),
+    var(--atlas-texture-metal) !important;
+  color: #fff2d0 !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.06),
+    0 0 1.4rem rgba(147, 51, 234, 0.16) !important;
+}
+
+.atlas-app-shell :where(.session-command-button):hover {
+  border-color: rgba(255, 221, 159, 0.68) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 241, 210, 0.09),
+    0 0 2rem rgba(147, 51, 234, 0.35),
+    0 0.5rem 1.1rem rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Session metrics pills/labels */
+.atlas-app-shell :where(.session-signal-pill) {
+  border-radius: 999px !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.18) !important;
+  background: rgba(0, 0, 0, 0.42) !important;
+  color: rgba(244, 229, 201, 0.84) !important;
+  padding: 0.25rem 0.65rem !important;
+  font-size: 0.7rem !important;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* Ornate headers with plaques */
+.atlas-app-shell :where(.superadmin-atlas-header, .session-switcher-header) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.3) !important;
+  border-radius: 0.95rem !important;
+  background-image:
+    linear-gradient(180deg, rgba(8, 7, 10, 0.94), rgba(4, 4, 7, 0.995)),
+    radial-gradient(circle at 50% 0%, rgba(var(--color-brass-rgb), 0.08), transparent 22rem),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, auto, cover !important;
+  box-shadow: 0 1rem 2.8rem rgba(0, 0, 0, 0.58), var(--atlas-v3-inset) !important;
+}
+
+/* File Upload Field Ornament */
+.atlas-app-shell :where(.ui-file-upload-field, [class*="FileField"] span, label span:has(input[type="file"])) {
+  border: 1px dashed rgba(var(--color-brass-rgb), 0.45) !important;
+  border-radius: 0.65rem !important;
+  background-image:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.28)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  color: var(--atlas-v3-cream) !important;
+  font-family: var(--font-cinzel), serif;
+  font-weight: 700;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  padding: 0.85rem !important;
+}
+
+.atlas-app-shell :where(.ui-file-upload-field, [class*="FileField"] span, label span:has(input[type="file"])):hover {
+  border-color: rgba(255, 221, 159, 0.72) !important;
+  background-color: rgba(var(--color-brass-rgb), 0.05) !important;
+  box-shadow: 0 0 1.25rem rgba(var(--color-brass-rgb), 0.08) !important;
+}
+
+/* Micro-interaction overlays: Sweep shimmer on all fantasy buttons on hover */
+@keyframes atlas-v3-sweep {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  100% { transform: translateX(150%) skewX(-25deg); }
+}
+
+.atlas-app-shell :where(.ui-btn-fantasy, .director-primary-action, .director-save-action, .director-secondary-action, .session-command-button, .premium-icon-button, button[type="submit"])::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  background: linear-gradient(90deg, transparent, rgba(255, 243, 218, 0.16) 40%, rgba(255, 243, 218, 0.24) 50%, rgba(255, 243, 218, 0.16) 60%, transparent) !important;
+  transform: translateX(-160%) skewX(-25deg) !important;
+  transition: none !important;
+}
+
+.atlas-app-shell :where(.ui-btn-fantasy, .director-primary-action, .director-save-action, .director-secondary-action, .session-command-button, .premium-icon-button, button[type="submit"]):hover::before {
+  animation: atlas-v3-sweep 850ms cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+/* active shrink on all buttons */
+.atlas-app-shell :where(.ui-btn-fantasy, .director-primary-action, .director-save-action, .director-secondary-action, .session-command-button, .premium-icon-button, button):active {
+  transform: scale(0.98) translateY(0) !important;
+}
+
+/* ==========================================================================
+   Phase 2 Premium RPG Gameplay Overhaul Overrides
+   ========================================================================== */
+
+/* 1. Header & Main Panels Overhaul */
+.atlas-app-shell :where(.player-room-header, .director-card) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.32) !important;
+  border-bottom: 3px double rgba(var(--color-brass-rgb), 0.42) !important;
+  background-image:
+    linear-gradient(180deg, rgba(14, 13, 17, 0.95), rgba(4, 4, 7, 0.985)),
+    radial-gradient(circle at 15% 0%, rgba(var(--color-brass-rgb), 0.12), transparent 24rem),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, auto, cover !important;
+  box-shadow: 
+    0 1.25rem 2.5rem rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.045) !important;
+  border-radius: 0.95rem !important;
+}
+
+/* Character rails racks */
+.atlas-app-shell :where(.player-character-rail, .character-rail) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.18) !important;
+  background-image:
+    linear-gradient(90deg, rgba(8, 7, 9, 0.92), rgba(3, 3, 5, 0.98)),
+    var(--atlas-texture-wood) !important;
+  background-size: auto, cover !important;
+  box-shadow: 
+    0 0 1.8rem rgba(0, 0, 0, 0.45),
+    inset 0 0 1.1rem rgba(0, 0, 0, 0.6) !important;
+  border-radius: 0.85rem !important;
+}
+
+/* Quick Action / Note Cards list items */
+.atlas-app-shell :where(.player-note-card, .player-item-card, .player-current-strip) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.18) !important;
+  background-image:
+    linear-gradient(180deg, rgba(14, 13, 16, 0.88), rgba(6, 6, 9, 0.96)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  box-shadow: 
+    0 0.45rem 0.95rem rgba(0, 0, 0, 0.28),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.03) !important;
+  border-radius: 0.65rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.atlas-app-shell :where(.player-note-card:hover, .player-item-card:hover) {
+  border-color: rgba(var(--color-brass-rgb), 0.35) !important;
+  box-shadow: 
+    0 0.65rem 1.45rem rgba(0, 0, 0, 0.38),
+    0 0 0.85rem rgba(var(--color-brass-rgb), 0.08) !important;
+  transform: translateY(-1px);
+}
+
+/* Stat pills / Info Tiles */
+.atlas-app-shell :where(.player-info-tile, .director-status-tile) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.2) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 15, 0.85), rgba(4, 4, 7, 0.94)),
+    var(--atlas-ui-plaque) !important;
+  background-size: cover !important;
+  color: #fff2d2 !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 0.35rem 0.75rem rgba(0, 0, 0, 0.24) !important;
+  border-radius: 0.55rem !important;
+}
+
+/* RPG Buttons on header / hotbars */
+.atlas-app-shell :where(.player-header-action, .director-icon-button, .player-menu-button, .player-logo-mark) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.26) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.28)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  color: rgba(244, 229, 201, 0.84) !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 0.35rem 0.75rem rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.2s ease !important;
+  position: relative;
+  isolation: isolate;
+}
+
+.atlas-app-shell :where(.player-header-action:hover, .director-icon-button:hover, .player-menu-button:hover) {
+  border-color: rgba(var(--color-brass-rgb), 0.55) !important;
+  color: #ffeed0 !important;
+  background-color: rgba(var(--color-brass-rgb), 0.08) !important;
+  transform: translateY(-1px);
+  box-shadow: 
+    0 0.55rem 1.1rem rgba(0, 0, 0, 0.34),
+    0 0 0.75rem rgba(var(--color-brass-rgb), 0.12) !important;
+}
+
+/* Runic glow indicators on logo / rings */
+.atlas-app-shell :where(.player-logo-mark, .director-icon-button) {
+  border-radius: 999px !important;
+  box-shadow: 
+    0 0 1.25rem rgba(var(--color-brass-rgb), 0.15),
+    inset 0 0 0.75rem rgba(var(--color-brass-rgb), 0.08) !important;
+}
+
+/* Chat Overhaul */
+.atlas-app-shell :where(.story-chat-panel, .chat-panel) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 15, 0.94), rgba(4, 4, 7, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow: 
+    0 1rem 2.2rem rgba(0, 0, 0, 0.52),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04) !important;
+  border-radius: 0.95rem !important;
+}
+
+/* Messages item cards */
+.atlas-app-shell :where([class*="message-card"], .chat-message-card) {
+  border-bottom: 1px solid rgba(var(--color-brass-rgb), 0.09) !important;
+  background: rgba(0, 0, 0, 0.16) !important;
+  padding: 0.75rem 0.95rem !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.atlas-app-shell :where([class*="message-card"]:hover, .chat-message-card:hover) {
+  background: rgba(var(--color-brass-rgb), 0.02) !important;
+}
+
+/* System and special events indicators */
+.atlas-app-shell :where(.chat-message-system, .chat-message-event) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.15) !important;
+  background-image:
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.05), transparent),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  border-left: 3px solid rgba(var(--color-brass-rgb), 0.52) !important;
+  border-radius: 0.45rem !important;
+}
+
+/* Map Panel */
+.atlas-app-shell :where(.map-tool-panel, .map-viewer) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.28) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 13, 0.95), rgba(4, 4, 6, 0.99)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  box-shadow: 
+    0 1.25rem 2.8rem rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.045) !important;
+  border-radius: 0.95rem !important;
+}
+
+.atlas-app-shell :where(.map-canvas) {
+  border: 2px solid rgba(var(--color-brass-rgb), 0.24) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: inset 0 0 2rem rgba(0, 0, 0, 0.8) !important;
+}
+
+.atlas-app-shell :where(.map-character-marker) {
+  border: 1.5px solid rgba(var(--color-brass-rgb), 0.65) !important;
+  background: rgba(0, 0, 0, 0.86) !important;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 0.45rem 1.1rem rgba(0, 0, 0, 0.5),
+    0 0 0.85rem rgba(var(--color-brass-rgb), 0.42) !important;
+}
+
+/* Custom soundbar and subpanels */
+.atlas-app-shell :where(.soundbar-modal-content, .player-utility-modal) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.3) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 15, 0.95), rgba(3, 3, 5, 0.995)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  box-shadow: 
+    0 1.5rem 3.5rem rgba(0, 0, 0, 0.72),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.05) !important;
+  border-radius: 0.95rem !important;
+}
+
+/* Director sidebar nav links */
+.atlas-app-shell :where(.director-nav-link) {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.18) !important;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.25)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: rgba(244, 229, 201, 0.72) !important;
+  font-family: var(--font-cinzel), serif;
+  font-weight: 700;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase;
+  transition: all 0.2s ease !important;
+  cursor: pointer;
+  border-radius: 0.62rem !important;
+  padding: 0.6rem 0.85rem !important;
+}
+
+.atlas-app-shell :where(.director-nav-link):hover {
+  border-color: rgba(var(--color-brass-rgb), 0.48) !important;
+  color: #fff6de !important;
+  background-color: rgba(var(--color-brass-rgb), 0.06) !important;
+  transform: translateY(-1px);
+}
+
+.atlas-app-shell :where(.director-nav-link).is-active {
+  border-color: rgba(var(--color-brass-rgb), 0.65) !important;
+  background-image:
+    linear-gradient(180deg, rgba(var(--color-brass-rgb), 0.16), rgba(0, 0, 0, 0.28)),
+    var(--atlas-ui-plaque) !important;
+  color: #ffeed0 !important;
+  text-shadow: 0 0 0.85rem rgba(var(--color-brass-rgb), 0.3) !important;
+  box-shadow:
+    0 0.45rem 1.1rem rgba(0, 0, 0, 0.35),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.06) !important;
+  transform: translateY(0) !important;
+}
+
+/* ==========================================================================
+   Phase 3 Login Gate Premium RPG Custom Styles
+   ========================================================================== */
+
+/* Outer frame wrapper */
+.auth-gate-card {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.35) !important;
+  border-bottom: 3px double rgba(var(--color-brass-rgb), 0.45) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 15, 0.96), rgba(3, 3, 5, 0.995)),
+    radial-gradient(circle at 75% 0%, rgba(var(--color-brass-rgb), 0.08), transparent 28rem),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+  box-shadow: 
+    0 1.5rem 3.5rem rgba(0, 0, 0, 0.72),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.05) !important;
+}
+
+/* Ornate corner frame ornaments inside panel windows */
+.auth-gate-card::before {
+  content: "" !important;
+  position: absolute;
+  inset: 0.58rem;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    var(--atlas-ui-corner) left top / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right top / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) left bottom / 2.15rem auto no-repeat,
+    var(--atlas-ui-corner) right bottom / 2.15rem auto no-repeat !important;
+  opacity: 0.35 !important;
+}
+
+/* Cover Image Vignette on the left */
+.auth-gate-vignette {
+  border-right: 1px solid rgba(var(--color-brass-rgb), 0.28) !important;
+  box-shadow: inset -1.25rem 0 2.2rem rgba(0, 0, 0, 0.75) !important;
+}
+
+.auth-gate-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at center, transparent 30%, rgba(2, 3, 7, 0.58)),
+    linear-gradient(90deg, rgba(var(--color-brass-rgb), 0.045) 1px, transparent 1px);
+  background-size: auto, 2.5rem 2.5rem;
+}
+
+/* Auth Inputs Wash-Ink Texture overrides (not nested in atlas-app-shell) */
+.auth-gate-card .field {
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 7, 0.88), rgba(0, 0, 0, 0.72)),
+    var(--atlas-texture-ink) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.25) !important;
+  color: #f7ead0 !important;
+  border-radius: 0.55rem !important;
+}
+
+.auth-gate-card .field:focus {
+  border-color: rgba(var(--color-brass-rgb), 0.65) !important;
+  box-shadow: 
+    0 0 12px rgba(var(--color-brass-rgb), 0.18),
+    inset 0 0 8px rgba(0, 0, 0, 0.6) !important;
+  outline: none !important;
+}
+
+/* Google SSO button plaque style */
+.auth-gate-sso-button {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24) !important;
+  background-image:
+    linear-gradient(180deg, rgba(18, 18, 24, 0.82), rgba(6, 6, 10, 0.94)),
+    var(--atlas-texture-metal) !important;
+  background-size: cover !important;
+  color: #fff2d2 !important;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.85) !important;
+  box-shadow: 0 0.35rem 0.75rem rgba(0, 0, 0, 0.25) !important;
+}
+
+.auth-gate-sso-button:hover {
+  border-color: rgba(var(--color-brass-rgb), 0.52) !important;
+  background-color: rgba(var(--color-brass-rgb), 0.08) !important;
+  color: #ffeed0 !important;
+  box-shadow: 
+    0 0.55rem 1.15rem rgba(0, 0, 0, 0.34),
+    0 0 0.85rem rgba(var(--color-brass-rgb), 0.14) !important;
+}
+
+/* Logo icon runic ring */
+.auth-gate-logo {
+  border-radius: 999px !important;
+  box-shadow: 
+    0 0 1.25rem rgba(var(--color-brass-rgb), 0.15),
+    inset 0 0 0.75rem rgba(var(--color-brass-rgb), 0.08) !important;
+  background-image: var(--atlas-ui-ring) !important;
+  background-size: 135% 135% !important;
+  background-position: center !important;
+}
+
+/* ==========================================================================
+   Phase 4 Overrides: Animations, Audio Dock, and Mobile Panels
+   ========================================================================== */
+
+/* Critical and Fumble Animation Keyframes */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) scale(0.6) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateY(-110vh) scale(1.1) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes scaleUpDice {
+  from {
+    transform: scale(0.4) rotate(-15deg);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeInOverlay 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-scale-up {
+  animation: scaleUpDice 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Procedural floatup utility class */
+.animate-float-particle {
+  animation: floatUp 3s linear infinite;
+}
+
+/* Premium Audio Dock Styling */
+.player-audio-dock {
+  border: 1px solid rgba(var(--color-brass-rgb), 0.32) !important;
+  border-bottom: 2px solid rgba(var(--color-brass-rgb), 0.42) !important;
+  background-image:
+    linear-gradient(180deg, rgba(14, 13, 18, 0.95), rgba(4, 4, 6, 0.995)),
+    var(--atlas-texture-metal) !important;
+  background-size: cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow: 
+    0 -4px 25px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 241, 210, 0.05) !important;
+  border-radius: 0.75rem !important;
+}
+
+/* Slider Track custom gold overrides */
+.player-audio-dock input[type="range"] {
+  height: 5px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.48) !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.18);
+  outline: none;
+  cursor: pointer;
+}
+
+.player-audio-dock input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-amber-500) !important;
+  border: 2px solid #fff2d2;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+  transition: transform 0.15s ease;
+}
+
+.player-audio-dock input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.25);
+}
+
+/* Audio Player Sub-labels */
+.player-audio-kicker {
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(var(--color-brass-rgb), 0.75);
+  font-weight: 700;
+  margin-bottom: 0.05rem;
+}
+
+/* Responsive Drawer adjustments */
+.mobile-drawer-scroll {
+  scrollbar-color: rgba(var(--color-brass-rgb), 0.3) transparent;
+  scrollbar-width: thin;
+}
+
+/* ==========================================================================
+   CODEX OBSCURA — Proprietary Design System v1.0
+   Language: "Grimorio Narrativo" — Immersive Premium RPG Interface
+   ========================================================================== */
+
+/* ── Custom Properties ── */
+:root {
+  --codex-bg-deep:       #030508;
+  --codex-bg-ink:        #070a10;
+  --codex-bg-glass:      #0d1119;
+  --codex-brass:         #c8a35d;
+  --codex-brass-glow:    rgba(200, 163, 93, 0.25);
+  --codex-brass-dim:     rgba(200, 163, 93, 0.18);
+  --codex-ember:         #d46a1a;
+  --codex-ember-glow:    rgba(212, 106, 26, 0.28);
+  --codex-violet:        #7c3aed;
+  --codex-green:         #10b981;
+  --codex-red:           #dc2626;
+  --codex-text:          #f0ede8;
+  --codex-text-dim:      #9ca3af;
+  --codex-text-brass:    #d4a853;
+  --codex-radius:        0.85rem;
+  --codex-radius-sm:     0.55rem;
+  --codex-transition:    220ms cubic-bezier(0.16, 1, 0.3, 1);
+  --codex-panel-bg:
+    linear-gradient(180deg, rgba(12, 11, 16, 0.96), rgba(4, 4, 8, 0.99)),
+    var(--atlas-texture-parchment);
+  --codex-panel-border:  1px solid rgba(200, 163, 93, 0.26);
+  --codex-panel-shadow:
+    0 1.5rem 4rem rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* ── Keyframes ── */
+@keyframes codex-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(200, 163, 93, 0); }
+  50%       { box-shadow: 0 0 2rem rgba(200, 163, 93, 0.22); }
+}
+@keyframes codex-ember-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(212, 106, 26, 0); }
+  50%       { box-shadow: 0 0 2rem rgba(212, 106, 26, 0.28); }
+}
+@keyframes codex-fade-up {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes codex-shimmer {
+  from { transform: translateX(-200%); }
+  to   { transform: translateX(200%); }
+}
+@keyframes codex-spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes codex-float {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-4px); }
+}
+@keyframes codex-slide-in-left {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0);    }
+}
+@keyframes codex-border-flow {
+  0%   { background-position: 0% 50%;   }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%;   }
+}
+
+/* ── Global Scrollbar ── */
+* {
+  scrollbar-color: rgba(200, 163, 93, 0.42) rgba(7, 10, 16, 0.8);
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(7, 10, 16, 0.8); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: rgba(200, 163, 93, 0.38); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(200, 163, 93, 0.6); }
+
+/* ─────────────────────────────────────────────────
+   PANNELLI  .codex-panel  /  .codex-panel-sm
+───────────────────────────────────────────────── */
+.codex-panel {
+  position: relative;
+  border: 1px solid rgba(200, 163, 93, 0.26);
+  border-radius: var(--codex-radius);
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 16, 0.96), rgba(4, 4, 8, 0.99)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  box-shadow: var(--codex-panel-shadow);
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+  animation: codex-fade-up 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Inner brass inset ring */
+.codex-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0.55rem;
+  pointer-events: none;
+  border-radius: calc(var(--codex-radius) - 2px);
+  border: 1px solid rgba(200, 163, 93, 0.1);
+  box-shadow: inset 0 0 1.5rem rgba(200, 163, 93, 0.04);
+  z-index: 0;
+}
+
+/* Decorative corner ornaments */
+.codex-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0.4rem;
+  pointer-events: none;
+  background:
+    var(--atlas-ui-corner) left   top    / 1.65rem auto no-repeat,
+    var(--atlas-ui-corner) right  top    / 1.65rem auto no-repeat,
+    var(--atlas-ui-corner) left   bottom / 1.65rem auto no-repeat,
+    var(--atlas-ui-corner) right  bottom / 1.65rem auto no-repeat;
+  opacity: 0.28;
+  z-index: 0;
+}
+
+.codex-panel > * { position: relative; z-index: 1; }
+
+.codex-panel-sm {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--codex-radius-sm);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018)),
+    rgba(0, 0, 0, 0.26);
+  padding: 0.9rem;
+}
+.codex-panel-sm::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(200, 163, 93, 0.05), transparent 50%);
+}
+
+/* ─────────────────────────────────────────────────
+   BOTTONI
+───────────────────────────────────────────────── */
+
+/* Primary: Ember Gold */
+.codex-btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0.65rem 1.2rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(200, 163, 93, 0.7);
+  background-image:
+    linear-gradient(160deg, rgba(122, 68, 12, 0.98), rgba(90, 45, 8, 0.92)),
+    var(--atlas-texture-metal);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  color: #ffe4a0;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.38),
+    0 0 18px rgba(200, 163, 93, 0.14),
+    inset 0 1px 0 rgba(255, 241, 210, 0.14);
+  overflow: hidden;
+  transition: all var(--codex-transition);
+  cursor: pointer;
+}
+.codex-btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0.3rem;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(200, 163, 93, 0.18);
+  pointer-events: none;
+}
+.codex-btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -200%; width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 241, 210, 0.18), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.5s ease;
+  pointer-events: none;
+}
+.codex-btn-primary:hover {
+  border-color: rgba(200, 163, 93, 0.95);
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(200, 163, 93, 0.24),
+    inset 0 1px 0 rgba(255, 241, 210, 0.18);
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+.codex-btn-primary:hover::after { left: 200%; }
+.codex-btn-primary:active { transform: translateY(0); filter: brightness(1); }
+.codex-btn-primary:disabled {
+  opacity: 0.42;
+  pointer-events: none;
+  filter: saturate(0.5);
+}
+
+/* Ghost: Transparent with brass border */
+.codex-btn-ghost {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(200, 163, 93, 0.34);
+  background: rgba(0, 0, 0, 0.28);
+  color: #d4a853;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: inset 0 0 18px rgba(200, 163, 93, 0.06);
+  transition: all var(--codex-transition);
+  cursor: pointer;
+}
+.codex-btn-ghost:hover {
+  border-color: rgba(200, 163, 93, 0.72);
+  background: rgba(200, 163, 93, 0.1);
+  color: #ffe4a0;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(200, 163, 93, 0.12), inset 0 0 18px rgba(200, 163, 93, 0.08);
+}
+.codex-btn-ghost:active { transform: translateY(0); }
+
+/* Danger: Red */
+.codex-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(220, 38, 38, 0.38);
+  background: rgba(127, 29, 29, 0.18);
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: all var(--codex-transition);
+  cursor: pointer;
+}
+.codex-btn-danger:hover {
+  border-color: rgba(220, 38, 38, 0.62);
+  background: rgba(127, 29, 29, 0.32);
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.16);
+  transform: translateY(-1px);
+}
+
+/* Save: Green */
+.codex-btn-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(16, 185, 129, 0.36);
+  background: rgba(6, 78, 59, 0.22);
+  color: #a7f3d0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  transition: all var(--codex-transition);
+  cursor: pointer;
+}
+.codex-btn-save:hover {
+  border-color: rgba(16, 185, 129, 0.6);
+  background: rgba(6, 78, 59, 0.36);
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.14);
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────────────
+   NAV LINK  .codex-nav-link
+───────────────────────────────────────────────── */
+.codex-nav-link {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.65rem;
+  padding: 0.78rem 0.9rem;
+  background: transparent;
+  color: rgba(231, 229, 228, 0.7);
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all var(--codex-transition);
+  animation: codex-slide-in-left 200ms ease both;
+}
+.codex-nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 16, 0.0), rgba(4, 4, 8, 0.0)),
+    var(--atlas-texture-metal);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  opacity: 0;
+  transition: opacity var(--codex-transition);
+}
+.codex-nav-link svg,
+.codex-nav-link .atlas-icon {
+  color: rgba(200, 163, 93, 0.7);
+  flex-shrink: 0;
+  transition: color var(--codex-transition), filter var(--codex-transition);
+}
+.codex-nav-link:hover {
+  border-color: rgba(200, 163, 93, 0.32);
+  color: #f5f0e8;
+  transform: translateX(2px);
+}
+.codex-nav-link:hover::before { opacity: 1; }
+.codex-nav-link:hover svg,
+.codex-nav-link:hover .atlas-icon {
+  color: rgba(200, 163, 93, 1);
+  filter: drop-shadow(0 0 5px rgba(200, 163, 93, 0.5));
+}
+.codex-nav-link.is-active {
+  border-color: rgba(200, 163, 93, 0.58);
+  background-image:
+    linear-gradient(90deg, rgba(100, 55, 10, 0.52), rgba(70, 38, 6, 0.18)),
+    var(--atlas-ui-plaque);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  color: #ffe4a0;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.38),
+    inset 0 0 24px rgba(200, 163, 93, 0.1),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.06);
+  transform: translateX(0);
+  animation: codex-glow-pulse 3s ease-in-out infinite;
+}
+.codex-nav-link.is-active::before { opacity: 1; }
+.codex-nav-link.is-active svg,
+.codex-nav-link.is-active .atlas-icon {
+  color: #d4a853;
+  filter: drop-shadow(0 0 6px rgba(200, 163, 93, 0.6));
+}
+
+/* ─────────────────────────────────────────────────
+   FORM FIELD  .codex-field
+───────────────────────────────────────────────── */
+.codex-field {
+  width: 100%;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(200, 163, 93, 0.22);
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.9), rgba(0, 0, 0, 0.72)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  color: #f0ede8;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all var(--codex-transition);
+}
+.codex-field::placeholder { color: rgba(156, 163, 175, 0.6); font-style: italic; }
+.codex-field:hover { border-color: rgba(200, 163, 93, 0.48); }
+.codex-field:focus {
+  border-color: rgba(200, 163, 93, 0.82);
+  box-shadow:
+    0 0 0 2px rgba(200, 163, 93, 0.18),
+    0 0 24px rgba(200, 163, 93, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Label for codex fields */
+.codex-label {
+  display: block;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(200, 163, 93, 0.82);
+  margin-bottom: 0.45rem;
+}
+
+/* ─────────────────────────────────────────────────
+   BADGE  .codex-badge  /  CHIP  .codex-chip
+───────────────────────────────────────────────── */
+.codex-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(200, 163, 93, 0.32);
+  border-radius: 0.45rem;
+  background: rgba(200, 163, 93, 0.1);
+  padding: 0.25rem 0.55rem;
+  color: #d4a853;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  animation: codex-glow-pulse 3s ease-in-out infinite;
+}
+.codex-badge--live {
+  border-color: rgba(16, 185, 129, 0.36);
+  background: rgba(16, 185, 129, 0.12);
+  color: #a7f3d0;
+  animation: codex-glow-pulse 2.4s ease-in-out infinite;
+}
+.codex-badge--danger {
+  border-color: rgba(220, 38, 38, 0.36);
+  background: rgba(127, 29, 29, 0.18);
+  color: #fca5a5;
+}
+.codex-badge--violet {
+  border-color: rgba(124, 58, 237, 0.36);
+  background: rgba(88, 28, 135, 0.18);
+  color: #d8b4fe;
+}
+
+.codex-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.28rem 0.6rem;
+  color: rgb(214, 211, 209);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--codex-transition);
+}
+.codex-chip:hover,
+.codex-chip.is-active {
+  border-color: rgba(200, 163, 93, 0.48);
+  background: rgba(200, 163, 93, 0.1);
+  color: #ffe4a0;
+  transform: translateY(-1px);
+}
+
+/* ─────────────────────────────────────────────────
+   SECTION TITLE  .codex-section-title
+───────────────────────────────────────────────── */
+.codex-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #d4a853;
+}
+.codex-section-title svg,
+.codex-section-title .atlas-icon {
+  color: #d4a853;
+  filter: drop-shadow(0 0 5px rgba(200, 163, 93, 0.35));
+  flex-shrink: 0;
+}
+.codex-section-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(200, 163, 93, 0.45), transparent);
+}
+
+/* Ornate Divider */
+.codex-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  height: 1.4rem;
+  color: rgba(200, 163, 93, 0.65);
+}
+.codex-divider::before,
+.codex-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 163, 93, 0.45), transparent);
+}
+.codex-divider-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  background: var(--atlas-ui-divider) center / contain no-repeat;
+  opacity: 0.6;
+}
+
+/* ─────────────────────────────────────────────────
+   CARD  .codex-card
+───────────────────────────────────────────────── */
+.codex-card {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.85rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.046), rgba(255, 255, 255, 0.016)),
+    rgba(0, 0, 0, 0.24);
+  padding: 0.75rem;
+  transition: all var(--codex-transition);
+  overflow: hidden;
+}
+.codex-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(200, 163, 93, 0.06), transparent 50%);
+  opacity: 0;
+  transition: opacity var(--codex-transition);
+}
+.codex-card:hover {
+  border-color: rgba(200, 163, 93, 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32), 0 0 18px rgba(200, 163, 93, 0.06);
+}
+.codex-card:hover::before { opacity: 1; }
+.codex-card.is-selected,
+.codex-card.is-current {
+  border-color: rgba(200, 163, 93, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(200, 163, 93, 0.08),
+    0 0 28px rgba(200, 163, 93, 0.1);
+}
+
+/* ─────────────────────────────────────────────────
+   MODAL  .codex-modal
+───────────────────────────────────────────────── */
+.codex-modal {
+  position: relative;
+  border: 1px solid rgba(200, 163, 93, 0.32);
+  border-bottom: 2px double rgba(200, 163, 93, 0.4);
+  border-radius: var(--codex-radius);
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 16, 0.98), rgba(3, 3, 6, 0.99)),
+    radial-gradient(circle at 50% 0%, rgba(200, 163, 93, 0.1), transparent 22rem),
+    var(--atlas-texture-parchment);
+  background-size: auto, auto, cover;
+  background-blend-mode: normal, normal, soft-light;
+  box-shadow:
+    0 2.5rem 7rem rgba(0, 0, 0, 0.75),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.05);
+  overflow: auto;
+  animation: codex-fade-up 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.codex-modal::after {
+  content: "";
+  position: absolute;
+  inset: 0.45rem;
+  pointer-events: none;
+  border-radius: calc(var(--codex-radius) - 2px);
+  background:
+    var(--atlas-ui-corner) left   top    / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) right  top    / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) left   bottom / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) right  bottom / 1.5rem auto no-repeat;
+  opacity: 0.28;
+}
+
+/* ─────────────────────────────────────────────────
+   TOOLTIP  .codex-tooltip
+───────────────────────────────────────────────── */
+.codex-tooltip-wrap { position: relative; display: inline-flex; }
+.codex-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  z-index: 999;
+  border: 1px solid rgba(200, 163, 93, 0.32);
+  border-radius: 0.45rem;
+  background-image:
+    linear-gradient(180deg, rgba(14, 12, 18, 0.98), rgba(5, 4, 8, 0.99)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  padding: 0.45rem 0.7rem;
+  color: #e4d9c0;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.codex-tooltip-wrap:hover .codex-tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ─────────────────────────────────────────────────
+   EMPTY STATE  .codex-empty
+───────────────────────────────────────────────── */
+.codex-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  border: 1px dashed rgba(200, 163, 93, 0.22);
+  border-radius: var(--codex-radius);
+  background:
+    radial-gradient(circle at 50% 30%, rgba(200, 163, 93, 0.04), transparent 60%),
+    rgba(200, 163, 93, 0.02);
+  padding: 2rem 1.25rem;
+  text-align: center;
+  color: rgb(168, 162, 158);
+}
+.codex-empty::before {
+  content: "";
+  display: block;
+  width: min(8rem, 44vw);
+  aspect-ratio: 1;
+  background: var(--atlas-empty-scroll) center / contain no-repeat;
+  opacity: 0.6;
+  filter: saturate(0.8);
+}
+.codex-empty p { color: #f5f5f4; font-weight: 700; }
+.codex-empty span { max-width: 24rem; font-size: 0.85rem; line-height: 1.6; }
+
+/* ─────────────────────────────────────────────────
+   LOADING  .codex-loading
+───────────────────────────────────────────────── */
+.codex-loading {
+  display: grid;
+  place-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  color: rgba(200, 163, 93, 0.7);
+  font-family: var(--font-cinzel), serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.codex-loading-ring {
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 2px solid rgba(200, 163, 93, 0.12);
+  border-top-color: rgba(200, 163, 93, 0.88);
+  border-radius: 999px;
+  animation: codex-spin-slow 1.2s linear infinite;
+}
+.codex-loading-ring-inner {
+  width: 2.1rem;
+  height: 2.1rem;
+  background: var(--atlas-ui-ring) center / contain no-repeat;
+  opacity: 0.5;
+  animation: codex-spin-slow 4s linear reverse infinite;
+}
+
+/* ─────────────────────────────────────────────────
+   TABLE ROW  .codex-table-row
+───────────────────────────────────────────────── */
+.codex-table-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0.6rem;
+  background: rgba(0, 0, 0, 0.18);
+  padding: 0.65rem 0.85rem;
+  transition: all var(--codex-transition);
+  overflow: hidden;
+}
+.codex-table-row::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(200, 163, 93, 0.18), transparent);
+  border-radius: 0 0 0 inherit;
+  transition: background var(--codex-transition);
+}
+.codex-table-row:hover {
+  border-color: rgba(200, 163, 93, 0.22);
+  background: rgba(200, 163, 93, 0.04);
+}
+.codex-table-row:hover::before {
+  background: linear-gradient(180deg, rgba(200, 163, 93, 0.7), rgba(200, 163, 93, 0.2));
+}
+
+/* ─────────────────────────────────────────────────
+   NOTIFICATION  .codex-notification
+───────────────────────────────────────────────── */
+.codex-notification {
+  position: relative;
+  border: 1px solid rgba(200, 163, 93, 0.32);
+  border-radius: 0.65rem;
+  background:
+    linear-gradient(135deg, rgba(80, 45, 8, 0.62), rgba(4, 4, 8, 0.92)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  padding: 0.75rem 1rem;
+  color: #ffe4a0;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.38), 0 0 14px rgba(200, 163, 93, 0.1);
+  animation: codex-slide-in-left 260ms ease both;
+}
+.codex-notification--error {
+  border-color: rgba(220, 38, 38, 0.42);
+  background: linear-gradient(135deg, rgba(100, 20, 20, 0.72), rgba(4, 4, 8, 0.92));
+  color: #fca5a5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.38), 0 0 14px rgba(220, 38, 38, 0.14);
+}
+.codex-notification--success {
+  border-color: rgba(16, 185, 129, 0.38);
+  background: linear-gradient(135deg, rgba(6, 50, 35, 0.72), rgba(4, 4, 8, 0.92));
+  color: #a7f3d0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.38), 0 0 14px rgba(16, 185, 129, 0.12);
+}
+
+/* ─────────────────────────────────────────────────
+   OVERRIDES — apply Codex to existing class names
+   so older JSX can pick up new styles without edits
+───────────────────────────────────────────────── */
+
+/* All director nav links use codex styles */
+.director-sidebar .director-nav-link {
+  position: relative;
+  overflow: hidden;
+  transition: all var(--codex-transition);
+  animation: codex-slide-in-left 200ms ease both;
+}
+
+.director-sidebar .director-nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--atlas-texture-metal);
+  background-size: cover;
+  background-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity var(--codex-transition);
+}
+
+.director-sidebar .director-nav-link svg {
+  transition: filter var(--codex-transition), color var(--codex-transition);
+}
+
+.director-sidebar .director-nav-link:hover {
+  border-color: rgba(200, 163, 93, 0.34);
+  background: rgba(200, 163, 93, 0.04);
+  transform: translateX(3px);
+}
+.director-sidebar .director-nav-link:hover::before { opacity: 1; }
+.director-sidebar .director-nav-link:hover svg {
+  color: #d4a853 !important;
+  filter: drop-shadow(0 0 5px rgba(200, 163, 93, 0.5));
+}
+
+.director-sidebar .director-nav-link.is-active {
+  border-color: rgba(200, 163, 93, 0.62) !important;
+  background-image:
+    linear-gradient(90deg, rgba(100, 55, 10, 0.55), rgba(70, 38, 6, 0.2)),
+    var(--atlas-ui-plaque) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: #ffe4a0 !important;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.42),
+    inset 0 0 28px rgba(200, 163, 93, 0.12),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.07) !important;
+  transform: translateX(0) !important;
+}
+.director-sidebar .director-nav-link.is-active svg {
+  color: #d4a853 !important;
+  filter: drop-shadow(0 0 7px rgba(200, 163, 93, 0.7));
+}
+
+/* Director primary/secondary/save/danger → Codex button styles */
+.director-primary-action {
+  border: 1px solid rgba(200, 163, 93, 0.62) !important;
+  background-image:
+    linear-gradient(160deg, rgba(110, 60, 10, 0.96), rgba(78, 40, 7, 0.9)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: #ffe4a0 !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.36), 0 0 14px rgba(200, 163, 93, 0.12) !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-primary-action:hover {
+  border-color: rgba(200, 163, 93, 0.9) !important;
+  filter: brightness(1.08) !important;
+  transform: translateY(-2px) !important;
+}
+
+.director-save-action {
+  border: 1px solid rgba(16, 185, 129, 0.4) !important;
+  background: linear-gradient(160deg, rgba(6, 60, 42, 0.95), rgba(4, 40, 28, 0.88)) !important;
+  color: #a7f3d0 !important;
+  font-weight: 700 !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-save-action:hover {
+  border-color: rgba(16, 185, 129, 0.72) !important;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.16) !important;
+  transform: translateY(-1px) !important;
+}
+
+.director-secondary-action {
+  border: 1px solid rgba(200, 163, 93, 0.28) !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  color: #d4a853 !important;
+  font-weight: 700 !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-secondary-action:hover {
+  border-color: rgba(200, 163, 93, 0.58) !important;
+  background: rgba(200, 163, 93, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+.director-danger-action {
+  border: 1px solid rgba(220, 38, 38, 0.38) !important;
+  background: linear-gradient(160deg, rgba(100, 20, 20, 0.55), rgba(4, 4, 8, 0.85)) !important;
+  color: #fca5a5 !important;
+  font-weight: 700 !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-danger-action:hover {
+  border-color: rgba(220, 38, 38, 0.65) !important;
+  box-shadow: 0 0 18px rgba(220, 38, 38, 0.18) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Director scene/audio/inventory cards → Codex card */
+.director-scene-card,
+.director-audio-card,
+.director-inventory-card {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.046), rgba(255, 255, 255, 0.016)),
+    rgba(0, 0, 0, 0.24) !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-scene-card:hover,
+.director-audio-card:hover,
+.director-inventory-card:hover {
+  border-color: rgba(200, 163, 93, 0.32) !important;
+  background:
+    linear-gradient(135deg, rgba(200, 163, 93, 0.06), transparent 50%),
+    rgba(0, 0, 0, 0.28) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 16px rgba(200, 163, 93, 0.07) !important;
+}
+.director-scene-card.is-current,
+.director-audio-card.is-current,
+.director-inventory-card.is-public {
+  border-color: rgba(200, 163, 93, 0.42) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(200, 163, 93, 0.09),
+    0 0 32px rgba(200, 163, 93, 0.1) !important;
+}
+
+/* Director sidebar panel */
+.director-sidebar {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 14, 0.92), rgba(4, 4, 8, 0.96)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow:
+    0 1.5rem 4rem rgba(0, 0, 0, 0.5),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04) !important;
+}
+
+/* Director card (workbench panels) */
+.director-card {
+  border: 1px solid rgba(200, 163, 93, 0.2) !important;
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 16, 0.94), rgba(4, 4, 8, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow: var(--codex-panel-shadow) !important;
+}
+
+/* Player menu buttons → Ghost style */
+.player-menu-button {
+  border: 1px solid rgba(200, 163, 93, 0.3) !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  transition: all var(--codex-transition) !important;
+}
+.player-menu-button:hover {
+  border-color: rgba(200, 163, 93, 0.65) !important;
+  background: rgba(200, 163, 93, 0.1) !important;
+  box-shadow: 0 0 16px rgba(200, 163, 93, 0.1) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Player header → Codex panel */
+.player-room-header {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 16, 0.94), rgba(4, 4, 8, 0.98)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ui-btn-fantasy upgrade */
+.ui-btn-fantasy {
+  background-image:
+    linear-gradient(160deg, rgba(110, 60, 10, 0.96), rgba(78, 40, 7, 0.9)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(200, 163, 93, 0.7) !important;
+  color: #ffe4a0 !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6) !important;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.38),
+    0 0 18px rgba(200, 163, 93, 0.14),
+    inset 0 1px 0 rgba(255, 241, 210, 0.14) !important;
+  transition: all var(--codex-transition) !important;
+}
+.ui-btn-fantasy:hover {
+  border-color: rgba(200, 163, 93, 0.95) !important;
+  box-shadow:
+    0 6px 24px rgba(0, 0, 0, 0.45),
+    0 0 28px rgba(200, 163, 93, 0.24),
+    inset 0 1px 0 rgba(255, 241, 210, 0.18) !important;
+  transform: translateY(-2px) !important;
+  filter: brightness(1.08) !important;
+}
+
+/* ui-panel-window upgrade */
+.ui-panel-window {
+  border: 1px solid rgba(200, 163, 93, 0.28) !important;
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 16, 0.96), rgba(4, 4, 8, 0.99)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow: var(--codex-panel-shadow) !important;
+}
+
+/* Director icon buttons */
+.director-icon-button,
+.director-toolbar-button {
+  border: 1px solid rgba(200, 163, 93, 0.3) !important;
+  background: rgba(0, 0, 0, 0.36) !important;
+  color: #d4a853 !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-icon-button:hover,
+.director-toolbar-button:hover {
+  border-color: rgba(200, 163, 93, 0.72) !important;
+  background: rgba(200, 163, 93, 0.12) !important;
+  color: #ffe4a0 !important;
+  box-shadow: 0 0 16px rgba(200, 163, 93, 0.14) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* All .field inputs get upgraded baseline */
+.field {
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.88), rgba(0, 0, 0, 0.7)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  color: #f0ede8 !important;
+  transition: all var(--codex-transition) !important;
+}
+.field:focus {
+  border-color: rgba(200, 163, 93, 0.78) !important;
+  box-shadow:
+    0 0 0 2px rgba(200, 163, 93, 0.16),
+    0 0 22px rgba(200, 163, 93, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Story filter pills → Codex chip */
+.story-filter-pill {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  transition: all var(--codex-transition) !important;
+}
+.story-filter-pill:hover,
+.story-filter-pill.is-active {
+  border-color: rgba(200, 163, 93, 0.5) !important;
+  background: rgba(200, 163, 93, 0.1) !important;
+  color: #ffe4a0 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Director empty state upgrade */
+.director-empty-state {
+  border: 1px dashed rgba(200, 163, 93, 0.25) !important;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(200, 163, 93, 0.04), transparent 60%),
+    rgba(200, 163, 93, 0.025) !important;
+}
+
+/* director-kicker → Premium brass badge */
+.director-kicker {
+  border: 1px solid rgba(200, 163, 93, 0.36) !important;
+  background: rgba(200, 163, 93, 0.1) !important;
+  color: #d4a853 !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 0.68rem !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase !important;
+}
+
+/* Director rail action buttons */
+.director-rail-action,
+.director-small-button {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-rail-action:hover,
+.director-small-button:hover,
+.director-small-button.is-warm {
+  border-color: rgba(200, 163, 93, 0.4) !important;
+  background: rgba(100, 55, 10, 0.22) !important;
+  color: #ffe4a0 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Soundbar pad upgrade */
+.soundbar-pad {
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.046), rgba(255, 255, 255, 0.016)),
+    rgba(0, 0, 0, 0.24) !important;
+  transition: all var(--codex-transition) !important;
+}
+.soundbar-pad.is-active {
+  border-color: rgba(200, 163, 93, 0.45) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(200, 163, 93, 0.1),
+    0 0 28px rgba(200, 163, 93, 0.14) !important;
+  background:
+    linear-gradient(90deg, rgba(100, 55, 10, 0.18), transparent),
+    rgba(0, 0, 0, 0.24) !important;
+}
+
+/* Premium rule upgrade */
+.premium-rule::after {
+  background: rgba(200, 163, 93, 0.9);
+  box-shadow: 0 0 22px rgba(200, 163, 93, 0.45);
+}
+
+/* Director right rail upgrade */
+.director-right-rail {
+  border: 1px solid rgba(200, 163, 93, 0.2) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 14, 0.92), rgba(4, 4, 8, 0.96)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* Cinematic event card upgrade */
+.cinematic-event-card {
+  border: 1px solid rgba(200, 163, 93, 0.42) !important;
+  background-image:
+    linear-gradient(180deg, rgba(var(--color-ink-900-rgb), 0.97), rgba(3, 4, 7, 0.99)),
+    radial-gradient(circle at 50% 0%, rgba(200, 163, 93, 0.16), transparent 24rem),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+  box-shadow:
+    0 3rem 8rem rgba(0, 0, 0, 0.82),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.05) !important;
+}
+.cinematic-event-card::before,
+.cinematic-event-card::after {
+  background: linear-gradient(90deg, transparent, rgba(200, 163, 93, 0.82), transparent) !important;
+}
+
+/* Director cue buttons */
+.director-cue-button {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-cue-button:hover {
+  border-color: rgba(200, 163, 93, 0.3) !important;
+  transform: translateX(3px) !important;
+}
+
+/* Glass panel base upgrade */
+.glass-panel {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 11, 16, 0.94), rgba(4, 5, 8, 0.98)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow:
+    0 1.8rem 5rem rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04) !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+/* Player modal upgrade */
+.player-utility-modal {
+  border: 1px solid rgba(200, 163, 93, 0.3) !important;
+  border-bottom: 2px double rgba(200, 163, 93, 0.4) !important;
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 16, 0.98), rgba(3, 3, 6, 0.99)),
+    radial-gradient(circle at 50% 0%, rgba(200, 163, 93, 0.1), transparent 22rem),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+}
+
+/* Director timeline items */
+.director-timeline-item {
+  border: 1px solid rgba(255, 255, 255, 0.075) !important;
+  background:
+    linear-gradient(90deg, rgba(200, 163, 93, 0.065), transparent),
+    rgba(0, 0, 0, 0.22) !important;
+  transition: all var(--codex-transition) !important;
+}
+.director-timeline-item:hover {
+  border-color: rgba(200, 163, 93, 0.22) !important;
+}
+
+/* Story chat panel upgrade */
+.story-chat-panel {
+  border-color: rgba(200, 163, 93, 0.25) !important;
+}
+
+/* Animate slide-up utility */
+.animate-slide-up {
+  animation: codex-fade-up 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ─────────────────────────────────────────────────
+   CODEX FORM & TAB OVERRIDES
+   (join-room-form, create-game-form, character-setup)
+───────────────────────────────────────────────── */
+
+/* Tab buttons (mode selector) */
+.ui-tab-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 0.55rem;
+  border: 1px solid transparent;
+  padding: 0.6rem 1rem;
+  color: rgba(200, 200, 200, 0.7);
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--codex-transition);
+  background: transparent;
+}
+.ui-tab-button:hover {
+  border-color: rgba(200, 163, 93, 0.28);
+  color: #d4a853;
+}
+.ui-tab-button.is-active {
+  border-color: rgba(200, 163, 93, 0.6) !important;
+  background-image:
+    linear-gradient(180deg, rgba(100, 55, 10, 0.52), rgba(70, 38, 6, 0.18)),
+    var(--atlas-ui-plaque) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: #ffe4a0 !important;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.38),
+    inset 0 0 20px rgba(200, 163, 93, 0.1) !important;
+}
+.ui-tab-button.is-active svg { color: #d4a853; filter: drop-shadow(0 0 5px rgba(200, 163, 93, 0.5)); }
+
+/* Tab container */
+[role="tablist"] {
+  border: 1px solid rgba(200, 163, 93, 0.2) !important;
+  background: rgba(0, 0, 0, 0.42) !important;
+  border-radius: 0.65rem !important;
+}
+
+/* Error message pill */
+[role="alert"] {
+  border: 1px solid rgba(220, 38, 38, 0.3) !important;
+  background: rgba(127, 29, 29, 0.18) !important;
+  border-radius: 0.55rem !important;
+  color: #fca5a5 !important;
+}
+
+/* Info/hint box */
+.codex-info-box {
+  border: 1px solid rgba(200, 163, 93, 0.18);
+  border-radius: 0.55rem;
+  background: rgba(200, 163, 93, 0.04);
+  padding: 0.65rem 0.85rem;
+  color: rgb(168, 162, 158);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+/* Create game form preset buttons */
+.codex-preset-btn {
+  border: 1px solid rgba(200, 163, 93, 0.16) !important;
+  border-radius: 0.65rem !important;
+  background: rgba(0, 0, 0, 0.26) !important;
+  transition: all var(--codex-transition) !important;
+}
+.codex-preset-btn:hover {
+  border-color: rgba(200, 163, 93, 0.38) !important;
+  background: rgba(100, 55, 10, 0.18) !important;
+}
+.codex-preset-btn[aria-pressed="true"] {
+  border-color: rgba(200, 163, 93, 0.68) !important;
+  background: rgba(100, 55, 10, 0.28) !important;
+  box-shadow: 0 0 1.2rem rgba(200, 163, 93, 0.12) !important;
+}
+
+/* Back button in forms */
+.codex-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(200, 163, 93, 0.24);
+  border-radius: 0.55rem;
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.45rem 0.8rem;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(212, 168, 83, 0.82);
+  transition: all var(--codex-transition);
+  cursor: pointer;
+}
+.codex-back-btn:hover {
+  border-color: rgba(200, 163, 93, 0.55);
+  background: rgba(200, 163, 93, 0.08);
+  color: #ffe4a0;
+}
+
+/* Clipboard paste button */
+.codex-paste-btn {
+  display: grid;
+  width: 2.85rem;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(200, 163, 93, 0.36);
+  border-radius: 0.55rem;
+  background: rgba(0, 0, 0, 0.42);
+  color: #d4a853;
+  transition: all var(--codex-transition);
+  cursor: pointer;
+}
+.codex-paste-btn:hover {
+  border-color: rgba(200, 163, 93, 0.68);
+  background: rgba(200, 163, 93, 0.1);
+  box-shadow: 0 0 14px rgba(200, 163, 93, 0.12);
+}
+
+/* ─────────────────────────────────────────────────
+   CODEX SESSION SWITCHER  
+───────────────────────────────────────────────── */
+.session-command-card {
+  border: 1px solid rgba(200, 163, 93, 0.26) !important;
+  background-image:
+    linear-gradient(135deg, rgba(200, 163, 93, 0.12), rgba(124, 58, 237, 0.08)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 42px rgba(0, 0, 0, 0.28) !important;
+}
+.session-command-button {
+  border: 1px solid rgba(200, 163, 93, 0.42) !important;
+  background: rgba(200, 163, 93, 0.14) !important;
+  color: #d4a853 !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  transition: all var(--codex-transition) !important;
+}
+.session-command-button:hover {
+  border-color: rgba(200, 163, 93, 0.72) !important;
+  background: rgba(200, 163, 93, 0.22) !important;
+  box-shadow: 0 0 18px rgba(200, 163, 93, 0.14) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ─────────────────────────────────────────────────
+   CODEX HOTBAR / ACTION BAR
+───────────────────────────────────────────────── */
+.master-action-hotbar,
+.player-action-hotbar {
+  border-top: 1px solid rgba(200, 163, 93, 0.18) !important;
+  background-image:
+    linear-gradient(180deg, rgba(8, 7, 12, 0.98), rgba(3, 3, 6, 0.99)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ─────────────────────────────────────────────────
+   CODEX — Superadmin Table
+───────────────────────────────────────────────── */
+.superadmin-row {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0.65rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.016)),
+    rgba(0, 0, 0, 0.22);
+  padding: 0.75rem 1rem;
+  transition: all var(--codex-transition);
+}
+.superadmin-row:hover {
+  border-color: rgba(200, 163, 93, 0.24);
+  background: rgba(200, 163, 93, 0.04);
+}
+
+/* ─────────────────────────────────────────────────
+   CODEX — Character Setup Panel
+───────────────────────────────────────────────── */
+.character-setup-card {
+  position: relative;
+  border: 1px solid rgba(200, 163, 93, 0.26);
+  border-radius: var(--codex-radius);
+  background-image:
+    linear-gradient(180deg, rgba(12, 11, 16, 0.97), rgba(4, 4, 8, 0.99)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  box-shadow: var(--codex-panel-shadow);
+  overflow: hidden;
+}
+.character-setup-card::after {
+  content: "";
+  position: absolute;
+  inset: 0.45rem;
+  pointer-events: none;
+  border-radius: calc(var(--codex-radius) - 2px);
+  background:
+    var(--atlas-ui-corner) left   top    / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) right  top    / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) left   bottom / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) right  bottom / 1.5rem auto no-repeat;
+  opacity: 0.28;
+}
+
+/* ─────────────────────────────────────────────────
+   RESPONSIVE FINE-TUNING FOR CODEX SYSTEM
+───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .codex-panel::after { opacity: 0.15; }
+  .codex-btn-primary,
+  .codex-btn-ghost { font-size: 0.75rem; letter-spacing: 0.1em; }
+  .codex-section-title { font-size: 0.7rem; }
+}
+@media (max-width: 480px) {
+  .codex-panel::after { display: none; }
+  .codex-btn-primary { min-height: 2.5rem; padding: 0.55rem 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .codex-panel,
+  .codex-modal,
+  .codex-notification,
+  .codex-nav-link { animation: none !important; }
+  .codex-badge,
+  .codex-nav-link.is-active { animation: none !important; }
+  .codex-btn-primary::after { display: none !important; }
+}
+
+/* ==========================================================================
+   CODEX OBSCURA — Missing Utility Classes
+   Classes used in JSX that had no CSS definition until now
+   ========================================================================== */
+
+/* ── ui-panel-window (used in join/create/character forms) ── */
+.ui-panel-window {
+  position: relative;
+  border: 1px solid rgba(200, 163, 93, 0.28);
+  border-radius: 0.85rem;
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 16, 0.97), rgba(4, 4, 8, 0.99)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  box-shadow:
+    0 1.5rem 4rem rgba(0, 0, 0, 0.62),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  overflow: hidden;
+  animation: codex-fade-up 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ui-panel-window::after {
+  content: "";
+  position: absolute;
+  inset: 0.42rem;
+  pointer-events: none;
+  border-radius: calc(0.85rem - 2px);
+  background:
+    var(--atlas-ui-corner) left   top    / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) right  top    / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) left   bottom / 1.5rem auto no-repeat,
+    var(--atlas-ui-corner) right  bottom / 1.5rem auto no-repeat;
+  opacity: 0.26;
+  z-index: 0;
+}
+.ui-panel-window > * { position: relative; z-index: 1; }
+
+/* ── ui-divider-ornate (used in create-game-form FormSection) ── */
+.ui-divider-ornate {
+  position: relative;
+  display: block;
+  height: 1.4rem;
+  background:
+    var(--atlas-ui-divider) center / min(28rem, 100%) auto no-repeat;
+  opacity: 0.48;
+  filter: saturate(0.9) brightness(1.1);
+}
+
+/* ── ui-file-upload-field (used in create-game-form FileField) ── */
+.ui-file-upload-field {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border: 1px dashed rgba(200, 163, 93, 0.32);
+  border-radius: 0.55rem;
+  background:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.72), rgba(0, 0, 0, 0.58)),
+    var(--atlas-texture-parchment);
+  background-size: auto, cover;
+  background-blend-mode: normal, soft-light;
+  padding: 0.65rem 0.85rem;
+  color: rgba(168, 162, 158, 0.9);
+  font-size: 0.82rem;
+  font-style: italic;
+  transition: all var(--codex-transition);
+}
+.ui-file-upload-field:hover {
+  border-color: rgba(200, 163, 93, 0.58);
+  background-color: rgba(200, 163, 93, 0.04);
+  color: #f0ede8;
+}
+
+/* ── premium-quick-option (Start Menu quick options) ── */
+.premium-quick-option {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(200, 163, 93, 0.24) !important;
+  background-image:
+    linear-gradient(180deg, rgba(14, 13, 18, 0.92), rgba(5, 4, 8, 0.96)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  transition: all var(--codex-transition) !important;
+}
+.premium-quick-option:hover {
+  border-color: rgba(200, 163, 93, 0.58) !important;
+  background-image:
+    linear-gradient(180deg, rgba(80, 45, 10, 0.42), rgba(30, 18, 8, 0.92)),
+    var(--atlas-texture-parchment) !important;
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.42),
+    0 0 20px rgba(200, 163, 93, 0.1) !important;
+}
+
+/* ── Premium action buttons (start menu) ── */
+.premium-action-ember {
+  background-image:
+    linear-gradient(135deg, rgba(138, 64, 12, 0.95), rgba(90, 40, 8, 0.92)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(200, 163, 93, 0.72) !important;
+  color: #ffe4a0 !important;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.38),
+    0 0 22px rgba(200, 163, 93, 0.16),
+    inset 0 1px 0 rgba(255, 241, 210, 0.14) !important;
+  transition: all var(--codex-transition) !important;
+}
+.premium-action-ember:hover {
+  border-color: rgba(200, 163, 93, 0.95) !important;
+  filter: brightness(1.1) !important;
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.48),
+    0 0 32px rgba(200, 163, 93, 0.24) !important;
+}
+
+.premium-action-violet {
+  background-image:
+    linear-gradient(135deg, rgba(88, 28, 135, 0.88), rgba(49, 18, 78, 0.96)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(147, 51, 234, 0.6) !important;
+  color: #e9d5ff !important;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.38),
+    0 0 22px rgba(124, 58, 237, 0.18),
+    inset 0 1px 0 rgba(233, 213, 255, 0.1) !important;
+  transition: all var(--codex-transition) !important;
+}
+.premium-action-violet:hover {
+  border-color: rgba(147, 51, 234, 0.9) !important;
+  filter: brightness(1.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.premium-action-emerald {
+  background-image:
+    linear-gradient(135deg, rgba(6, 78, 59, 0.88), rgba(4, 50, 38, 0.96)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(16, 185, 129, 0.6) !important;
+  color: #a7f3d0 !important;
+  box-shadow:
+    0 4px 18px rgba(0, 0, 0, 0.38),
+    0 0 22px rgba(16, 185, 129, 0.16),
+    inset 0 1px 0 rgba(167, 243, 208, 0.1) !important;
+  transition: all var(--codex-transition) !important;
+}
+.premium-action-emerald:hover {
+  border-color: rgba(16, 185, 129, 0.9) !important;
+  filter: brightness(1.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* ── Premium start menu panel ── */
+.premium-start-menu {
+  border: 1px solid rgba(200, 163, 93, 0.28) !important;
+  background-image:
+    linear-gradient(180deg, rgba(8, 8, 14, 0.88), rgba(3, 4, 8, 0.96)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  box-shadow:
+    0 2rem 6rem rgba(0, 0, 0, 0.72),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+/* ── Premium menu panel ── */
+.premium-menu-panel {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 14, 0.94), rgba(4, 4, 8, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ── Notification badge upgrade ── */
+.notification-badge {
+  border: 1px solid rgba(200, 163, 93, 0.38) !important;
+  background: rgba(200, 163, 93, 0.14) !important;
+  color: #ffe4a0 !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-weight: 700 !important;
+}
+
+/* ── Map tool panel upgrade ── */
+.map-tool-panel {
+  border: 1px solid rgba(200, 163, 93, 0.24) !important;
+  background-image:
+    linear-gradient(180deg, rgba(8, 8, 14, 0.96), rgba(3, 3, 6, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ── Master command panel (Director room) ── */
+.master-command-panel {
+  border: 1px solid rgba(200, 163, 93, 0.26) !important;
+  background-image:
+    linear-gradient(180deg, rgba(11, 10, 16, 0.94), rgba(4, 4, 8, 0.98)),
+    radial-gradient(circle at 50% 0%, rgba(200, 163, 93, 0.08), transparent 22rem),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+}
+
+/* ── Story chat panel complete upgrade ── */
+.story-chat-panel {
+  border: 1px solid rgba(200, 163, 93, 0.25) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 14, 0.94), rgba(4, 4, 8, 0.98)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ── Story message NPC/player message bubble upgrade ── */
+.story-message {
+  border: 1px solid rgba(255, 255, 255, 0.065) !important;
+  transition: border-color var(--codex-transition), background var(--codex-transition) !important;
+}
+.story-message:hover {
+  border-color: rgba(200, 163, 93, 0.14) !important;
+}
+
+/* ── Chat input area upgrade ── */
+.story-chat-panel form textarea.field {
+  min-height: 3.5rem !important;
+  resize: none !important;
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.9), rgba(0, 0, 0, 0.72)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ── Story send button glow upgrade ── */
+.story-send-button {
+  box-shadow: 0 0 18px rgba(200, 163, 93, 0.14) !important;
+  transition: all var(--codex-transition) !important;
+}
+.story-send-button:hover {
+  box-shadow: 0 0 28px rgba(200, 163, 93, 0.28) !important;
+  transform: translateY(-1px) scale(1.03) !important;
+}
+
+/* ── director-kicker pill upgrade ── */
+.director-panel-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid rgba(200, 163, 93, 0.36);
+  border-radius: 999px;
+  background: rgba(200, 163, 93, 0.1);
+  padding: 0.22rem 0.65rem;
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #d4a853;
+}
+
+/* ── Breadcrumb upgrade ── */
+.director-breadcrumb {
+  font-family: var(--font-cinzel), Georgia, serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(200, 163, 93, 0.75);
+}
+
+/* ── Session signal pills upgrade ── */
+.session-signal-pill {
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* ── Progress meter upgrade ── */
+.progress-meter span {
+  background: linear-gradient(90deg, rgba(200, 163, 93, 0.9), rgba(212, 106, 26, 0.9)) !important;
+  box-shadow: 0 0 14px rgba(200, 163, 93, 0.22) !important;
+}
+
+/* ── Achievement strip upgrade ── */
+.achievement-strip span.is-unlocked {
+  border: 1px solid rgba(200, 163, 93, 0.38) !important;
+  background: rgba(200, 163, 93, 0.12) !important;
+  color: #ffe4a0 !important;
+}
+
+/* ── Player diary note upgrade ── */
+.player-diary-note {
+  border-left: 2px solid rgba(200, 163, 93, 0.6) !important;
+  background: rgba(100, 55, 10, 0.1) !important;
+}
+
+/* ── Player inventory tile upgrade ── */
+.player-inventory-tile {
+  border: 1px solid rgba(200, 163, 93, 0.2) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(200, 163, 93, 0.1), transparent 50%),
+    rgba(255, 255, 255, 0.035) !important;
+  transition: all var(--codex-transition) !important;
+}
+.player-inventory-tile:hover {
+  border-color: rgba(200, 163, 93, 0.38) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.32) !important;
+}
+
+/* ── Player inventory image frame upgrade ── */
+.player-inventory-image {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ── Soundbar stop button upgrade ── */
+.soundbar-stop-button {
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  transition: all var(--codex-transition) !important;
+}
+.soundbar-stop-button:hover {
+  border-color: rgba(220, 38, 38, 0.45) !important;
+  background: rgba(127, 29, 29, 0.22) !important;
+  color: #fca5a5 !important;
+}
+
+/* ── Map canvas upgrade ── */
+.map-canvas {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.65) !important;
+}
+
+/* ── Map library upgrade ── */
+.map-library {
+  border: 1px solid rgba(200, 163, 93, 0.18) !important;
+  background-image:
+    linear-gradient(180deg, rgba(10, 9, 14, 0.92), rgba(4, 4, 8, 0.96)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ── Director scene-stage upgrade ── */
+.scene-stage {
+  border: 1px solid rgba(200, 163, 93, 0.28) !important;
+  box-shadow:
+    0 1.4rem 4rem rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(200, 163, 93, 0.08) !important;
+}
+
+/* ==========================================================================
+   CODEX OBSCURA — FINAL GLOBAL RULES
+   ========================================================================== */
+
+/* Text selection upgrade */
+::selection {
+  background: rgba(200, 163, 93, 0.35) !important;
+  color: #ffe4a0 !important;
+}
+
+/* Focus ring upgrade */
+:focus-visible {
+  outline: 2px solid rgba(200, 163, 93, 0.8) !important;
+  outline-offset: 3px !important;
+}
+
+/* Base body deep dark upgrade */
+body {
+  background-color: #030508;
+}
+
+/* All form labels: consistent uppercase tracking */
+label[class*="text-slate-300"],
+label[class*="text-stone-300"] {
+  color: rgba(200, 163, 93, 0.75) !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 0.7rem !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+}
+
+/* Invite code display (big mono in create-game) */
+.font-mono.text-3xl {
+  font-family: 'Share Tech Mono', 'Courier New', monospace !important;
+  color: #ffe4a0 !important;
+  text-shadow: 0 0 12px rgba(200, 163, 93, 0.2) !important;
+  letter-spacing: 0.14em !important;
+}
+
+/* ==========================================================================
+   CODEX OBSCURA — FINAL VISUAL REFINEMENTS
+   Applied after visual inspection of live app
+   ========================================================================== */
+
+/* ── 1. Body ambient atmosphere ── */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 10%, rgba(200, 163, 93, 0.04), transparent),
+    radial-gradient(ellipse 50% 35% at 10% 90%, rgba(124, 58, 237, 0.04), transparent),
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0, 0, 0, 0.2), transparent);
+}
+
+/* ── 2. Chat filter pills (Tutti/Master/NPC/Giocatori/Dadi/Pin) ── */
+.story-chat-panel [class*="rounded"][class*="border"][class*="px"] {
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  color: rgba(212, 168, 83, 0.82) !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 0.7rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  transition: all var(--codex-transition) !important;
+}
+.story-chat-panel [class*="rounded"][class*="border"][class*="px"]:hover,
+.story-chat-panel [class*="rounded"][class*="border"][class*="px"][class*="bg-brass"] {
+  border-color: rgba(200, 163, 93, 0.58) !important;
+  background: rgba(200, 163, 93, 0.12) !important;
+  color: #ffe4a0 !important;
+}
+
+/* ── 3. Chat message bubbles — strong left border ── */
+.story-message,
+[class*="story-message"] {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-left: 2.5px solid rgba(200, 163, 93, 0.35) !important;
+  background: rgba(255, 255, 255, 0.018) !important;
+  border-radius: 0 0.55rem 0.55rem 0 !important;
+  transition: border-color var(--codex-transition), background var(--codex-transition) !important;
+}
+.story-message:hover,
+[class*="story-message"]:hover {
+  border-left-color: rgba(200, 163, 93, 0.62) !important;
+  background: rgba(200, 163, 93, 0.03) !important;
+}
+
+/* Master/narrator messages: amber left border */
+[class*="message"][class*="master"],
+[class*="message"][class*="narrator"] {
+  border-left-color: rgba(200, 163, 93, 0.55) !important;
+}
+/* Player messages: blue left border */
+[class*="message"][class*="player"],
+[class*="message"][class*="giocatore"] {
+  border-left-color: rgba(59, 130, 246, 0.45) !important;
+}
+
+/* ── 4. Chat search input ── */
+.story-chat-panel input[type="search"],
+.story-chat-panel input[placeholder*="CERCA"] {
+  border: 1px solid rgba(200, 163, 93, 0.18) !important;
+  background:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.82), rgba(0, 0, 0, 0.68)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  color: #f0ede8 !important;
+  font-style: italic !important;
+}
+.story-chat-panel input[type="search"]:focus,
+.story-chat-panel input[placeholder*="CERCA"]:focus {
+  border-color: rgba(200, 163, 93, 0.55) !important;
+  box-shadow: 0 0 16px rgba(200, 163, 93, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* ── 5. Director sidebar nav items: stronger active glow ── */
+.director-sidebar .director-nav-link.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: linear-gradient(180deg, rgba(200, 163, 93, 0), rgba(200, 163, 93, 0.85), rgba(200, 163, 93, 0));
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── 6. Progress bar (QUALITA PREPARAZIONE) ── */
+[class*="progress"] > div,
+[class*="progress"] > span {
+  background: linear-gradient(90deg, rgba(180, 135, 60, 0.9), rgba(212, 106, 26, 0.85)) !important;
+  box-shadow: 0 0 16px rgba(200, 163, 93, 0.3), 0 0 2px rgba(212, 106, 26, 0.6) !important;
+  border-radius: 999px !important;
+}
+
+/* ── 7. "REALTIME READY" badge ── */
+[class*="realtime"],
+[class*="REALTIME"] {
+  border: 1px solid rgba(16, 185, 129, 0.42) !important;
+  background: rgba(6, 78, 59, 0.22) !important;
+  color: #a7f3d0 !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* ── 8. "Sessione Live" badge ── */
+[class*="sessione-live"],
+[class*="session-live"] {
+  border: 1px solid rgba(16, 185, 129, 0.42) !important;
+  background: rgba(6, 78, 59, 0.22) !important;
+}
+
+/* ── 9. Mission Control quick-access buttons ── */
+[class*="mission-control"] button,
+[class*="mission-control"] a {
+  border: 1px solid rgba(200, 163, 93, 0.2) !important;
+  background: rgba(255, 255, 255, 0.032) !important;
+  transition: all var(--codex-transition) !important;
+}
+[class*="mission-control"] button:hover,
+[class*="mission-control"] a:hover {
+  border-color: rgba(200, 163, 93, 0.5) !important;
+  background: rgba(200, 163, 93, 0.08) !important;
+}
+
+/* ── 10. Turn order items ── */
+[class*="turn-order"] li,
+[class*="turni"] li {
+  border: 1px solid rgba(200, 163, 93, 0.16) !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  border-radius: 0.45rem !important;
+  transition: all var(--codex-transition) !important;
+}
+
+/* ── 11. Select elements ── */
+select.field,
+select[class*="field"] {
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.9), rgba(0, 0, 0, 0.72)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  color: #f0ede8 !important;
+  cursor: pointer !important;
+}
+select.field:hover,
+select[class*="field"]:hover {
+  border-color: rgba(200, 163, 93, 0.48) !important;
+}
+select.field:focus,
+select[class*="field"]:focus {
+  border-color: rgba(200, 163, 93, 0.78) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(200, 163, 93, 0.16) !important;
+}
+
+/* ── 12. Hotbar bottom nav buttons: stronger Cinzel ── */
+.player-audio-dock button,
+[class*="audio-dock"] button {
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* Bottom hotbar items spacing */
+[class*="hotbar"] button,
+[class*="action-bar"] button {
+  transition: all var(--codex-transition) !important;
+  border-radius: 0.55rem !important;
+}
+[class*="hotbar"] button:hover,
+[class*="action-bar"] button:hover {
+  background: rgba(200, 163, 93, 0.1) !important;
+  border-color: rgba(200, 163, 93, 0.4) !important;
+}
+
+/* ── 13. "Richiedi tiro" dice button ── */
+button[class*="richiedi"],
+button[class*="richiedi-tiro"] {
+  background-image:
+    linear-gradient(160deg, rgba(88, 48, 10, 0.96), rgba(60, 30, 5, 0.9)),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(200, 163, 93, 0.52) !important;
+  color: #ffe4a0 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* ── 14. Dropdown selects for dice ── */
+select {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23c8a35d' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, rgba(4, 4, 8, 0.9), rgba(0, 0, 0, 0.72)),
+    var(--atlas-texture-parchment) !important;
+  background-repeat: no-repeat, no-repeat, repeat !important;
+  background-position: right 0.75rem center, center, center !important;
+  background-size: 12px 8px, auto, cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+  border: 1px solid rgba(200, 163, 93, 0.22) !important;
+  color: #f0ede8 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  padding-right: 2.2rem !important;
+}
+
+/* ── 15. Textarea global upgrade ── */
+textarea {
+  resize: vertical;
+}
+textarea.field {
+  background-image:
+    linear-gradient(180deg, rgba(4, 4, 8, 0.88), rgba(0, 0, 0, 0.7)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+}
+
+/* ── 16. Number input arrow hide ── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 0.3;
+  filter: hue-rotate(35deg);
+}
+
+/* ── 17. Scroll area refinement for the chat ── */
+.story-chat-panel [class*="overflow-y-auto"],
+.story-chat-panel [class*="scroll"] {
+  scrollbar-color: rgba(200, 163, 93, 0.35) rgba(4, 4, 8, 0.9) !important;
+  scrollbar-width: thin !important;
+}
+
+/* ── 18. Info boxes (description/hint text blocks) ── */
+[class*="rounded-lg"][class*="border-white/10"][class*="bg-white/"] {
+  border: 1px solid rgba(200, 163, 93, 0.14) !important;
+  background: rgba(200, 163, 93, 0.04) !important;
+  color: rgba(200, 190, 170, 0.85) !important;
+}
+
+/* ── 19. Check badge (✓ CAST PRONTO etc.) ── */
+[class*="check-badge"],
+[class*="status-badge"] {
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  background: rgba(6, 78, 59, 0.18) !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 0.62rem !important;
+  letter-spacing: 0.14em !important;
+}
+
+/* ── 20. Premium avatar rings (Master/Narrator/NPC) ── */
+[class*="avatar-ring"],
+[class*="identity-ring"] {
+  border: 1px solid rgba(200, 163, 93, 0.45) !important;
+  box-shadow: 0 0 14px rgba(200, 163, 93, 0.14), inset 0 0 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ============================================================
+   ██████╗ ██████╗ ██╗███╗   ███╗ ██████╗ ██╗██████╗ ███████╗
+   ██╔══██╗██╔══██╗██║████╗ ████║██╔═══██╗██║██╔══██╗██╔════╝
+   ██║  ███╗██████╔╝██║██╔████╔██║██║   ██║██║██████╔╝█████╗
+   ██║   ██║██╔══██╗██║██║╚██╔╝██║██║   ██║██║██╔══██╗██╔══╝
+   ██████╔╝██║  ██║██║██║ ╚═╝ ██║╚██████╔╝██║██║  ██║███████╗
+   ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝╚═╝  ╚═╝╚══════╝
+   MENU BUTTONS — REDESIGN DEFINITIVO
+   Questa sezione sostituisce TUTTI i blocchi premium-action
+   precedenti. È l'ultima nel file e vince su tutto.
+   ============================================================ */
+
+/* ── CSS variable aggiuntiva per l'asset ── */
+:root {
+  --atlas-grimoire-plate: url("/assets/atlas/ui/grimoire-button-plate.png");
+}
+
+/* ── Keyframe shimmer esclusivo per i bottoni menu ── */
+@keyframes menu-shimmer {
+  0%   { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  30%  { opacity: 1; }
+  100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes menu-icon-pulse {
+  0%, 100% { filter: drop-shadow(0 0 0.4rem var(--btn-icon-glow)); }
+  50%       { filter: drop-shadow(0 0 1.1rem var(--btn-icon-glow)) brightness(1.15); }
+}
+
+/* ═══════════════════════════════════════════════
+   BASE: .premium-action
+   Reset completo di tutti gli strati precedenti
+═══════════════════════════════════════════════ */
+.premium-action {
+  /* Reset strati precedenti */
+  border-image: none !important;
+  border-image-source: none !important;
+  border-image-slice: unset !important;
+
+  /* Layout */
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 5rem 1fr !important;
+  align-items: center !important;
+  gap: 0 !important;
+  min-height: 5.5rem !important;
+  width: 100% !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+
+  /* Aspetto base — tutti unificati, scuro/parchment */
+  border: 1px solid rgba(200, 163, 93, 0.32) !important;
+  border-bottom: 2px solid rgba(200, 163, 93, 0.22) !important;
+  border-radius: 0.72rem !important;
+  background-image:
+    linear-gradient(90deg,
+      rgba(8, 7, 12, 0.96) 0%,
+      rgba(12, 10, 18, 0.92) 40%,
+      rgba(8, 7, 12, 0.96) 100%
+    ),
+    var(--atlas-texture-metal) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  background-color: transparent !important;
+
+  /* Shadow base */
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 241, 210, 0.06) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.5) inset !important;
+
+  /* Transition */
+  transition:
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  filter: none !important;
+  padding: 0 !important;
+}
+
+/* ── Linea decorativa sotto la divisione icona / testo ── */
+.premium-action::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 5rem !important;
+  width: 1px !important;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(200, 163, 93, 0.28) 20%,
+    rgba(200, 163, 93, 0.38) 50%,
+    rgba(200, 163, 93, 0.28) 80%,
+    transparent
+  ) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  display: block !important;
+  inset: unset !important;
+  height: auto !important;
+  border-radius: 0 !important;
+  border: none !important;
+  opacity: 1 !important;
+  filter: none !important;
+  background-size: auto !important;
+  background-repeat: no-repeat !important;
+  transform: none !important;
+}
+
+/* ── Shimmer sweep su hover ── */
+.premium-action::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -200% !important;
+  width: 50% !important;
+  height: 100% !important;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 241, 210, 0.09),
+    transparent
+  ) !important;
+  transform: skewX(-18deg) !important;
+  pointer-events: none !important;
+  z-index: 5 !important;
+  opacity: 1 !important;
+  display: block !important;
+  inset: unset !important;
+  border-radius: 0 !important;
+  filter: none !important;
+  border: none !important;
+  background-size: auto !important;
+  transition: none !important;
+}
+
+/* ── Hover state ── */
+.premium-action:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(200, 163, 93, var(--btn-border-opacity, 0.60)) !important;
+  border-bottom-color: rgba(200, 163, 93, var(--btn-border-opacity, 0.45)) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.58),
+    0 0 28px var(--btn-glow, rgba(200, 163, 93, 0.12)),
+    0 1px 0 rgba(255, 241, 210, 0.08) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.5) inset !important;
+  background-image:
+    linear-gradient(90deg,
+      rgba(8, 7, 12, 0.94) 0%,
+      rgba(18, 14, 26, 0.88) 40%,
+      rgba(8, 7, 12, 0.94) 100%
+    ),
+    var(--atlas-texture-metal) !important;
+  filter: none !important;
+}
+
+/* ── Shimmer on hover ── */
+.premium-action:hover::after {
+  animation: menu-shimmer 0.55s ease forwards !important;
+}
+
+/* ── Active press ── */
+.premium-action:active {
+  transform: translateY(0) scale(0.998) !important;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 241, 210, 0.04) inset !important;
+}
+
+/* ═══════════════════════════════════════════════
+   VARIANTI COLORE — Solo glow/border, NO sfondo
+═══════════════════════════════════════════════ */
+
+/* Ember/Gold — Crea partita */
+.premium-action-ember {
+  --btn-border-opacity: 0.62;
+  --btn-glow: rgba(212, 140, 60, 0.20);
+  --btn-icon-color: #f0b860;
+  --btn-icon-glow: rgba(212, 140, 60, 0.60);
+  --btn-icon-border: rgba(212, 140, 60, 0.55);
+  --btn-icon-bg: rgba(100, 55, 8, 0.70);
+  border-color: rgba(212, 140, 60, 0.42) !important;
+  border-bottom-color: rgba(212, 140, 60, 0.28) !important;
+}
+
+/* Violet — Sessioni / Entra con codice */
+.premium-action-violet {
+  --btn-border-opacity: 0.52;
+  --btn-glow: rgba(145, 85, 230, 0.16);
+  --btn-icon-color: #c084fc;
+  --btn-icon-glow: rgba(145, 85, 230, 0.55);
+  --btn-icon-border: rgba(145, 85, 230, 0.52);
+  --btn-icon-bg: rgba(55, 20, 90, 0.68);
+  border-color: rgba(145, 85, 230, 0.38) !important;
+  border-bottom-color: rgba(145, 85, 230, 0.24) !important;
+}
+
+/* Emerald — Superadmin */
+.premium-action-emerald {
+  --btn-border-opacity: 0.52;
+  --btn-glow: rgba(16, 185, 129, 0.14);
+  --btn-icon-color: #6ee7b7;
+  --btn-icon-glow: rgba(16, 185, 129, 0.55);
+  --btn-icon-border: rgba(16, 185, 129, 0.48);
+  --btn-icon-bg: rgba(4, 55, 40, 0.70);
+  border-color: rgba(16, 185, 129, 0.34) !important;
+  border-bottom-color: rgba(16, 185, 129, 0.22) !important;
+}
+
+/* ═══════════════════════════════════════════════
+   ICON MEDALLION — .premium-action-icon
+═══════════════════════════════════════════════ */
+.premium-action-icon {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  align-self: stretch !important;
+  width: 5rem !important;
+  height: auto !important;
+  min-height: 5.5rem !important;
+  background: var(--btn-icon-bg, rgba(30, 22, 10, 0.72)) !important;
+  border-right: 1px solid rgba(200, 163, 93, 0.18) !important;
+  border-radius: 0.65rem 0 0 0.65rem !important;
+  flex-shrink: 0 !important;
+  overflow: hidden !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Sfondo radial glow nell'area icona */
+.premium-action-icon::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--btn-icon-glow, rgba(200, 163, 93, 0.22)) 0%,
+    transparent 70%
+  ) !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  border: none !important;
+  display: block !important;
+  opacity: 0.65 !important;
+  filter: none !important;
+}
+
+/* Cerchio medallion attorno all'icona */
+.premium-action-icon::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: auto !important;
+  width: 3rem !important;
+  height: 3rem !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--btn-icon-border, rgba(200, 163, 93, 0.45)) !important;
+  background:
+    var(--atlas-ui-ring) center / 100% 100% no-repeat,
+    var(--btn-icon-bg, rgba(10, 8, 16, 0.85)) !important;
+  box-shadow:
+    0 0 0 3px rgba(0, 0, 0, 0.42),
+    inset 0 0 1rem rgba(0, 0, 0, 0.72) !important;
+  opacity: 0.52 !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  display: block !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  filter: none !important;
+}
+
+/* L'atlas-icon dentro l'area icona */
+.premium-action-icon .atlas-icon {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 2.1rem !important;
+  height: 2.1rem !important;
+  opacity: 0.92 !important;
+  background-size: contain !important;
+  background-position: center !important;
+  filter:
+    saturate(0.8)
+    brightness(1.1)
+    drop-shadow(0 0 0.55rem var(--btn-icon-glow, rgba(200, 163, 93, 0.55))) !important;
+  animation: menu-icon-pulse 3s ease-in-out infinite !important;
+}
+
+/* ═══════════════════════════════════════════════
+   TEXT AREA — span principale del testo
+═══════════════════════════════════════════════ */
+.premium-action > span:not(.premium-action-icon) {
+  position: relative !important;
+  display: block !important;
+  min-width: 0 !important;
+  padding: 0.9rem 4.5rem 0.9rem 1.35rem !important;
+  z-index: 2 !important;
+}
+
+/* Watermark dell'azione in fondo a destra */
+.premium-action > span:not(.premium-action-icon)::before {
+  content: "" !important;
+  position: absolute !important;
+  right: 0.85rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 3.4rem !important;
+  height: 3.4rem !important;
+  background: var(--atlas-action-watermark, none) center / contain no-repeat !important;
+  opacity: 0.055 !important;
+  pointer-events: none !important;
+  display: block !important;
+  left: unset !important;
+  bottom: unset !important;
+  height: 3.4rem !important;
+  border-radius: 0 !important;
+  filter: saturate(0) brightness(2) !important;
+}
+
+/* Titolo del bottone */
+.premium-action span:not(.premium-action-icon) span:first-child {
+  display: block !important;
+  font-family: var(--font-cinzel), Georgia, serif !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #f5edda !important;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85) !important;
+  line-height: 1.2 !important;
+}
+
+/* Sottotitolo del bottone */
+.premium-action span:not(.premium-action-icon) span:last-child {
+  display: block !important;
+  margin-top: 0.35rem !important;
+  font-size: 0.8rem !important;
+  font-family: inherit !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  color: rgba(220, 200, 165, 0.65) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72) !important;
+  line-height: 1.45 !important;
+}
+
+/* ── Freccia decorativa destra ── */
+.premium-action > span:not(.premium-action-icon)::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 1rem !important;
+  top: 50% !important;
+  width: 1.4rem !important;
+  height: 1.4rem !important;
+  transform: translateY(-50%) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(200%2C163%2C93%2C0.55)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  background-position: center !important;
+  pointer-events: none !important;
+  display: block !important;
+  opacity: 1 !important;
+  border: none !important;
+  filter: none !important;
+  border-radius: 0 !important;
+  left: unset !important;
+  bottom: unset !important;
+  inset: unset !important;
+  transition: transform 180ms ease !important;
+}
+
+.premium-action:hover > span:not(.premium-action-icon)::after {
+  transform: translateY(-50%) translateX(3px) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(220%2C185%2C110%2C0.85)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E") !important;
+}
+
+/* ── Hover sull'icona: glow intensificato ── */
+.premium-action:hover .premium-action-icon {
+  background: var(--btn-icon-bg, rgba(30, 22, 10, 0.72)) !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+.premium-action:hover .premium-action-icon .atlas-icon {
+  filter:
+    saturate(1)
+    brightness(1.2)
+    drop-shadow(0 0 0.85rem var(--btn-icon-glow, rgba(200, 163, 93, 0.7))) !important;
+}
+
+/* ═══════════════════════════════════════════════
+   WATERMARK PER AZIONE SPECIFICA
+═══════════════════════════════════════════════ */
+.premium-action[data-atlas-action="create"]    { --atlas-action-watermark: url("/assets/atlas/icons/regia.svg"); }
+.premium-action[data-atlas-action="sessions"]  { --atlas-action-watermark: url("/assets/atlas/icons/media.svg"); }
+.premium-action[data-atlas-action="join"]      { --atlas-action-watermark: url("/assets/atlas/icons/mappa.svg"); }
+.premium-action[data-atlas-action="superadmin"]{ --atlas-action-watermark: url("/assets/atlas/icons/superadmin.svg"); }
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .premium-action {
+    grid-template-columns: 4.2rem 1fr !important;
+    min-height: 4.85rem !important;
+  }
+  .premium-action-icon {
+    width: 4.2rem !important;
+    min-height: 4.85rem !important;
+  }
+  .premium-action span:not(.premium-action-icon) span:first-child {
+    font-size: 0.9rem !important;
+    letter-spacing: 0.1em !important;
+  }
+  .premium-action > span:not(.premium-action-icon) {
+    padding: 0.75rem 3.5rem 0.75rem 1.1rem !important;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .premium-action-icon .atlas-icon { animation: none !important; }
+  .premium-action::after { animation: none !important; }
+  .premium-action:hover::after { animation: none !important; }
 }

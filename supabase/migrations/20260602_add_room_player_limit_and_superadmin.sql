@@ -12,7 +12,10 @@ returns boolean
 language sql
 stable
 as $$
-  select lower(coalesce(auth.jwt()->>'email', '')) = 'galandar@gmail.com';
+  select
+    coalesce((auth.jwt()->'app_metadata'->>'role') = 'superadmin', false)
+    or coalesce((auth.jwt()->'app_metadata'->'roles') ? 'superadmin', false)
+    or coalesce(auth.jwt()->'app_metadata'->>'is_superadmin' = 'true', false);
 $$;
 
 drop policy if exists "masters manage their campaigns" on public.campaigns;

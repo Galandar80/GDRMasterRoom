@@ -26,6 +26,7 @@ import type {
   Scene,
   SoundEffect
 } from "@/lib/types";
+import { hasSuperadminClaim, isConfiguredSuperadmin } from "@/lib/superadmin";
 
 type DatabaseClient = SupabaseClient;
 const ROOM_MESSAGE_PAGE_SIZE = 150;
@@ -52,6 +53,28 @@ export type AdminMediaOverview = {
   asset_type: "image" | "video" | "audio" | "sound" | "portrait" | "object";
   url: string;
   created_at?: string;
+  visibility?: MediaAsset["visibility"];
+  approval_status?: MediaAsset["approval_status"];
+  file_size?: number;
+  owner_id?: string | null;
+};
+
+export type UserSessionSummary = {
+  id: string;
+  roomId: string;
+  campaignId: string;
+  campaignTitle: string;
+  campaignStatus?: Campaign["status"];
+  roomName: string;
+  inviteCode: string;
+  role: "master" | "player";
+  playerCount: number;
+  maxPlayers: number;
+  characterId?: string;
+  characterName?: string;
+  isSetupComplete?: boolean;
+  createdAt: string;
+  lastActivityAt: string;
 };
 
 type RoomMessagePage = {
@@ -59,6 +82,11 @@ type RoomMessagePage = {
   privateMessages: Message[];
   offMessages: Message[];
   hasOlderMessages: boolean;
+};
+
+type InviteRoomLookup = Room & {
+  campaign_master_id: string;
+  player_count: number;
 };
 
 export async function ensureProfile(supabase: DatabaseClient, user: User): Promise<Profile> {
@@ -73,7 +101,7 @@ export async function ensureProfile(supabase: DatabaseClient, user: User): Promi
   }
 
   if (existing) {
-    return existing as Profile;
+    return { ...(existing as Profile), is_superadmin: fallback.is_superadmin };
   }
 
   const { data, error } = await supabase
@@ -102,7 +130,8 @@ export function profileFromUser(user: User): Profile {
     id: user.id,
     email,
     username,
-    role: "player"
+    role: "player",
+    is_superadmin: hasSuperadminClaim(user)
   };
 }
 
@@ -133,6 +162,96 @@ export async function loadInitialRoomState(supabase: DatabaseClient, profile: Pr
   }
 
   return null;
+}
+
+export async function listUserSessions(supabase: DatabaseClient, profile: Profile): Promise<UserSessionSummary[]> {
+  const [{ data: campaigns, error: campaignError }, { data: characters, error: characterError }] = await Promise.all([
+    supabase
+      .from("campaigns")
+      .select("id,title,status,created_at,rooms(id,name,invite_code,max_players,created_at,player_characters(id))")
+      .eq("master_id", profile.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("player_characters")
+      .select("id,room_id,character_name,character_surname,is_setup_complete,created_at,rooms(id,name,invite_code,max_players,created_at,campaigns(id,title,status),player_characters(id))")
+      .eq("user_id", profile.id)
+      .order("created_at", { ascending: false })
+  ]);
+
+  if (campaignError) throw campaignError;
+  if (characterError) throw characterError;
+
+  const masterSessions = ((campaigns ?? []) as any[]).flatMap((campaign) =>
+    ((campaign.rooms ?? []) as any[]).map((room) => ({
+      id: `master:${room.id}`,
+      roomId: room.id,
+      campaignId: campaign.id,
+      campaignTitle: campaign.title,
+      campaignStatus: campaign.status,
+      roomName: room.name,
+      inviteCode: room.invite_code,
+      role: "master" as const,
+      playerCount: Array.isArray(room.player_characters) ? room.player_characters.length : 0,
+      maxPlayers: room.max_players ?? 4,
+      createdAt: room.created_at ?? campaign.created_at,
+      lastActivityAt: room.created_at ?? campaign.created_at
+    }))
+  );
+
+  const playerSessions = ((characters ?? []) as any[])
+    .filter((character) => character.rooms)
+    .map((character) => {
+      const room = character.rooms;
+      const campaign = room.campaigns;
+      const characterName = `${character.character_name ?? "Eroe"} ${character.character_surname ?? ""}`.trim();
+
+      return {
+        id: `player:${room.id}:${character.id}`,
+        roomId: room.id,
+        campaignId: campaign?.id ?? room.campaign_id,
+        campaignTitle: campaign?.title ?? "Campagna",
+        campaignStatus: campaign?.status,
+        roomName: room.name,
+        inviteCode: room.invite_code,
+        role: "player" as const,
+        playerCount: Array.isArray(room.player_characters) ? room.player_characters.length : 0,
+        maxPlayers: room.max_players ?? 4,
+        characterId: character.id,
+        characterName,
+        isSetupComplete: character.is_setup_complete ?? false,
+        createdAt: character.created_at ?? room.created_at,
+        lastActivityAt: character.created_at ?? room.created_at
+      };
+    });
+
+  const unique = new Map<string, UserSessionSummary>();
+  [...masterSessions, ...playerSessions].forEach((session) => unique.set(session.id, session));
+
+  const sessions = Array.from(unique.values());
+  const roomIds = Array.from(new Set(sessions.map((session) => session.roomId).filter(Boolean)));
+  const latestActivityByRoom = new Map<string, string>();
+
+  if (roomIds.length) {
+    const { data: latestMessages } = await supabase
+      .from("messages")
+      .select("room_id,created_at")
+      .in("room_id", roomIds)
+      .order("created_at", { ascending: false })
+      .limit(Math.max(50, roomIds.length * 8));
+
+    ((latestMessages ?? []) as any[]).forEach((message) => {
+      if (!latestActivityByRoom.has(message.room_id)) {
+        latestActivityByRoom.set(message.room_id, message.created_at);
+      }
+    });
+  }
+
+  return sessions
+    .map((session) => ({
+      ...session,
+      lastActivityAt: latestActivityByRoom.get(session.roomId) ?? session.lastActivityAt
+    }))
+    .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt));
 }
 
 export async function listAllRoomsForSuperAdmin(supabase: DatabaseClient, profile: Profile): Promise<AdminRoomOverview[]> {
@@ -271,7 +390,11 @@ export async function listAllMediaForSuperAdmin(supabase: DatabaseClient, profil
     title: asset.title,
     asset_type: asset.asset_type,
     url: asset.url,
-    created_at: asset.created_at
+    created_at: asset.created_at,
+    visibility: asset.visibility ?? "room",
+    approval_status: asset.approval_status ?? "none",
+    file_size: Number(asset.file_size ?? 0),
+    owner_id: asset.owner_id ?? asset.created_by ?? null
   }));
 
   return [...sceneMedia, ...audioMedia, ...soundMedia, ...assetMedia].sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
@@ -310,7 +433,7 @@ export async function deleteMediaBySuperAdmin(supabase: DatabaseClient, profile:
 }
 
 export function isSuperAdmin(profile: Profile) {
-  return profile.email.toLowerCase() === "galandar@gmail.com";
+  return isConfiguredSuperadmin(profile);
 }
 
 export async function createGameInSupabase(
@@ -436,46 +559,42 @@ export async function createGameInSupabase(
 
 export async function enterMasterRoomByCode(supabase: DatabaseClient, code: string, profile: Profile) {
   const { data: room, error } = await supabase
-    .from("rooms")
-    .select("*, campaigns!inner(master_id)")
-    .eq("invite_code", code.trim().toUpperCase())
+    .rpc("lookup_room_by_invite_code", { lookup_code: code.trim().toUpperCase() })
     .maybeSingle();
 
   if (error) throw error;
   if (!room) return null;
-  if (room.campaigns?.master_id !== profile.id) {
+  const lookup = room as InviteRoomLookup;
+  if (lookup.campaign_master_id !== profile.id) {
     throw new Error("Questo codice esiste, ma la stanza appartiene a un altro Master.");
   }
 
-  return loadRoomState(supabase, room.id, { ...profile, role: "master" });
+  return loadRoomState(supabase, lookup.id, { ...profile, role: "master" });
 }
 
 export async function joinRoomByCode(supabase: DatabaseClient, code: string, profile: Profile) {
-  const { data: room, error } = await supabase.from("rooms").select("*").eq("invite_code", code.trim().toUpperCase()).maybeSingle();
+  const { data: room, error } = await supabase
+    .rpc("lookup_room_by_invite_code", { lookup_code: code.trim().toUpperCase() })
+    .maybeSingle();
 
   if (error) throw error;
   if (!room) return null;
+  const lookup = room as InviteRoomLookup;
 
   const { data: existingCharacter } = await supabase
     .from("player_characters")
     .select("*")
-    .eq("room_id", room.id)
+    .eq("room_id", lookup.id)
     .eq("user_id", profile.id)
     .maybeSingle();
 
   if (!existingCharacter) {
-    const { count, error: countError } = await supabase
-      .from("player_characters")
-      .select("id", { count: "exact", head: true })
-      .eq("room_id", room.id);
-
-    if (countError) throw countError;
-    if ((count ?? 0) >= (room.max_players ?? 4)) {
+    if ((lookup.player_count ?? 0) >= (lookup.max_players ?? 4)) {
       throw new Error("La stanza ha raggiunto il numero massimo di giocatori disponibili.");
     }
 
     await supabase.from("player_characters").insert({
-      room_id: room.id,
+      room_id: lookup.id,
       user_id: profile.id,
       character_name: profile.username || "Nuovo",
       character_surname: "Viandante",
@@ -489,7 +608,7 @@ export async function joinRoomByCode(supabase: DatabaseClient, code: string, pro
     });
   }
 
-  return loadRoomState(supabase, room.id, profile);
+  return loadRoomState(supabase, lookup.id, profile);
 }
 
 export async function createOrUpdateCharacter(
@@ -814,10 +933,7 @@ export async function updateScene(
       .update({ linked_audio_id: values.linkedAudioId || null })
       .eq("id", sceneId);
 
-    if (audioLinkError && audioLinkError.code !== "PGRST204") {
-      // Re-throw only if it's not a schema cache miss (we'll live without audio linking until cache refreshes)
-      console.warn("[updateScene] linked_audio_id update failed:", audioLinkError.message);
-    } else if (!audioLinkError) {
+    if (!audioLinkError) {
       // Patch the returned scene object with the audio link so state is consistent
       (updatedScene as Record<string, unknown>).linked_audio_id = values.linkedAudioId || null;
     }
@@ -1148,8 +1264,21 @@ export async function createMediaAsset(
   supabase: DatabaseClient,
   roomId: string,
   profile: Profile,
-  values: { title: string; assetType: MediaAsset["asset_type"]; url: string; tags: string[] }
+  values: {
+    title: string;
+    assetType: MediaAsset["asset_type"];
+    url: string;
+    tags: string[];
+    visibility?: MediaAsset["visibility"];
+    approvalStatus?: MediaAsset["approval_status"];
+    fileSize?: number;
+    mimeType?: string | null;
+    storageBucket?: string | null;
+    storagePath?: string | null;
+    description?: string;
+  }
 ) {
+  const visibility = values.visibility ?? "room";
   const { data, error } = await supabase
     .from("media_assets")
     .insert({
@@ -1158,8 +1287,80 @@ export async function createMediaAsset(
       asset_type: values.assetType,
       url: values.url,
       tags: values.tags,
-      created_by: profile.id
+      created_by: profile.id,
+      owner_id: profile.id,
+      visibility,
+      approval_status: values.approvalStatus ?? (visibility === "global" ? "pending" : "none"),
+      file_size: values.fileSize ?? 0,
+      mime_type: values.mimeType ?? null,
+      storage_bucket: values.storageBucket ?? null,
+      storage_path: values.storagePath ?? extractPublicStoragePath(values.url, values.storageBucket ?? undefined),
+      description: values.description ?? ""
     })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as MediaAsset;
+}
+
+export async function listReusableMediaAssets(supabase: DatabaseClient, profile: Profile, roomId?: string): Promise<MediaAsset[]> {
+  const queries = [
+    supabase.from("media_assets").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false }),
+    supabase.from("media_assets").select("*").eq("visibility", "shared").order("created_at", { ascending: false }),
+    supabase.from("media_assets").select("*").eq("visibility", "global").eq("approval_status", "approved").order("created_at", { ascending: false })
+  ];
+
+  if (roomId) {
+    queries.push(supabase.from("media_assets").select("*").eq("room_id", roomId).order("created_at", { ascending: false }));
+  }
+
+  const results = await Promise.all(queries);
+  const merged = new Map<string, MediaAsset>();
+  for (const result of results) {
+    if (result.error) throw result.error;
+    for (const asset of (result.data ?? []) as MediaAsset[]) {
+      merged.set(asset.id, asset);
+    }
+  }
+
+  return [...merged.values()].sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
+}
+
+export async function updateMediaAssetVisibility(
+  supabase: DatabaseClient,
+  profile: Profile,
+  assetId: string,
+  visibility: MediaAsset["visibility"]
+) {
+  const { data, error } = await supabase
+    .from("media_assets")
+    .update({
+      visibility,
+      approval_status: visibility === "global" ? "pending" : "none"
+    })
+    .eq("id", assetId)
+    .select("*")
+    .single();
+
+  if (error) throw error;
+  return data as MediaAsset;
+}
+
+export async function updateMediaAssetApproval(
+  supabase: DatabaseClient,
+  profile: Profile,
+  assetId: string,
+  approvalStatus: Exclude<MediaAsset["approval_status"], undefined>
+) {
+  if (!isSuperAdmin(profile)) {
+    throw new Error("Accesso superadmin non autorizzato.");
+  }
+
+  const { data, error } = await supabase
+    .from("media_assets")
+    .update({ approval_status: approvalStatus })
+    .eq("id", assetId)
     .select("*")
     .single();
 
@@ -1174,6 +1375,14 @@ export async function deleteMediaAsset(supabase: DatabaseClient, asset: MediaAss
 
   const { error } = await supabase.from("media_assets").delete().eq("id", asset.id);
   if (error) throw error;
+}
+
+function extractPublicStoragePath(url: string, bucket?: string) {
+  if (!url || !bucket) return null;
+  const marker = `/object/public/${bucket}/`;
+  const index = url.indexOf(marker);
+  if (index === -1) return null;
+  return decodeURIComponent(url.slice(index + marker.length).split("?")[0] ?? "");
 }
 
 export async function upsertPresence(supabase: DatabaseClient, roomId: string, profile: Profile, displayName: string) {

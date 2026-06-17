@@ -173,6 +173,14 @@ create table if not exists public.media_assets (
   url text not null default '',
   tags text[] not null default '{}',
   created_by uuid references public.users(id) on delete set null,
+  owner_id uuid references public.users(id) on delete set null,
+  visibility text not null default 'room' check (visibility in ('private', 'room', 'shared', 'global')),
+  approval_status text not null default 'none' check (approval_status in ('none', 'pending', 'approved', 'rejected')),
+  file_size bigint not null default 0,
+  mime_type text,
+  storage_bucket text,
+  storage_path text,
+  description text not null default '',
   created_at timestamptz not null default now()
 );
 
@@ -306,7 +314,69 @@ language sql
 stable
 set search_path = public
 as $$
-  select lower(coalesce(auth.jwt()->>'email', '')) = 'galandar@gmail.com';
+  select
+    coalesce((auth.jwt()->'app_metadata'->>'role') = 'superadmin', false)
+    or coalesce((auth.jwt()->'app_metadata'->'roles') ? 'superadmin', false)
+    or coalesce(auth.jwt()->'app_metadata'->>'is_superadmin' = 'true', false);
+$$;
+
+create or replace function public.lookup_room_by_invite_code(lookup_code text)
+returns table (
+  id uuid,
+  campaign_id uuid,
+  name text,
+  invite_code text,
+  max_players integer,
+  current_scene_id uuid,
+  current_audio_id uuid,
+  chat_enabled boolean,
+  muted_user_ids uuid[],
+  created_at timestamptz,
+  spotlight_visibility text,
+  spotlight_user_ids uuid[],
+  current_sound_effect_id uuid,
+  sound_effect_started_at timestamptz,
+  turn_enabled boolean,
+  turn_order uuid[],
+  current_turn_index integer,
+  audio_status text,
+  audio_volume integer,
+  spotlight_npc_id uuid,
+  campaign_master_id uuid,
+  player_count bigint
+)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    r.id,
+    r.campaign_id,
+    r.name,
+    r.invite_code,
+    r.max_players,
+    r.current_scene_id,
+    r.current_audio_id,
+    r.chat_enabled,
+    r.muted_user_ids,
+    r.created_at,
+    r.spotlight_visibility,
+    r.spotlight_user_ids,
+    r.current_sound_effect_id,
+    r.sound_effect_started_at,
+    r.turn_enabled,
+    r.turn_order,
+    r.current_turn_index,
+    r.audio_status,
+    r.audio_volume,
+    r.spotlight_npc_id,
+    c.master_id as campaign_master_id,
+    count(pc.id) as player_count
+  from public.rooms r
+  join public.campaigns c on c.id = r.campaign_id
+  left join public.player_characters pc on pc.room_id = r.id
+  where r.invite_code = upper(trim(lookup_code))
+  group by r.id, c.master_id;
 $$;
 
 alter table public.users enable row level security;
@@ -341,6 +411,9 @@ create index if not exists idx_inventory_items_character_created on public.inven
 create index if not exists idx_player_notes_character_updated on public.player_notes(character_id, updated_at desc);
 create index if not exists idx_dice_requests_room_created on public.dice_requests(room_id, created_at desc);
 create index if not exists idx_media_assets_room_created on public.media_assets(room_id, created_at desc);
+create index if not exists media_assets_owner_created_idx on public.media_assets(owner_id, created_at desc);
+create index if not exists media_assets_visibility_idx on public.media_assets(visibility, approval_status, asset_type);
+create index if not exists media_assets_room_type_idx on public.media_assets(room_id, asset_type, created_at desc);
 create index if not exists idx_room_presence_room_seen on public.room_presence(room_id, last_seen_at desc);
 
 drop policy if exists "profiles are visible to authenticated users" on public.users;
@@ -370,7 +443,11 @@ drop policy if exists "masters insert rooms" on public.rooms;
 drop policy if exists "masters update rooms" on public.rooms;
 drop policy if exists "masters delete rooms" on public.rooms;
 drop policy if exists "masters manage rooms" on public.rooms;
-create policy "authenticated users can find rooms by invite code" on public.rooms for select to authenticated using (true);
+create policy "room members read rooms" on public.rooms for select to authenticated using (
+  public.is_superadmin()
+  or public.is_room_master(id)
+  or public.is_room_player(id)
+);
 create policy "masters insert rooms" on public.rooms for insert to authenticated with check (
   exists (select 1 from campaigns c where c.id = rooms.campaign_id and c.master_id = auth.uid())
 );
@@ -463,12 +540,42 @@ create policy "senders update own messages and masters pin" on public.messages f
 
 drop policy if exists "room members read media assets" on public.media_assets;
 drop policy if exists "masters manage media assets" on public.media_assets;
-create policy "room members read media assets" on public.media_assets for select to authenticated using (
-  public.is_room_master(room_id) or public.is_room_player(room_id) or public.is_superadmin()
+drop policy if exists "members read reusable media assets" on public.media_assets;
+drop policy if exists "members create reusable media assets" on public.media_assets;
+drop policy if exists "owners masters and superadmins update media assets" on public.media_assets;
+drop policy if exists "owners masters and superadmins delete media assets" on public.media_assets;
+create policy "members read reusable media assets" on public.media_assets for select to authenticated using (
+  public.is_superadmin()
+  or owner_id = auth.uid()
+  or public.is_room_master(room_id)
+  or public.is_room_player(room_id)
+  or visibility = 'shared'
+  or (visibility = 'global' and approval_status = 'approved')
 );
-create policy "masters manage media assets" on public.media_assets for all to authenticated
-  using (public.is_room_master(room_id) or public.is_superadmin())
-  with check (public.is_room_master(room_id) or public.is_superadmin());
+create policy "members create reusable media assets" on public.media_assets for insert to authenticated with check (
+  created_by = auth.uid()
+  and coalesce(owner_id, created_by) = auth.uid()
+  and (public.is_room_master(room_id) or public.is_room_player(room_id) or public.is_superadmin())
+);
+create policy "owners masters and superadmins update media assets" on public.media_assets for update to authenticated
+  using (
+    public.is_superadmin()
+    or owner_id = auth.uid()
+    or created_by = auth.uid()
+    or public.is_room_master(room_id)
+  )
+  with check (
+    public.is_superadmin()
+    or owner_id = auth.uid()
+    or created_by = auth.uid()
+    or public.is_room_master(room_id)
+  );
+create policy "owners masters and superadmins delete media assets" on public.media_assets for delete to authenticated using (
+  public.is_superadmin()
+  or owner_id = auth.uid()
+  or created_by = auth.uid()
+  or public.is_room_master(room_id)
+);
 
 drop policy if exists "room members read presence" on public.room_presence;
 drop policy if exists "members upsert own presence" on public.room_presence;
@@ -785,19 +892,66 @@ drop policy if exists "public can read app storage" on storage.objects;
 drop policy if exists "authenticated users upload app storage" on storage.objects;
 drop policy if exists "authenticated users update app storage" on storage.objects;
 drop policy if exists "authenticated users delete app storage" on storage.objects;
+drop policy if exists "members upload app storage" on storage.objects;
+drop policy if exists "members update app storage" on storage.objects;
+drop policy if exists "members delete app storage" on storage.objects;
 create policy "public can read app storage" on storage.objects for select using (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
 );
-create policy "authenticated users upload app storage" on storage.objects for insert to authenticated with check (
+create policy "members upload app storage" on storage.objects for insert to authenticated with check (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
+  and (
+    (
+      (storage.foldername(name))[1] = 'rooms'
+      and exists (
+        select 1 from public.rooms r
+        where r.id::text = (storage.foldername(name))[2]
+          and (public.is_room_master(r.id) or public.is_room_player(r.id) or public.is_superadmin())
+      )
+    )
+    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+  )
 );
-create policy "authenticated users update app storage" on storage.objects for update to authenticated using (
+create policy "members update app storage" on storage.objects for update to authenticated using (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
+  and (
+    (
+      (storage.foldername(name))[1] = 'rooms'
+      and exists (
+        select 1 from public.rooms r
+        where r.id::text = (storage.foldername(name))[2]
+          and (public.is_room_master(r.id) or public.is_superadmin())
+      )
+    )
+    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+  )
 ) with check (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
+  and (
+    (
+      (storage.foldername(name))[1] = 'rooms'
+      and exists (
+        select 1 from public.rooms r
+        where r.id::text = (storage.foldername(name))[2]
+          and (public.is_room_master(r.id) or public.is_superadmin())
+      )
+    )
+    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+  )
 );
-create policy "authenticated users delete app storage" on storage.objects for delete to authenticated using (
+create policy "members delete app storage" on storage.objects for delete to authenticated using (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
+  and (
+    (
+      (storage.foldername(name))[1] = 'rooms'
+      and exists (
+        select 1 from public.rooms r
+        where r.id::text = (storage.foldername(name))[2]
+          and (public.is_room_master(r.id) or public.is_superadmin())
+      )
+    )
+    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+  )
 );
 
 revoke execute on function public.handle_new_user() from public;
@@ -809,6 +963,9 @@ grant execute on function public.is_room_master(uuid) to authenticated;
 revoke execute on function public.is_room_player(uuid) from public;
 revoke execute on function public.is_room_player(uuid) from anon;
 grant execute on function public.is_room_player(uuid) to authenticated;
+revoke execute on function public.lookup_room_by_invite_code(text) from public;
+revoke execute on function public.lookup_room_by_invite_code(text) from anon;
+grant execute on function public.lookup_room_by_invite_code(text) to authenticated;
 
 do $$
 begin

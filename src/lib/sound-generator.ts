@@ -78,8 +78,7 @@ export function playUiClick() {
     clickGain.connect(ctx.destination);
     clickOsc.start(now);
     clickOsc.stop(now + 0.02);
-  } catch (error) {
-    console.warn("Failed to play UI click sound:", error);
+  } catch {
   }
 }
 
@@ -152,8 +151,7 @@ export function playUiDiceRoll() {
       osc.start(hitTime);
       osc.stop(hitTime + 0.07);
     });
-  } catch (error) {
-    console.warn("Failed to play dice roll sound:", error);
+  } catch {
   }
 }
 
@@ -195,8 +193,7 @@ export function playUiWhisper() {
     osc2.start(now);
     osc1.stop(now + 0.7);
     osc2.stop(now + 0.7);
-  } catch (error) {
-    console.warn("Failed to play whisper sound:", error);
+  } catch {
   }
 }
 
@@ -246,8 +243,7 @@ export function playUiCriticalSuccess() {
     gongGain.connect(ctx.destination);
     gong.start(now);
     gong.stop(now + 1.25);
-  } catch (error) {
-    console.warn("Failed to play critical success sound:", error);
+  } catch {
   }
 }
 
@@ -288,8 +284,7 @@ export function playUiCriticalFailure() {
     oscLow.start(now);
     osc.stop(now + 1.0);
     oscLow.stop(now + 1.0);
-  } catch (error) {
-    console.warn("Failed to play critical failure sound:", error);
+  } catch {
   }
 }
 
@@ -407,8 +402,7 @@ export function playUiDamage() {
       beatOsc.start(beatTime);
       beatOsc.stop(beatTime + 0.18);
     });
-  } catch (error) {
-    console.warn("Failed to play damage sound:", error);
+  } catch {
   }
 }
 
@@ -464,8 +458,7 @@ export function playUiCinematicDanger() {
       bOsc.start(beatTime);
       bOsc.stop(beatTime + 0.18);
     });
-  } catch (error) {
-    console.warn("Failed to play cinematic danger sound:", error);
+  } catch {
   }
 }
 
@@ -513,8 +506,7 @@ export function playUiCinematicReveal() {
     chimeGain.connect(ctx.destination);
     chime.start(now + 0.48);
     chime.stop(now + 1.25);
-  } catch (error) {
-    console.warn("Failed to play cinematic reveal sound:", error);
+  } catch {
   }
 }
 
@@ -556,8 +548,7 @@ export function playUiCinematicVision() {
     osc2.start(now);
     osc1.stop(now + 1.7);
     osc2.stop(now + 1.7);
-  } catch (error) {
-    console.warn("Failed to play cinematic vision sound:", error);
+  } catch {
   }
 }
 
@@ -602,8 +593,7 @@ export function playUiCinematicChapter() {
     bell2.start(now);
     bell1.stop(now + 3.3);
     bell2.stop(now + 3.3);
-  } catch (error) {
-    console.warn("Failed to play cinematic chapter sound:", error);
+  } catch {
   }
 }
 
@@ -646,9 +636,7 @@ export function playUiCinematicEarthquake() {
     osc.start(now);
     lfo.stop(now + 2.2);
     osc.stop(now + 2.2);
-  } catch (error) {
-    console.warn("Failed to play cinematic earthquake sound:", error);
+  } catch {
   }
 }
-
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Activity, ArrowLeft, AudioLines, Bell, Check, ChevronDown, ChevronUp, Eye, EyeOff, Film, ImageUp, Library, ListOrdered, MapPinned, MessageSquareText, Pause, Pencil, Play, Plus, Radio, Save, ScrollText, Send, Shield, Sparkles, Square, Trash2, UsersRound, Volume2, VolumeX, X } from "lucide-react";
+import { Activity, ArrowLeft, AudioLines, Bell, Check, ChevronDown, ChevronUp, Eye, EyeOff, Film, ImageUp, Library, ListOrdered, MapPinned, MessageSquareText, Pause, Pencil, Play, Plus, Radio, Save, ScrollText, Send, Shield, Sparkles, Square, Trash2, UsersRound, Volume2, VolumeX, X, SlidersHorizontal } from "lucide-react";
 import type React from "react";
 import { useMemo, useState, useEffect } from "react";
 import type { AudioTrack, InventoryItem, MapCharacterPosition, MediaAsset, Message, NarrativeMap, Npc, RoomState, Scene, SceneMediaType, SceneVisibility, SoundEffect } from "@/lib/types";
@@ -15,6 +15,8 @@ import type { CardDeckType } from "@/lib/game-random";
 import { shortTime } from "@/lib/utils";
 import { parseCharacterMetadata, stringifyCharacterMetadata } from "@/lib/character-metadata";
 import { playUiClick, playUiHover } from "@/lib/sound-generator";
+import { buildMasterNotifications, notificationBadgeCount, notificationReadKey, notificationToneClass, readSeenNotificationKeys, writeSeenNotificationKeys, type SmartNotification } from "@/lib/notifications";
+import { buildMasterEngagement } from "@/lib/engagement";
 
 
 type MasterControlRoomProps = {
@@ -84,7 +86,9 @@ type MasterControlRoomProps = {
     values: { characterName: string; characterSurname: string; portraitUrl: string; portraitFile?: File; color: string; hp: number; mentalState: string; visibleStatus: string; publicBackground: string; conditions: string }
   ) => void | Promise<void>;
   onDeleteCharacter: (characterId: string) => void | Promise<void>;
-  onCreateMediaAsset: (values: { title: string; assetType: MediaAsset["asset_type"]; url: string; tags: string[]; file?: File }) => void | Promise<void>;
+  reusableMediaAssets?: MediaAsset[];
+  onCreateMediaAsset: (values: { title: string; assetType: MediaAsset["asset_type"]; url: string; tags: string[]; file?: File; visibility?: MediaAsset["visibility"] }) => void | Promise<void>;
+  onUpdateMediaAssetVisibility: (asset: MediaAsset, visibility: MediaAsset["visibility"]) => void | Promise<void>;
   onDeleteMediaAsset: (asset: MediaAsset) => void | Promise<void>;
   onCreateMap: (values: { title: string; description: string; imageUrl: string; imageFile?: File; parentMapId?: string | null; levelType: NarrativeMap["level_type"]; isVisibleToPlayers: boolean }) => void | Promise<void>;
   onSetActiveMap: (map: NarrativeMap) => void | Promise<void>;
@@ -141,7 +145,9 @@ export function MasterControlRoom({
   onUpdateSpotlight,
   onUpdateCharacter,
   onDeleteCharacter,
+  reusableMediaAssets = [],
   onCreateMediaAsset,
+  onUpdateMediaAssetVisibility,
   onDeleteMediaAsset,
   onCreateMap,
   onSetActiveMap,
@@ -165,6 +171,8 @@ export function MasterControlRoom({
   const [audioVolume, setAudioVolume] = useState<number>(55);
   const [audioMuted, setAudioMuted] = useState<boolean>(false);
   const [immersiveMode, setImmersiveMode] = useState<boolean>(false);
+  const [showNextSteps, setShowNextSteps] = useState(true);
+  const [isMobileRightRailOpen, setIsMobileRightRailOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -190,6 +198,7 @@ export function MasterControlRoom({
   };
 
   const sessionMediaAssets = useMemo(() => buildSessionMediaAssets(state), [state]);
+  const libraryMediaAssets = useMemo(() => mergeMediaAssets(sessionMediaAssets, reusableMediaAssets), [sessionMediaAssets, reusableMediaAssets]);
   const sendMasterChat = (text?: string) => {
     const msg = text || masterChatText;
     if (!msg.trim()) return;
@@ -371,7 +380,7 @@ export function MasterControlRoom({
 
       <div className={`director-workbench relative z-10 grid gap-4 ${immersiveMode ? "grid-cols-1" : "2xl:grid-cols-[16rem_minmax(0,1fr)_25rem]"}`}>
         {!immersiveMode && (
-          <nav className="director-sidebar rounded-xl p-3">
+          <nav className="director-sidebar hidden 2xl:block rounded-xl p-3" aria-label="Strumenti Master">
             <p className="px-3 pb-3 font-serif text-xs uppercase tracking-[0.28em] text-brass/80">Strumenti</p>
             <ControlLink icon={<Eye size={16} />} label="Panoramica" active={activeTool === "preview"} onClick={() => setActiveTool("preview")} />
             <ControlLink icon={<ImageUp size={16} />} label="Scene" active={activeTool === "scenes"} onClick={() => setActiveTool("scenes")} />
@@ -388,6 +397,28 @@ export function MasterControlRoom({
         <div className="grid min-w-0 gap-4">
           {activeTool === "preview" ? (
             <div className="director-overview grid gap-4">
+              {showNextSteps ? (
+                <DirectorNextStepsPanel
+                  state={state}
+                  currentAudio={currentAudio}
+                  onOpenTool={setActiveTool}
+                  onOpenPlayerView={onOpenPlayerView}
+                  onHide={() => setShowNextSteps(false)}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onMouseEnter={playUiHover}
+                  onClick={() => {
+                    playUiClick();
+                    setShowNextSteps(true);
+                  }}
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-brass/25 bg-brass/10 px-4 py-3 font-serif text-xs font-bold uppercase tracking-[0.16em] text-brass transition hover:bg-brass/15"
+                >
+                  <Sparkles size={15} /> Mostra prossime mosse
+                </button>
+              )}
+
               <ChatPanel
                 messages={state.messages}
                 value={masterChatText}
@@ -537,7 +568,13 @@ export function MasterControlRoom({
           ) : null}
 
           {activeTool === "media" ? (
-            <MediaLibraryPanel assets={sessionMediaAssets} onCreate={onCreateMediaAsset} onDelete={onDeleteMediaAsset} />
+            <MediaLibraryPanel
+              assets={libraryMediaAssets}
+              profileId={state.profile.id}
+              onCreate={onCreateMediaAsset}
+              onUpdateVisibility={onUpdateMediaAssetVisibility}
+              onDelete={onDeleteMediaAsset}
+            />
           ) : null}
 
           {activeTool === "inventory" ? (
@@ -546,31 +583,33 @@ export function MasterControlRoom({
         </div>
 
         {!immersiveMode && (
-          <DirectorRightRail
-            state={state}
-            identityId={identityId}
-            currentAudio={currentAudio}
-            onIdentityChange={onIdentityChange}
-            onSceneChange={onSceneChange}
-            onAudioChange={onAudioChange}
-            onSetActiveMap={onSetActiveMap}
-            onUpdateMapCharacterPosition={onUpdateMapCharacterPosition}
-            onSaveRoom={onSaveRoom}
-            onDeleteRoom={onDeleteRoom}
-            onOpenTool={setActiveTool}
-            onQuickCue={launchQuickCue}
-            onDirectorEvent={(event) => {
-              if (event.recipientUserId) {
-                onPrivateMessage(event.message, event.recipientUserId);
-              } else {
-                onPublicMessage(event.message);
-              }
-            }}
-            onCreateDiceRequest={onCreateDiceRequest}
-            onDrawCard={onDrawCard}
-            actionLog={actionLog}
-            onSaveRoomTurnState={onSaveRoomTurnState}
-          />
+          <div className="hidden 2xl:block">
+            <DirectorRightRail
+              state={state}
+              identityId={identityId}
+              currentAudio={currentAudio}
+              onIdentityChange={onIdentityChange}
+              onSceneChange={onSceneChange}
+              onAudioChange={onAudioChange}
+              onSetActiveMap={onSetActiveMap}
+              onUpdateMapCharacterPosition={onUpdateMapCharacterPosition}
+              onSaveRoom={onSaveRoom}
+              onDeleteRoom={onDeleteRoom}
+              onOpenTool={setActiveTool}
+              onQuickCue={launchQuickCue}
+              onDirectorEvent={(event) => {
+                if (event.recipientUserId) {
+                  onPrivateMessage(event.message, event.recipientUserId);
+                } else {
+                  onPublicMessage(event.message);
+                }
+              }}
+              onCreateDiceRequest={onCreateDiceRequest}
+              onDrawCard={onDrawCard}
+              actionLog={actionLog}
+              onSaveRoomTurnState={onSaveRoomTurnState}
+            />
+          </div>
         )}
       </div>
       <div className="relative z-20">
@@ -595,6 +634,64 @@ export function MasterControlRoom({
           onStopSoundEffect={onStopSoundEffect}
         />
       ) : null}
+      
+      {/* Mobile Right Rail Drawer */}
+      {!immersiveMode && (
+        <>
+          {/* Backdrop */}
+          <div
+            className={`fixed inset-0 z-40 bg-black/60 backdrop-blur-[2px] transition-opacity duration-300 2xl:hidden ${
+              isMobileRightRailOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => setIsMobileRightRailOpen(false)}
+          />
+          {/* Slide-out Panel */}
+          <div
+            className={`fixed right-0 top-0 bottom-0 z-50 w-[24rem] max-w-[90vw] bg-ink-950/98 border-l border-brass/35 p-4 shadow-2xl transition-transform duration-300 ease-out 2xl:hidden flex flex-col ${
+              isMobileRightRailOpen ? "translate-x-0" : "translate-x-full"
+            }`}
+          >
+            <div className="flex items-center justify-between border-b border-brass/10 pb-3 mb-4 shrink-0">
+              <h3 className="font-serif text-sm font-bold uppercase tracking-wider text-brass">Info Sessione</h3>
+              <button
+                type="button"
+                onClick={() => setIsMobileRightRailOpen(false)}
+                className="text-stone-400 hover:text-stone-100 text-xs font-semibold uppercase tracking-wider transition-colors"
+              >
+                Chiudi
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto pr-1 mobile-drawer-scroll">
+              <DirectorRightRail
+                state={state}
+                identityId={identityId}
+                currentAudio={currentAudio}
+                onIdentityChange={onIdentityChange}
+                onSceneChange={onSceneChange}
+                onAudioChange={onAudioChange}
+                onSetActiveMap={onSetActiveMap}
+                onUpdateMapCharacterPosition={onUpdateMapCharacterPosition}
+                onSaveRoom={onSaveRoom}
+                onDeleteRoom={onDeleteRoom}
+                onOpenTool={setActiveTool}
+                onQuickCue={launchQuickCue}
+                onDirectorEvent={(event) => {
+                  if (event.recipientUserId) {
+                    onPrivateMessage(event.message, event.recipientUserId);
+                  } else {
+                    onPublicMessage(event.message);
+                  }
+                }}
+                onCreateDiceRequest={onCreateDiceRequest}
+                onDrawCard={onDrawCard}
+                actionLog={actionLog}
+                onSaveRoomTurnState={onSaveRoomTurnState}
+              />
+            </div>
+          </div>
+        </>
+      )}
+
       <MasterActionHotbar
         state={state}
         activeTool={activeTool}
@@ -607,6 +704,8 @@ export function MasterControlRoom({
         localMuted={audioMuted}
         onVolumeChange={handleLocalVolumeChange}
         onMutedChange={handleLocalMutedChange}
+        isMobileRightRailOpen={isMobileRightRailOpen}
+        onToggleMobileRightRail={() => setIsMobileRightRailOpen((value) => !value)}
       />
     </section>
   );
@@ -904,7 +1003,10 @@ function DirectorRightRail({
           </button>
           {state.npcs.slice(0, 12).map((npc) => (
             <button key={npc.id} type="button" onClick={() => onIdentityChange(npc.id)} className={`director-identity-token ${identityId === npc.id ? "is-active" : ""}`}>
-              <span style={npc.portrait_url ? { backgroundImage: `url(${npc.portrait_url})` } : { color: npc.color }}>{npc.portrait_url ? "" : npc.name.slice(0, 1)}</span>
+              <span
+                className={npc.portrait_url ? "" : "atlas-placeholder atlas-placeholder--npc"}
+                style={npc.portrait_url ? { backgroundImage: `url(${npc.portrait_url})` } : undefined}
+              />
               <small>{npc.name}</small>
             </button>
           ))}
@@ -1520,11 +1622,28 @@ function ControlLink({
       className={`director-nav-link ${
         active ? "is-active" : ""
       }`}
+      data-atlas-area={atlasAreaFromLabel(label)}
+      aria-pressed={active}
+      aria-label={`Apri strumento ${label}`}
     >
       {icon}
       {label}
     </button>
   );
+}
+
+function atlasAreaFromLabel(label: string) {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("panoramica")) return "regia";
+  if (normalized.includes("scene")) return "scene";
+  if (normalized.includes("mappa")) return "mappa";
+  if (normalized.includes("chat")) return "chat";
+  if (normalized.includes("giocatori")) return "eroi";
+  if (normalized.includes("audio")) return "audio";
+  if (normalized.includes("soundbar")) return "soundbar";
+  if (normalized.includes("media")) return "media";
+  if (normalized.includes("inventari")) return "zaini";
+  return "regia";
 }
 
 function DirectorStatusBar({
@@ -1588,6 +1707,168 @@ function PinIcon() {
   return <span className="text-sm text-brass">⌖</span>;
 }
 
+function DirectorNextStepsPanel({
+  state,
+  currentAudio,
+  onOpenTool,
+  onOpenPlayerView,
+  onHide
+}: {
+  state: RoomState;
+  currentAudio: AudioTrack;
+  onOpenTool: (tool: ControlTool) => void;
+  onOpenPlayerView: () => void;
+  onHide: () => void;
+}) {
+  const visibleMaps = state.maps.filter((map) => map.is_visible_to_players);
+  const publicMessages = state.messages.filter((message) => !message.content.startsWith("__gdr_map_sync__:"));
+  const steps = [
+    {
+      id: "players",
+      done: state.characters.length > 0,
+      title: "Invita o controlla gli eroi",
+      detail: state.characters.length
+        ? `${state.characters.length} personaggi presenti nella stanza`
+        : `Condividi il codice ${state.room.invite_code} o apri il pannello giocatori`,
+      action: "Eroi",
+      tool: "players" as ControlTool
+    },
+    {
+      id: "scene",
+      done: state.scenes.length > 1 || Boolean(state.scene.image_url),
+      title: "Prepara la scena visibile",
+      detail: state.scene.title ? `Scena attiva: ${state.scene.title}` : "Crea titolo, descrizione e immagine per il tavolo",
+      action: "Scene",
+      tool: "scenes" as ControlTool
+    },
+    {
+      id: "audio",
+      done: Boolean(currentAudio.audio_url) || state.audioTracks.length > 1,
+      title: "Imposta atmosfera audio",
+      detail: currentAudio.audio_url ? currentAudio.title : "Aggiungi musica o effetti prima del momento chiave",
+      action: "Audio",
+      tool: "audio" as ControlTool
+    },
+    {
+      id: "map",
+      done: visibleMaps.length > 0,
+      title: "Sincronizza una mappa",
+      detail: visibleMaps.length ? `${visibleMaps.length} mappe visibili ai giocatori` : "Rendi visibile una mappa per orientare il gruppo",
+      action: "Mappa",
+      tool: "map" as ControlTool
+    },
+    {
+      id: "chat",
+      done: publicMessages.length > 0,
+      title: "Apri il registro narrativo",
+      detail: publicMessages.length ? `${publicMessages.length} messaggi in chat GDR` : "Invia un primo messaggio o una cue di regia",
+      action: "Chat",
+      tool: "chat" as ControlTool
+    }
+  ];
+  const completed = steps.filter((step) => step.done).length;
+  const completionPercent = Math.round((completed / steps.length) * 100);
+  const nextStep = steps.find((step) => !step.done);
+  const engagement = useMemo(() => buildMasterEngagement(state), [state]);
+
+  return (
+    <section className="next-steps-panel director-next-steps rounded-xl border border-brass/20 bg-black/35 p-4 shadow-[0_0_28px_rgba(0,0,0,0.18)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="director-kicker">
+            <Sparkles size={13} /> Prossime mosse
+          </p>
+          <h2 className="mt-1 font-serif text-xl text-stone-100">Preparazione sessione</h2>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 rounded-lg border border-emerald-400/25 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-100">
+            <Check size={14} />
+            {completed}/{steps.length}
+          </div>
+          <button
+            type="button"
+            onMouseEnter={playUiHover}
+            onClick={() => {
+              playUiClick();
+              onHide();
+            }}
+            className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-stone-300 transition hover:bg-white/[0.08] hover:text-white"
+          >
+            <EyeOff size={14} /> Nascondi
+          </button>
+        </div>
+      </div>
+
+      <div className="progress-dashboard mt-4" aria-label={`Preparazione sessione completata al ${completionPercent} percento`}>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="progress-dashboard-label">Qualita preparazione</span>
+          <strong>{completionPercent}%</strong>
+        </div>
+        <div className="progress-meter mt-2" aria-hidden="true">
+          <span style={{ width: `${completionPercent}%` }} />
+        </div>
+        <p className="mt-2 text-xs leading-5 text-stone-400">
+          {nextStep ? `Prossima azione consigliata: ${nextStep.title.toLowerCase()}.` : "Setup completo: la stanza e pronta per una sessione pulita."}
+        </p>
+        <div className="achievement-strip mt-3" aria-label="Traguardi sessione">
+          {engagement.milestones.slice(0, 6).map((milestone) => (
+            <span key={milestone.id} className={milestone.unlocked ? "is-unlocked" : ""} title={milestone.detail}>
+              <Check size={12} /> {milestone.label}
+            </span>
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] text-stone-500">
+          Retention Master: {engagement.unlocked}/{engagement.total} traguardi · {engagement.score}%
+        </p>
+      </div>
+
+      <div className="next-steps-track mt-4 grid gap-2 lg:grid-cols-5">
+        {steps.map((step) => (
+          <button
+            key={step.id}
+            type="button"
+            aria-label={`${step.done ? "Completato" : "Da completare"}: ${step.action}. ${step.title}. ${step.detail}`}
+            onMouseEnter={playUiHover}
+            onClick={() => {
+              playUiClick();
+              onOpenTool(step.tool);
+            }}
+            className={`next-steps-card rounded-lg border p-3 text-left transition hover:-translate-y-0.5 hover:bg-white/[0.06] ${
+              step.done ? "border-emerald-400/25 bg-emerald-500/10" : "border-white/10 bg-white/[0.03]"
+            }`}
+          >
+            <span className="flex items-center justify-between gap-2">
+              <span className="font-serif text-xs uppercase tracking-[0.16em] text-brass">{step.action}</span>
+              <span className={step.done ? "text-emerald-300" : "text-stone-500"}>
+                <Check size={13} />
+              </span>
+            </span>
+            <strong className="mt-2 block text-sm text-stone-100">{step.title}</strong>
+            <span className="mt-1 block text-xs leading-5 text-stone-400">{step.detail}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-xs text-stone-400">
+        <span>
+          Codice stanza: <strong className="font-mono text-brass">{state.room.invite_code}</strong>
+        </span>
+        <button
+          type="button"
+          onMouseEnter={playUiHover}
+          onClick={() => {
+            playUiClick();
+            onOpenPlayerView();
+          }}
+          className="rounded-lg border border-brass/25 bg-brass/10 px-3 py-2 font-serif uppercase tracking-[0.14em] text-brass transition hover:bg-brass/15"
+        >
+          Controlla vista giocatore
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function CharactersPanel({ state, expanded = false }: { state: RoomState; expanded?: boolean }) {
   return (
     <section className="glass-panel rounded-lg p-4">
@@ -1597,7 +1878,10 @@ function CharactersPanel({ state, expanded = false }: { state: RoomState; expand
       <div className={`mt-4 grid gap-3 ${expanded ? "md:grid-cols-2" : ""}`}>
         {state.characters.map((character) => (
           <article key={character.id} className="flex gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3">
-            <div className="h-14 w-14 shrink-0 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${character.portrait_url})` }} />
+            <div
+              className={`h-14 w-14 shrink-0 rounded-lg bg-cover bg-center ${character.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+              style={character.portrait_url ? { backgroundImage: `url(${character.portrait_url})` } : undefined}
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold" style={{ color: character.color }}>
                 {character.character_name} {character.character_surname}
@@ -1749,6 +2033,16 @@ function buildSessionMediaAssets(state: RoomState): MediaAsset[] {
       return true;
     })
     .sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
+}
+
+function mergeMediaAssets(primary: MediaAsset[], reusable: MediaAsset[]) {
+  const merged = new Map<string, MediaAsset>();
+  for (const asset of [...reusable, ...primary]) {
+    const key = asset.id.includes(":") ? `${asset.asset_type}:${asset.url}` : asset.id;
+    if (!asset.url || merged.has(key)) continue;
+    merged.set(key, asset);
+  }
+  return [...merged.values()].sort((a, b) => String(b.created_at ?? "").localeCompare(String(a.created_at ?? "")));
 }
 
 function SceneManager({
@@ -2340,8 +2634,7 @@ function SoundbarModal({
       for (const sound of defaultSounds) {
         await onCreateSoundEffect(sound);
       }
-    } catch (err) {
-      console.error("Failed to load default sound effects:", err);
+    } catch {
     } finally {
       setIsInitializing(false);
     }
@@ -2484,25 +2777,49 @@ function SoundbarModal({
 
 function MediaLibraryPanel({
   assets,
+  profileId,
   onCreate,
+  onUpdateVisibility,
   onDelete
 }: {
   assets: MediaAsset[];
-  onCreate: (values: { title: string; assetType: MediaAsset["asset_type"]; url: string; tags: string[]; file?: File }) => void | Promise<void>;
+  profileId: string;
+  onCreate: (values: { title: string; assetType: MediaAsset["asset_type"]; url: string; tags: string[]; file?: File; visibility?: MediaAsset["visibility"] }) => void | Promise<void>;
+  onUpdateVisibility: (asset: MediaAsset, visibility: MediaAsset["visibility"]) => void | Promise<void>;
   onDelete: (asset: MediaAsset) => void | Promise<void>;
 }) {
   const [title, setTitle] = useState("");
   const [assetType, setAssetType] = useState<MediaAsset["asset_type"]>("image");
   const [url, setUrl] = useState("");
   const [tags, setTags] = useState("");
+  const [visibility, setVisibility] = useState<MediaAsset["visibility"]>("room");
   const [file, setFile] = useState<File | undefined>();
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<MediaAsset["asset_type"] | "all">("all");
+  const [scopeFilter, setScopeFilter] = useState<"all" | "room" | "mine" | "shared" | "global" | "portraits">("all");
+  const ownedBytes = assets
+    .filter((asset) => (asset.owner_id ?? asset.created_by) === profileId)
+    .reduce((total, asset) => total + Number(asset.file_size ?? 0), 0);
+  const quotaBytes = 2 * 1024 * 1024 * 1024;
+  const quotaPercent = Math.min(100, Math.round((ownedBytes / quotaBytes) * 100));
   const visibleAssets = assets.filter((asset) => {
     if (typeFilter !== "all" && asset.asset_type !== typeFilter) return false;
+    if (scopeFilter === "mine" && (asset.owner_id ?? asset.created_by) !== profileId) return false;
+    if (scopeFilter === "room" && (asset.visibility ?? "room") !== "room") return false;
+    if (scopeFilter === "shared" && (asset.visibility ?? "room") !== "shared") return false;
+    if (scopeFilter === "global" && (asset.visibility ?? "room") !== "global") return false;
+    if (scopeFilter === "portraits" && asset.asset_type !== "portrait") return false;
     return `${asset.title} ${asset.asset_type} ${(asset.tags ?? []).join(" ")}`.toLowerCase().includes(query.toLowerCase());
   });
   const mediaTypes: Array<MediaAsset["asset_type"] | "all"> = ["all", "image", "video", "map", "audio", "sound", "portrait", "object"];
+  const scopeTabs: Array<{ id: typeof scopeFilter; label: string }> = [
+    { id: "all", label: "Tutti" },
+    { id: "room", label: "Stanza" },
+    { id: "mine", label: "Miei" },
+    { id: "shared", label: "Condivisi" },
+    { id: "global", label: "Globali" },
+    { id: "portraits", label: "Portrait" }
+  ];
 
   return (
     <section className="glass-panel rounded-lg p-4">
@@ -2511,6 +2828,31 @@ function MediaLibraryPanel({
           <Library size={16} /> Libreria media
         </h2>
         <input className="field max-w-xs px-3 py-2 text-sm" placeholder="Cerca asset..." value={query} onChange={(event) => setQuery(event.target.value)} />
+      </div>
+      <div className="mt-4 rounded-lg border border-white/10 bg-black/25 p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
+          <span className="font-semibold uppercase tracking-[0.14em] text-brass">Spazio libreria personale</span>
+          <span>{formatBytes(ownedBytes)} / {formatBytes(quotaBytes)}</span>
+        </div>
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10" aria-label={`Spazio usato ${quotaPercent}%`}>
+          <div className="h-full rounded-full bg-brass" style={{ width: `${quotaPercent}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-slate-500">La quota conteggia i file caricati con dimensione nota. I link esterni non consumano spazio misurabile.</p>
+      </div>
+      <div className="director-media-filterbar mt-4">
+        {scopeTabs.map((tab) => (
+          <button key={tab.id} type="button" className={scopeFilter === tab.id ? "is-active" : ""} onClick={() => setScopeFilter(tab.id)}>
+            <span>{tab.label}</span>
+            <small>
+              {assets.filter((asset) => {
+                if (tab.id === "all") return true;
+                if (tab.id === "mine") return (asset.owner_id ?? asset.created_by) === profileId;
+                if (tab.id === "portraits") return asset.asset_type === "portrait";
+                return (asset.visibility ?? "room") === tab.id;
+              }).length}
+            </small>
+          </button>
+        ))}
       </div>
       <div className="director-media-filterbar mt-4">
         {mediaTypes.map((type) => {
@@ -2541,12 +2883,31 @@ function MediaLibraryPanel({
               <div className="mt-3 flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-white">{asset.title}</p>
-                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{asset.asset_type}</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">
+                    {asset.asset_type} · {visibilityLabel(asset)}
+                  </p>
+                  {asset.file_size ? <p className="text-xs text-slate-500">{formatBytes(asset.file_size)}</p> : null}
                 </div>
                 <button type="button" onClick={() => onDelete(asset)} className="text-rose-200 hover:text-rose-100" title="Elimina asset" aria-label="Elimina asset">
                   <Trash2 size={16} />
                 </button>
               </div>
+              {!asset.id.includes(":") ? (
+                <select
+                  className="field mt-2 w-full px-2 py-1 text-xs"
+                  value={asset.visibility ?? "room"}
+                  onChange={(event) => onUpdateVisibility(asset, event.target.value as MediaAsset["visibility"])}
+                  aria-label={`Visibilita ${asset.title}`}
+                >
+                  <option value="private">Privato</option>
+                  <option value="room">Solo stanza</option>
+                  <option value="shared">Condividi con Master</option>
+                  <option value="global">Candidatura globale</option>
+                </select>
+              ) : null}
+              {asset.visibility === "global" && asset.approval_status ? (
+                <p className="mt-2 text-xs text-slate-400">Stato globale: {asset.approval_status}</p>
+              ) : null}
               <div className="mt-2 flex flex-wrap gap-1">
                 {(asset.tags ?? []).map((tag) => (
                   <span key={tag} className="rounded-md bg-brass/10 px-2 py-1 text-xs text-brass">
@@ -2568,11 +2929,13 @@ function MediaLibraryPanel({
               assetType,
               url: url.trim(),
               tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-              file
+              file,
+              visibility
             });
             setTitle("");
             setUrl("");
             setTags("");
+            setVisibility("room");
             setFile(undefined);
           }}
         >
@@ -2588,6 +2951,12 @@ function MediaLibraryPanel({
           </select>
           <input className="field px-3 py-2 text-sm" placeholder="Link asset" value={url} onChange={(event) => setUrl(event.target.value)} />
           <input className="field px-3 py-2 text-sm" placeholder="Tag separati da virgola" value={tags} onChange={(event) => setTags(event.target.value)} />
+          <select className="field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as MediaAsset["visibility"])}>
+            <option value="private">Privato, solo nella mia libreria</option>
+            <option value="room">Disponibile in questa stanza</option>
+            <option value="shared">Condiviso con altri Master</option>
+            <option value="global">Proponi alla libreria globale</option>
+          </select>
           <label className="block rounded-lg border border-dashed border-brass/30 bg-brass/5 px-3 py-3 text-center text-xs text-brass">
             Carica file
             <input className="sr-only" type="file" onChange={(event) => setFile(event.target.files?.[0])} />
@@ -2599,6 +2968,23 @@ function MediaLibraryPanel({
       </div>
     </section>
   );
+}
+
+function formatBytes(bytes?: number | null) {
+  const value = Number(bytes ?? 0);
+  if (!value) return "0 MB";
+  const units = ["B", "KB", "MB", "GB"];
+  const index = Math.min(units.length - 1, Math.floor(Math.log(value) / Math.log(1024)));
+  const amount = value / 1024 ** index;
+  return `${amount >= 10 || index === 0 ? amount.toFixed(0) : amount.toFixed(1)} ${units[index]}`;
+}
+
+function visibilityLabel(asset: MediaAsset) {
+  const visibility = asset.visibility ?? "room";
+  if (visibility === "private") return "privato";
+  if (visibility === "shared") return "condiviso";
+  if (visibility === "global") return asset.approval_status === "approved" ? "globale" : "globale in revisione";
+  return "stanza";
 }
 
 function PlayersManager({
@@ -2645,7 +3031,10 @@ function PlayersManager({
               onClick={() => selectCharacter(character.id)}
               className={`director-character-selector ${character.id === selected.id ? "is-active" : ""}`}
             >
-              <span className="h-10 w-10 shrink-0 rounded-lg bg-cover bg-center" style={{ backgroundImage: `url(${character.portrait_url})` }} />
+              <span
+                className={`h-10 w-10 shrink-0 rounded-lg bg-cover bg-center ${character.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+                style={character.portrait_url ? { backgroundImage: `url(${character.portrait_url})` } : undefined}
+              />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold" style={{ color: character.color }}>
                   {character.character_name} {character.character_surname}
@@ -2930,6 +3319,8 @@ type MasterActionHotbarProps = {
   localMuted: boolean;
   onVolumeChange: (vol: number) => void;
   onMutedChange: (muted: boolean) => void;
+  isMobileRightRailOpen?: boolean;
+  onToggleMobileRightRail?: () => void;
 };
 
 function MasterActionHotbar({
@@ -2943,11 +3334,21 @@ function MasterActionHotbar({
   localVolume,
   localMuted,
   onVolumeChange,
-  onMutedChange
+  onMutedChange,
+  isMobileRightRailOpen,
+  onToggleMobileRightRail
 }: MasterActionHotbarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
+  const notificationStorageKey = `gdr_seen_notifications:${state.room.id}:${state.profile.id}:master`;
+  const [seenNotificationKeys, setSeenNotificationKeys] = useState<Set<string>>(() => readSeenNotificationKeys(notificationStorageKey));
+  const notificationPanelId = "master-notification-center";
 
-  const totalNotifications = state.diceRequests.length + (state.room.spotlight_npc_id ? 1 : 0);
+  const pendingDiceRequests = state.diceRequests.filter((request) => request.status === "pending");
+  const activeSpotlightNpc = state.room.spotlight_npc_id ? state.npcs.find((npc) => npc.id === state.room.spotlight_npc_id) : null;
+  const smartNotifications = useMemo(() => buildMasterNotifications(state), [state]);
+  const unreadSmartNotifications = smartNotifications.filter((item) => !seenNotificationKeys.has(notificationReadKey(item)));
+  const totalNotifications = notificationBadgeCount(unreadSmartNotifications);
+  const criticalCount = smartNotifications.filter((item) => item.priority === "critical" || item.priority === "high").length;
 
   const tools: Array<{ id: ControlTool; label: string; icon: React.ReactNode }> = [
     { id: "preview", label: "Regia", icon: <Eye size={14} /> },
@@ -2960,6 +3361,19 @@ function MasterActionHotbar({
     { id: "inventory", label: "Zaini", icon: <Shield size={14} /> }
   ];
 
+  const handleNotificationAction = (item: SmartNotification) => {
+    if (item.actionTarget === "chat") setActiveTool("chat");
+    if (item.actionTarget === "players") setActiveTool("players");
+    if (item.actionTarget === "audio") setActiveTool("audio");
+    if (item.actionTarget === "inventory") setActiveTool("inventory");
+    setShowNotifications(false);
+    playUiClick();
+  };
+
+  useEffect(() => {
+    setSeenNotificationKeys(readSeenNotificationKeys(notificationStorageKey));
+  }, [notificationStorageKey]);
+
   return (
     <div className="fixed bottom-4 left-1/2 z-40 -translate-x-1/2 flex items-center gap-3 ui-hotbar-panel shadow-2xl transition-all duration-300">
       
@@ -2967,7 +3381,16 @@ function MasterActionHotbar({
       <div className="relative">
         <button
           type="button"
-          onClick={() => { setShowNotifications(!showNotifications); playUiClick(); }}
+          onClick={() => {
+            const nextVisible = !showNotifications;
+            setShowNotifications(nextVisible);
+            if (nextVisible) {
+              const nextSeen = new Set([...seenNotificationKeys, ...smartNotifications.map(notificationReadKey)]);
+              setSeenNotificationKeys(nextSeen);
+              writeSeenNotificationKeys(notificationStorageKey, nextSeen);
+            }
+            playUiClick();
+          }}
           onMouseEnter={playUiHover}
           className={`relative flex h-8 w-8 items-center justify-center rounded-full border transition ${
             showNotifications
@@ -2975,6 +3398,9 @@ function MasterActionHotbar({
               : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-brass/30 hover:bg-brass/15 hover:text-brass"
           }`}
           title="Notifiche attive"
+          aria-label={`${showNotifications ? "Chiudi" : "Apri"} notifiche Master${totalNotifications > 0 ? `, ${totalNotifications} eventi attivi` : ""}`}
+          aria-expanded={showNotifications}
+          aria-controls={notificationPanelId}
         >
           <Bell size={14} />
           {totalNotifications > 0 && (
@@ -2985,32 +3411,82 @@ function MasterActionHotbar({
         </button>
 
         {showNotifications && (
-          <div className="absolute bottom-12 left-0 z-50 w-64 rounded-xl border border-white/10 bg-ink-950/95 p-3 shadow-xl backdrop-blur-md space-y-2 text-left">
+          <div
+            id={notificationPanelId}
+            className="absolute bottom-12 left-0 z-50 w-72 rounded-xl border border-white/10 bg-ink-950/95 p-3 shadow-xl backdrop-blur-md space-y-2 text-left"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <h3 className="text-xs font-semibold text-brass uppercase tracking-wider flex items-center gap-1.5 pb-1.5 border-b border-white/5">
               <Bell size={12} /> Notifiche Master
             </h3>
-            <div className="space-y-1.5 max-h-48 overflow-y-auto">
-              {state.diceRequests.map((req) => {
+            {totalNotifications > 0 ? (
+              <div className="grid grid-cols-2 gap-1 text-center text-[10px] text-stone-300">
+                <span className="rounded border border-amber-300/20 bg-amber-500/10 px-1.5 py-1">{pendingDiceRequests.length} tiri pendenti</span>
+                <span className="rounded border border-brass/20 bg-brass/10 px-1.5 py-1">{activeSpotlightNpc ? 1 : 0} spotlight</span>
+              </div>
+            ) : null}
+            {smartNotifications.length ? (
+              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2">
+                <p className="mb-2 text-[10px] uppercase tracking-[0.18em] text-slate-400">
+                  {criticalCount ? `${criticalCount} priorita alte` : "Regia stabile"}
+                </p>
+                <div className="grid gap-1.5">
+                  {smartNotifications.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleNotificationAction(item)}
+                      className={`rounded border p-2 text-left text-[11px] transition hover:bg-white/[0.06] ${notificationToneClass(item.priority)}`}
+                    >
+                      <span className="block font-semibold">{item.title}</span>
+                      <span className="mt-0.5 block text-slate-300/80">{item.detail}</span>
+                      {item.actionLabel ? <span className="mt-1 block text-[10px] uppercase tracking-[0.15em] opacity-75">{item.actionLabel}</span> : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="space-y-1.5 max-h-64 overflow-y-auto scrollbar-soft">
+              {pendingDiceRequests.map((req) => {
                 const targetChar = state.characters.find((c) => c.user_id === req.target_user_id);
                 const targetName = targetChar ? `${targetChar.character_name}` : "Tutti";
                 return (
-                  <div key={req.id} className="flex flex-col gap-1 rounded bg-white/[0.02] border border-white/5 p-2 text-[11px] text-slate-300">
+                  <button
+                    key={req.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTool("chat");
+                      setShowNotifications(false);
+                      playUiClick();
+                    }}
+                    className="flex w-full flex-col gap-1 rounded border border-amber-300/20 bg-amber-500/10 p-2 text-left text-[11px] text-amber-50 transition hover:bg-amber-500/15"
+                  >
                     <span className="font-semibold text-amber-400 flex items-center gap-1">
-                      <Sparkles size={11} /> Richiesta d{req.dice_sides} ({targetName})
+                      <Sparkles size={11} /> Tiro pendente · d{req.dice_sides} ({targetName})
                     </span>
                     <span>Motivo: &ldquo;{req.reason}&rdquo;</span>
-                  </div>
+                    <span className="text-[10px] uppercase tracking-[0.16em] text-amber-200/80">Apri chat e richieste</span>
+                  </button>
                 );
               })}
-              {state.room.spotlight_npc_id && (
-                <div className="flex flex-col gap-0.5 rounded bg-white/[0.02] border border-white/5 p-2 text-[11px] text-slate-300">
+              {activeSpotlightNpc && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTool("chat");
+                    setShowNotifications(false);
+                    playUiClick();
+                  }}
+                  className="flex w-full flex-col gap-0.5 rounded border border-brass/20 bg-brass/10 p-2 text-left text-[11px] text-stone-200 transition hover:bg-brass/15"
+                >
                   <span className="font-semibold text-brass flex items-center gap-1">
-                    <Eye size={11} /> NPC in Evidenza
+                    <Eye size={11} /> NPC in spotlight
                   </span>
-                  <span>
-                    ID NPC: <strong>{state.room.spotlight_npc_id}</strong>
-                  </span>
-                </div>
+                  <span><strong>{activeSpotlightNpc.name}</strong> è in evidenza scenica.</span>
+                  <span className="text-[10px] uppercase tracking-[0.16em] text-brass/80">Apri strumenti chat/NPC</span>
+                </button>
               )}
               {totalNotifications === 0 && (
                 <div className="flex items-center gap-2 py-2 px-1 text-xs text-slate-500 italic">
@@ -3039,6 +3515,8 @@ function MasterActionHotbar({
               activeTool === tool.id ? "brightness-125 filter drop-shadow-[0_0_8px_rgba(249,115,22,0.7)]" : ""
             }`}
             title={tool.label}
+            aria-label={`Apri strumento ${tool.label}`}
+            aria-pressed={activeTool === tool.id}
           >
             {tool.icon}
             <span className="hidden md:inline text-[11px] font-serif uppercase tracking-wider">{tool.label}</span>
@@ -3060,6 +3538,8 @@ function MasterActionHotbar({
           isSoundbarOpen ? "brightness-125 filter drop-shadow-[0_0_8px_rgba(249,115,22,0.7)]" : ""
         }`}
         title="Apri Soundbar"
+        aria-label="Apri soundbar rumori"
+        aria-expanded={isSoundbarOpen}
       >
         <Volume2 size={14} />
         <span className="hidden md:inline text-[11px] font-serif uppercase tracking-wider">Soundbar</span>
@@ -3100,6 +3580,27 @@ function MasterActionHotbar({
 
       <div className="h-4 w-px bg-white/10" />
 
+      {onToggleMobileRightRail ? (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              onToggleMobileRightRail();
+              playUiClick();
+            }}
+            onMouseEnter={playUiHover}
+            className={`flex h-8 w-8 items-center justify-center rounded-full transition 2xl:hidden ${
+              isMobileRightRailOpen ? "bg-brass/20 text-brass border border-brass/40 animate-pulse" : "text-slate-400 hover:bg-white/5 hover:text-white"
+            }`}
+            title="Info Sessione"
+            aria-label="Toggle info sessione"
+          >
+            <SlidersHorizontal size={14} />
+          </button>
+          <div className="h-4 w-px bg-white/10 2xl:hidden" />
+        </>
+      ) : null}
+
       {/* ⚙️ Immersive Mode Toggle */}
       <button
         type="button"
@@ -3112,6 +3613,8 @@ function MasterActionHotbar({
           immersiveMode ? "bg-brass/15 text-brass" : "text-slate-400 hover:bg-white/5 hover:text-white"
         }`}
         title={immersiveMode ? "Mostra Interfaccia Regia" : "Modalità Immersiva Master"}
+        aria-label={immersiveMode ? "Mostra interfaccia regia" : "Attiva modalità immersiva Master"}
+        aria-pressed={immersiveMode}
       >
         {immersiveMode ? <EyeOff size={14} /> : <Eye size={14} />}
       </button>

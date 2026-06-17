@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#e2b55f" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Book spine/center -->
+  <path d="M50 25v54" stroke-width="5" />
+  
+  <!-- Pages of the open book -->
+  <path d="M16 28c11 0 24-5 34 3 10-8 23-3 34-3v48c-11 0-24-5-34 3-10-8-23-3-34-3V28z" fill="#e2b55f" fill-opacity="0.18" stroke-width="5" />
+  
+  <!-- Ribbon marker -->
+  <path d="M50 25c2 8 8 16 12 24" stroke-width="3" stroke-dasharray="1 1" opacity="0.7" />
+  
+  <!-- Faint text line indicators on left page -->
+  <path d="M24 38h14M24 48h14M24 58h10" stroke-width="3.5" opacity="0.85" />
+  
+  <!-- Faint text line indicators on right page -->
+  <path d="M62 38h14M62 48h14M62 58h10" stroke-width="3.5" opacity="0.85" />
+  
+  <!-- Magical sparkles on pages -->
+  <path d="M42 20h.01M58 20h.01M22 72h.01M78 72h.01" stroke-width="6" stroke-linecap="round" />
+</svg>

@@ -226,44 +226,55 @@ export function AuthGate({ children }: AuthGateProps) {
   }
 
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl items-center justify-center">
-      <div className="grid w-full overflow-hidden rounded-lg border border-ember-400/20 bg-ink-800/90 shadow-glow md:grid-cols-[1.05fr_0.95fr]">
-        <div className="relative min-h-[32rem] bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center">
-          <div className="absolute inset-0 bg-gradient-to-r from-ink-900/60 via-ink-900/20 to-ink-900/85" />
-          <div className="absolute inset-x-0 bottom-0 p-8">
-            <p className="mb-3 text-sm uppercase tracking-[0.22em] text-ember-200">GDR Master Room</p>
-            <h1 className="max-w-xl text-4xl font-semibold leading-tight text-white sm:text-5xl">
+    <section className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl items-center justify-center p-4">
+      <div className="auth-gate-card grid w-full overflow-hidden rounded-xl border border-brass/30 bg-ink-950/95 shadow-2xl md:grid-cols-[1.05fr_0.95fr] relative">
+        <div className="auth-gate-vignette relative min-h-[32rem] bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/10 to-black/85" />
+          <div className="absolute inset-x-0 bottom-0 p-8 z-10">
+            <p className="mb-3 text-xs uppercase tracking-[0.24em] text-brass">GDR Master Room</p>
+            <h1 className="max-w-xl text-3xl font-serif font-bold leading-tight text-stone-100 sm:text-4xl">
               Una stanza narrativa condivisa per campagne online e ibride.
             </h1>
-            <p className="mt-4 max-w-lg text-base leading-7 text-slate-200">
+            <p className="mt-3 max-w-lg text-sm leading-6 text-stone-300">
               Scene, chat, NPC, sussurri privati, portrait, inventari e audio ambientale in un solo tavolo digitale.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleAuth} className="flex flex-col justify-center gap-5 p-6 sm:p-8">
+        <form onSubmit={handleAuth} className="auth-gate-form-panel flex flex-col justify-center gap-5 p-6 sm:p-8 relative z-10">
           <div>
-            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg border border-brass/30 bg-brass/10 text-brass">
-              <Shield size={22} />
+            <div className="auth-gate-logo mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-brass/35 bg-brass/10 text-brass">
+              <Shield size={22} className="filter drop-shadow-[0_0_8px_rgba(200,163,93,0.3)]" />
             </div>
-            <h2 className="text-2xl font-semibold text-white">
+            <h2 className="font-serif text-2xl font-bold tracking-wide text-stone-100">
               {mode === "login" ? "Entra nella stanza" : "Crea il tuo accesso"}
             </h2>
-            <p className="mt-2 text-sm leading-6 text-slate-300">
+            <p className="mt-2 text-xs leading-5 text-stone-400">
               Con Supabase configurato userai Auth reale. Senza variabili ambiente, l&apos;app parte in demo locale.
             </p>
           </div>
 
-          <label className="space-y-2 text-sm text-slate-200">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wider text-stone-300">
             Email
-            <input className="field px-3 py-3" value={email} onChange={(event) => setEmail(event.target.value)} />
+            <input
+              className="field px-3 py-3 mt-1.5"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
           </label>
 
-          <label className="space-y-2 text-sm text-slate-200">
+          <label className="space-y-2 text-xs font-semibold uppercase tracking-wider text-stone-300">
             Password
             <input
-              className="field px-3 py-3"
+              className="field px-3 py-3 mt-1.5"
               type="password"
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              required
+              minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
@@ -272,13 +283,13 @@ export function AuthGate({ children }: AuthGateProps) {
           <button
             type="submit"
             disabled={isBusy}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-ember-500 px-4 py-3 font-semibold text-ink-900 transition hover:bg-ember-400"
+            className="ui-btn-fantasy inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 font-serif text-sm font-bold uppercase tracking-wider text-stone-900 transition disabled:opacity-50"
           >
-            {mode === "login" ? <LogIn size={18} /> : <UserPlus size={18} />}
+            {mode === "login" ? <LogIn size={16} /> : <UserPlus size={16} />}
             {isBusy ? "Attendi..." : mode === "login" ? "Accedi" : "Registrati"}
           </button>
 
-          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.18em] text-slate-500">
+          <div className="auth-gate-divider flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 my-1">
             <span className="h-px flex-1 bg-white/10" />
             oppure
             <span className="h-px flex-1 bg-white/10" />
@@ -288,7 +299,7 @@ export function AuthGate({ children }: AuthGateProps) {
             type="button"
             disabled={isBusy}
             onClick={handleGoogleAuth}
-            className="inline-flex items-center justify-center gap-3 rounded-lg border border-white/10 bg-white px-4 py-3 font-semibold text-ink-900 transition hover:bg-slate-100 disabled:opacity-70"
+            className="auth-gate-sso-button inline-flex items-center justify-center gap-3 rounded-lg px-4 py-3 text-xs font-bold uppercase tracking-wider transition disabled:opacity-50"
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-ink-900 text-xs font-bold text-white">G</span>
             Continua con Google
@@ -297,12 +308,12 @@ export function AuthGate({ children }: AuthGateProps) {
           <button
             type="button"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
-            className="text-left text-sm text-ember-200 hover:text-white"
+            className="text-left text-xs font-semibold uppercase tracking-wider text-brass hover:text-stone-100 mt-2"
           >
             {mode === "login" ? "Non hai un account? Registrati" : "Hai gia un account? Accedi"}
           </button>
 
-          {message ? <p className="rounded-lg border border-brass/20 bg-brass/10 px-3 py-2 text-sm text-brass">{message}</p> : null}
+          {message ? <p className="rounded-lg border border-brass/25 bg-brass/10 px-3.5 py-2.5 text-xs text-brass leading-relaxed">{message}</p> : null}
         </form>
       </div>
     </section>

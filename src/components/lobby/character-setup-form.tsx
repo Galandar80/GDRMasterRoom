@@ -3,6 +3,7 @@
 import { ArrowLeft, ImageUp, UserRoundPlus, Sparkles, Shield, VenetianMask, Cpu, Eye, Swords, Heart, Target, Flame, Crown, Wand2, Music, Compass, Sun, FlaskConical } from "lucide-react";
 import { useState } from "react";
 import { playUiClick, playUiHover, playUiWhisper, playUiModalOpen, playUiCriticalSuccess } from "@/lib/sound-generator";
+import type { MediaAsset } from "@/lib/types";
 
 export type CharacterSetupValues = {
   characterName: string;
@@ -10,6 +11,7 @@ export type CharacterSetupValues = {
   color: string;
   portraitUrl: string;
   portraitFile?: File;
+  portraitVisibility: "private" | "shared";
   hp: number;
   mentalState: string;
   visibleStatus: string;
@@ -18,6 +20,7 @@ export type CharacterSetupValues = {
 
 type CharacterSetupFormProps = {
   defaultName: string;
+  portraitAssets?: MediaAsset[];
   onBack: () => void;
   onCreate: (values: CharacterSetupValues) => void | Promise<void>;
 };
@@ -190,12 +193,13 @@ const ARCHETYPES = [
   }
 ];
 
-export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterSetupFormProps) {
+export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, onCreate }: CharacterSetupFormProps) {
   const [values, setValues] = useState<CharacterSetupValues>({
     characterName: defaultName || "",
     characterSurname: "",
     color: "#f59e0b",
     portraitUrl: ARCHETYPES[2].portraitUrl, // Default: Detective
+    portraitVisibility: "private",
     hp: ARCHETYPES[2].hp,
     mentalState: ARCHETYPES[2].mentalState,
     visibleStatus: "Nessuno",
@@ -225,6 +229,7 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
         characterSurname: "",
         color: "#d7ad5b",
         portraitUrl: "",
+        portraitVisibility: "private",
         hp: 10,
         mentalState: "Stabile",
         visibleStatus: "Nessuno",
@@ -246,6 +251,7 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
       characterSurname: values.characterSurname || "",
       color: arch.color,
       portraitUrl: arch.portraitUrl,
+      portraitVisibility: "private",
       hp: arch.hp,
       mentalState: arch.mentalState,
       visibleStatus: "Nessuno",
@@ -285,7 +291,7 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
     <div className="mx-auto grid w-full max-w-6.5xl gap-5 py-4 p-4 text-white">
       {/* Top Selection Strip - Fluid Grid for 10 items */}
       <section className="character-archetype-panel ui-panel-window rounded-xl relative shadow-2xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-brass/15 pb-3 mb-4">
           <button
             type="button"
             onMouseEnter={playUiHover}
@@ -293,9 +299,9 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
               playUiClick();
               onBack();
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-stone-300 hover:bg-white/[0.08] hover:text-white transition"
+            className="inline-flex items-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-3.5 py-2 text-xs uppercase tracking-wider text-stone-300 hover:border-brass/55 hover:bg-brass/10 hover:text-white transition font-serif"
           >
-            <ArrowLeft size={16} /> Indietro
+            <ArrowLeft size={14} /> Indietro
           </button>
           <h2 className="text-center font-serif text-lg tracking-[0.15em] text-brass uppercase flex items-center gap-2">
             <Sparkles size={16} /> Seleziona un archetipo narrativo
@@ -309,10 +315,10 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
               type="button"
               onMouseEnter={playUiHover}
               onClick={() => handleSelectArchetype(arch)}
-              className={`character-archetype-card flex flex-col items-center justify-center rounded-xl border p-2.5 transition duration-300 ${
+              className={`character-archetype-card flex flex-col items-center justify-center rounded-xl border p-2.5 transition duration-200 focus:outline-none ${
                 selectedArchId === arch.id
-                  ? "border-brass bg-brass/15 text-brass shadow-[0_0_12px_rgba(200,163,93,0.25)]"
-                  : "border-white/10 bg-white/[0.02] text-slate-400 hover:border-white/20 hover:bg-white/[0.05]"
+                  ? "border-brass bg-brass/15 text-brass shadow-[0_0_15px_rgba(var(--color-brass-rgb),0.18)]"
+                  : "border-brass/15 bg-black/24 text-slate-400 hover:border-brass/35 hover:bg-black/34 hover:text-white"
               }`}
             >
               <span className={`mb-1.5 flex h-7 w-7 items-center justify-center rounded-full ${selectedArchId === arch.id ? "bg-brass/20 text-brass" : "bg-white/5 text-slate-400"}`}>
@@ -426,7 +432,7 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
             </label>
           </div>
 
-          <label className="block rounded-lg border border-dashed border-brass/35 bg-brass/5 px-4 py-3 text-center text-xs text-brass cursor-pointer hover:bg-brass/10 transition">
+          <label className="ui-file-upload-field">
             <ImageUp className="mx-auto mb-2 text-brass" size={20} />
             Carica file immagine personalizzato
             <input
@@ -439,6 +445,72 @@ export function CharacterSetupForm({ defaultName, onBack, onCreate }: CharacterS
               }}
             />
           </label>
+
+          <fieldset className="rounded-lg border border-white/10 bg-black/25 p-3">
+            <legend className="px-1 text-xs font-semibold uppercase tracking-[0.14em] text-brass">Visibilita portrait caricato</legend>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <label className={`cursor-pointer rounded-lg border p-3 text-sm transition ${values.portraitVisibility === "private" ? "border-brass bg-brass/10" : "border-white/10 bg-black/20 hover:border-brass/40"}`}>
+                <input
+                  className="sr-only"
+                  type="radio"
+                  name="portraitVisibility"
+                  checked={values.portraitVisibility === "private"}
+                  onChange={() => {
+                    playUiClick();
+                    update("portraitVisibility", "private");
+                  }}
+                />
+                <span className="block font-semibold text-white">Privato</span>
+                <span className="mt-1 block text-xs text-slate-400">Lo usi solo per questo personaggio/sessione.</span>
+              </label>
+              <label className={`cursor-pointer rounded-lg border p-3 text-sm transition ${values.portraitVisibility === "shared" ? "border-brass bg-brass/10" : "border-white/10 bg-black/20 hover:border-brass/40"}`}>
+                <input
+                  className="sr-only"
+                  type="radio"
+                  name="portraitVisibility"
+                  checked={values.portraitVisibility === "shared"}
+                  onChange={() => {
+                    playUiClick();
+                    update("portraitVisibility", "shared");
+                  }}
+                />
+                <span className="block font-semibold text-white">Pubblico in libreria</span>
+                <span className="mt-1 block text-xs text-slate-400">Altri giocatori potranno usarlo in altre stanze.</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div className="rounded-lg border border-white/10 bg-black/25 p-3">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brass">Portrait pubblici dalla libreria</p>
+              <span className="text-xs text-slate-500">{portraitAssets.length} disponibili</span>
+            </div>
+            {portraitAssets.length ? (
+              <div className="grid max-h-48 grid-cols-3 gap-2 overflow-auto sm:grid-cols-5">
+                {portraitAssets.slice(0, 20).map((asset) => (
+                  <button
+                    key={asset.id}
+                    type="button"
+                    className={`group overflow-hidden rounded-lg border bg-black/30 text-left transition ${
+                      values.portraitUrl === asset.url ? "border-brass shadow-[0_0_18px_rgba(220,184,92,0.25)]" : "border-white/10 hover:border-brass/50"
+                    }`}
+                    onClick={() => {
+                      playUiClick();
+                      update("portraitUrl", asset.url);
+                      update("portraitFile", undefined);
+                    }}
+                    title={asset.title}
+                    aria-label={`Usa portrait ${asset.title}`}
+                  >
+                    <span className="block aspect-square bg-cover bg-center" style={{ backgroundImage: `url(${asset.url})` }} />
+                    <span className="block truncate px-2 py-1 text-[11px] text-slate-300">{asset.title}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400">Nessun portrait pubblico disponibile. Puoi caricarne uno privato o renderlo pubblico per gli altri utenti.</p>
+            )}
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="grid gap-1.5 text-sm text-slate-300">

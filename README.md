@@ -29,6 +29,7 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_DEMO_MODE=false
 NEXT_PUBLIC_SITE_URL=https://your-vercel-domain.vercel.app
+NEXT_PUBLIC_SUPERADMIN_EMAILS=admin@example.com
 ```
 
 Usa l'URL base del progetto Supabase, non l'endpoint REST. Quindi:
@@ -130,6 +131,9 @@ Per test rapidi con email/password puoi disattivare temporaneamente la conferma 
 - `NEXT_PUBLIC_SITE_URL` deve essere il dominio Vercel principale, senza slash finale. Questo rende stabile il redirect OAuth anche quando Vercel genera URL preview.
 - Il login Google continua a funzionare anche su Vercel solo se Supabase e Google Cloud hanno redirect e dominio di produzione configurati.
 - Se cambi progetto Supabase, riesegui `supabase/schema.sql` e poi eventuali file in `supabase/migrations`.
+- Per abilitare il pannello superadmin in UI, inserisci le email autorizzate in `NEXT_PUBLIC_SUPERADMIN_EMAILS`.
+- Per abilitare i permessi superadmin lato database, assegna all'utente un claim Supabase Auth in `app_metadata`, per esempio `{"role":"superadmin"}` oppure `{"roles":["superadmin"]}`. Non usare `user_metadata` per autorizzazioni.
+- Il join stanza usa la funzione SQL `public.lookup_room_by_invite_code`: dopo aver aggiornato il codice, applica la migrazione piu recente o riesegui `supabase/schema.sql`.
 
 ## Struttura
 

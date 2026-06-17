@@ -44,8 +44,7 @@ export function SoundEffectPlayer({ room, soundEffects }: SoundEffectPlayerProps
 
     const playAttempt = audio.play();
     if (playAttempt) {
-      playAttempt.catch((err) => {
-        console.warn("Riproduzione audio bloccata o fallita per:", resolvedUrl, err);
+      playAttempt.catch(() => {
         setBlocked(true);
       });
     }

@@ -31,7 +31,10 @@ export function CharacterRail({ characters, inventory = [], presence = [], side,
                 </h3>
                 <PresenceDot online={isOnline(presence, character.user_id)} />
               </header>
-              <div className="mx-3 aspect-[4/5] rounded-lg border border-white/10 bg-cover bg-center" style={{ backgroundImage: `url(${character.portrait_url})` }} />
+              <div
+                className={`mx-3 aspect-[4/5] rounded-lg border border-white/10 bg-cover bg-center ${character.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+                style={character.portrait_url ? { backgroundImage: `url(${character.portrait_url})` } : undefined}
+              />
               <div className="space-y-3 p-3">
                 <div>
                   <h4 className="font-serif text-xl uppercase tracking-wide leading-tight" style={{ color: character.color }}>
