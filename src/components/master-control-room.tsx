@@ -1039,7 +1039,7 @@ function DirectorRightRail({
       <section className="director-rail-section">
         <h3 className="director-mini-title">Scena</h3>
         <button type="button" onClick={() => onOpenTool("scenes")} className="director-current-card mt-3">
-          <span className="h-16 w-20 shrink-0 rounded-md bg-cover bg-center" style={{ backgroundImage: `url(${state.scene.image_url})` }} />
+          <span className="h-16 w-20 shrink-0 rounded-md codex-scene-preview" style={{ backgroundImage: `url(${state.scene.image_url})` }} />
           <span className="min-w-0 text-left">
             <strong className="block truncate text-sm text-stone-100">{state.scene.title}</strong>
             <small className="line-clamp-2 text-xs leading-5 text-stone-400">{state.scene.description}</small>
@@ -2144,7 +2144,7 @@ function SceneManager({
                   <Film size={18} />
                 </div>
               ) : (
-                <div className="director-scene-thumb bg-cover bg-center" style={{ backgroundImage: `url(${scene.image_url})` }} />
+                <div className="director-scene-thumb codex-scene-preview" style={{ backgroundImage: `url(${scene.image_url})` }} />
               )}
               <button type="button" onClick={() => onSceneChange(scene)} className="director-scene-select">
                 <span className="block truncate font-serif text-base text-white">

@@ -10464,3 +10464,11 @@ input[type="number"]::-webkit-outer-spin-button {
   .premium-action::after { animation: none !important; }
   .premium-action:hover::after { animation: none !important; }
 }
+
+/* Codex Scene Preview Full Image */
+.codex-scene-preview {
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}

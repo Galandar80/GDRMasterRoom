@@ -66,6 +66,7 @@ export function ChatPanel({
   const [density, setDensity] = useState<ChatDensity>("wide");
   const [failedAvatarUrls, setFailedAvatarUrls] = useState<Set<string>>(new Set());
   const composeRef = useRef<HTMLTextAreaElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [activeProfile, setActiveProfile] = useState<{
     name: string;
     avatarUrl: string;
@@ -202,6 +203,15 @@ export function ChatPanel({
     setDensity(savedDensity === "compact" || savedDensity === "ultra" ? savedDensity : "wide");
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [filteredFeed]);
+
   const setChatDensity = (nextDensity: ChatDensity) => {
     setDensity(nextDensity);
     if (typeof window !== "undefined") {
@@ -332,7 +342,10 @@ export function ChatPanel({
         </label>
       </div>
 
-      <div className="scrollbar-soft flex-1 space-y-3 overflow-y-auto p-4">
+      <div 
+        ref={scrollContainerRef}
+        className="scrollbar-soft flex-1 space-y-3 overflow-y-auto p-4"
+      >
         {hasOlderMessages && onLoadOlder ? (
           <button
             type="button"
