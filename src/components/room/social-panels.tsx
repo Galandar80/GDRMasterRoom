@@ -83,6 +83,7 @@ export function OffChatPanel({ messages, value, onChange, onSend, onDeleteMessag
           </button>
         </div>
       </form>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }
@@ -195,6 +196,7 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
           </button>
         </div>
       </form>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

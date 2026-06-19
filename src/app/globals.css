@@ -482,10 +482,14 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(var(--color-brass-rgb), 0.16), transparent 34rem),
-    radial-gradient(circle at 85% 15%, rgba(127, 29, 29, 0.18), transparent 30rem),
-    linear-gradient(135deg, #07080d 0%, #0d1018 52%, #120d0d 100%);
+  background-color: #07080d;
+  background-image:
+    radial-gradient(circle at top left, rgba(var(--color-brass-rgb), 0.12), transparent 34rem),
+    radial-gradient(circle at 85% 15%, rgba(127, 29, 29, 0.12), transparent 30rem),
+    linear-gradient(135deg, rgba(7, 8, 13, 0.96) 0%, rgba(13, 16, 24, 0.97) 52%, rgba(18, 13, 13, 0.96) 100%),
+    var(--atlas-texture-wood);
+  background-size: auto, auto, auto, cover;
+  background-blend-mode: normal, normal, normal, overlay;
   color: #f8fafc;
 }
 
@@ -4964,6 +4968,131 @@ select.field:focus {
 .theme-scifi .premium-rule,
 .theme-scifi .story-chat-header {
   border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+/* ==========================================================================
+   PREMIUM GRAPHIC MATERIAL FINISHES (THEMATIC DEPTH)
+   ========================================================================== */
+
+/* 0. Classic Fantasy - Gold/Brass refraction & Parchment cards */
+.theme-fantasy .glass-panel,
+.theme-fantasy .director-card,
+.theme-fantasy .player-room-header,
+.theme-fantasy .player-utility-modal {
+  border: 2px solid #c8a35d !important;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(255, 223, 150, 0.15),
+    0 0 15px rgba(200, 163, 93, 0.1) !important;
+}
+
+.theme-fantasy .player-note-card,
+.theme-fantasy .player-drawer .notes-panel,
+.theme-fantasy .player-note-card-editor {
+  background-image: 
+    linear-gradient(rgba(240, 230, 205, 0.96), rgba(225, 212, 182, 0.98)),
+    url('https://www.transparenttextures.com/patterns/parchment.png') !important;
+  background-blend-mode: multiply !important;
+  color: #2b1f15 !important;
+  border: 1px solid #bba580 !important;
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.25),
+    inset 0 0 40px rgba(139, 94, 26, 0.15) !important;
+  border-radius: 4px !important;
+  font-family: Georgia, serif !important;
+}
+
+.theme-fantasy .player-note-card h3,
+.theme-fantasy .player-note-card strong,
+.theme-fantasy .player-note-card span,
+.theme-fantasy .player-note-card p,
+.theme-fantasy .player-note-card time {
+  color: #3e2723 !important;
+}
+
+.theme-fantasy .player-note-card input,
+.theme-fantasy .player-note-card textarea {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(62, 39, 35, 0.2) !important;
+  color: #3e2723 !important;
+}
+
+/* 1. Cyberpunk - Matrix scans, CRT grids, neon text flicker */
+@keyframes cyberpunk-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(6, 182, 212, 0.25), inset 0 0 15px rgba(236, 72, 153, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.45), inset 0 0 25px rgba(236, 72, 153, 0.2);
+  }
+}
+
+@keyframes text-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+    opacity: 0.75;
+  }
+}
+
+.theme-cyberpunk .glass-panel,
+.theme-cyberpunk .director-card,
+.theme-cyberpunk .player-room-header,
+.theme-cyberpunk .player-utility-modal {
+  border: 1px solid #06b6d4 !important;
+  animation: cyberpunk-pulse 3s infinite ease-in-out !important;
+  background-image: 
+    linear-gradient(rgba(10, 0, 20, 0.92), rgba(3, 0, 8, 0.98)),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px) !important;
+}
+
+.theme-cyberpunk .text-brass {
+  animation: text-flicker 4s infinite alternate !important;
+}
+
+/* 2. Terrore Cosmico - Dashed acid green borders, violaceous depth */
+.theme-lovecraft .glass-panel,
+.theme-lovecraft .director-card,
+.theme-lovecraft .player-room-header,
+.theme-lovecraft .player-utility-modal {
+  border: 1px dashed #22c55e !important;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(139, 92, 246, 0.18),
+    inset 0 0 25px rgba(34, 197, 94, 0.08) !important;
+  background-image: 
+    linear-gradient(rgba(10, 8, 20, 0.94), rgba(4, 3, 12, 0.98)),
+    radial-gradient(circle at center, rgba(139, 92, 246, 0.05) 0%, transparent 80%) !important;
+}
+
+/* 3. Sci-Fi Space - Tech brackets & Cyan glows */
+.theme-scifi .glass-panel,
+.theme-scifi .director-card,
+.theme-scifi .player-room-header,
+.theme-scifi .player-utility-modal {
+  border: 1px solid rgba(56, 189, 248, 0.4) !important;
+  box-shadow: 
+    0 12px 36px rgba(0, 0, 0, 0.75),
+    0 0 15px rgba(56, 189, 248, 0.15),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.03) !important;
+  border-radius: 8px !important;
+}
+
+.theme-scifi .glass-panel::before,
+.theme-scifi .director-card::before,
+.theme-scifi .player-room-header::before,
+.theme-scifi .player-utility-modal::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-top: 4px solid #38bdf8;
+  border-bottom: 4px solid #38bdf8;
+  clip-path: polygon(0 0, 10px 0, 10px 100%, 0 100%, 0 0, 100% 0, 100% 10px, 0 10px, 0 0);
+  pointer-events: none;
+  opacity: 0.35;
+  border-radius: inherit;
 }
 
 /* ==========================================================================
@@ -10472,3 +10601,132 @@ input[type="number"]::-webkit-outer-spin-button {
   background-position: center !important;
   background-color: rgba(0, 0, 0, 0.4) !important;
 }
+
+/* ──────────────────────────────────────────────────────────
+   CODEX MYSTERIUM - EXTRA PREMIUM OVERLAY STYLES
+   ────────────────────────────────────────────────────────── */
+
+/* Aggiunta di angoli dorati ornamentali per pannelli principali */
+.mysterium-panel,
+:where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel) {
+  position: relative !important;
+  overflow: visible !important;
+}
+
+/* Sfondo di pergamena/vetro premium con texture incisa */
+:where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel) {
+  background-image:
+    linear-gradient(180deg, rgba(14, 16, 22, 0.94), rgba(6, 7, 12, 0.99)),
+    var(--atlas-texture-parchment) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, overlay !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.32) !important;
+  box-shadow: 
+    0 18px 48px rgba(0, 0, 0, 0.8),
+    inset 0 0 40px rgba(var(--color-brass-rgb), 0.05) !important;
+}
+
+/* Angoli ornati sui quattro lati */
+.mysterium-panel::before,
+:where(.glass-panel, .director-card, .player-room-header, .story-chat-panel, .master-command-panel, .player-utility-modal, .map-tool-panel)::before {
+  content: "" !important;
+  position: absolute !important;
+  top: -3px !important;
+  left: -3px !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  background-image: var(--atlas-ui-corner) !important;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: top left !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  opacity: 0.82 !important;
+  display: block !important;
+}
+
+/* Pseudo-elemento ::after per il secondo set di angoli (angolo in basso a destra) */
+.mysterium-corners-br {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 1.5rem;
+  height: 1.5rem;
+  background-image: var(--atlas-ui-corner);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  transform: rotate(180deg);
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0.82;
+}
+
+/* Badge di notifica runici che sembrano sigilli di cera calda */
+.notification-badge,
+.story-status-badge,
+[class*="unread-count"],
+[class*="badge-count"] {
+  background: radial-gradient(circle at 35% 35%, #ef4444 0%, #7f1d1d 85%) !important;
+  border: 1.5px solid #fecaca !important;
+  box-shadow: 
+    0 0 10px rgba(239, 68, 68, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  color: #fff7ed !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) !important;
+  font-family: var(--font-cinzel), serif !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.05em !important;
+  animation: atlas-sigil-pulse 2s ease-in-out infinite !important;
+}
+
+/* Divisore ornatissimo per le schede e sezioni */
+.atlas-divider {
+  min-height: 1.45rem !important;
+  background-image: var(--atlas-ui-divider) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: min(32rem, 100%) auto !important;
+  opacity: 0.78 !important;
+  margin: 1.25rem 0 !important;
+}
+
+/* Tooltip premium a scomparsa con aspetto alchemico */
+.mysterium-tooltip {
+  background-image:
+    linear-gradient(180deg, rgba(8, 9, 13, 0.95), rgba(3, 4, 6, 0.98)),
+    var(--atlas-texture-glass) !important;
+  background-size: auto, cover !important;
+  background-blend-mode: normal, soft-light !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.6) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8), 0 0 14px rgba(var(--color-brass-rgb), 0.15) !important;
+  color: #f7ecd5 !important;
+  font-family: Georgia, serif !important;
+}
+
+/* Orbo runico animato per il caricamento */
+.app-loading-orb {
+  border: 2px solid rgba(var(--color-brass-rgb), 0.16) !important;
+  border-top-color: var(--color-brass) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 0 20px rgba(var(--color-brass-rgb), 0.22), inset 0 0 14px rgba(var(--color-brass-rgb), 0.08) !important;
+  animation: spin 1.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) infinite !important;
+}
+
+/* Animazione di apparizione cinematografica */
+.mysterium-rise-effect {
+  animation: premium-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Miglioramento dei campi form select per lo stile alchemico */
+select.field {
+  padding-left: 0.8rem !important;
+  cursor: pointer !important;
+}
+select.field option {
+  background-color: #0b0c10 !important;
+  color: #e5e7eb !important;
+}
+

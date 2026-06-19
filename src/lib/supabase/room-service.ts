@@ -653,6 +653,8 @@ export async function createOrUpdateCharacter(
   return data as Character;
 }
 
+
+
 export async function loadRoomState(supabase: DatabaseClient, roomId: string, profile: Profile): Promise<RoomState> {
   const { data: room, error: roomError } = await supabase.from("rooms").select("*").eq("id", roomId).single();
   if (roomError) throw roomError;
@@ -665,7 +667,6 @@ export async function loadRoomState(supabase: DatabaseClient, roomId: string, pr
     { data: audioTracks },
     { data: soundEffects },
     { data: mediaAssets },
-    { data: presence },
     messagePage,
     { data: diceRequests }
   ] =
@@ -677,7 +678,6 @@ export async function loadRoomState(supabase: DatabaseClient, roomId: string, pr
       supabase.from("audio_tracks").select("*").eq("room_id", room.id).order("created_at", { ascending: true }),
       supabase.from("sound_effects").select("*").eq("room_id", room.id).order("created_at", { ascending: true }),
       supabase.from("media_assets").select("*").eq("room_id", room.id).order("created_at", { ascending: false }),
-      supabase.from("room_presence").select("*").eq("room_id", room.id),
       fetchRoomMessagePage(supabase, room.id, undefined, ROOM_MESSAGE_PAGE_SIZE),
       supabase.from("dice_requests").select("*").eq("room_id", room.id).order("created_at", { ascending: false })
     ]);
@@ -729,7 +729,7 @@ export async function loadRoomState(supabase: DatabaseClient, roomId: string, pr
     audioTracks: audioList.length ? audioList : demoRoomState.audioTracks,
     soundEffects: (soundEffects ?? []) as SoundEffect[],
     mediaAssets: (mediaAssets ?? []) as MediaAsset[],
-    presence: presence ?? [],
+    presence: [],
     typing: [],
     inventory: (inventory ?? []) as InventoryItem[],
     notes: (notes ?? []) as PlayerNote[],
@@ -1383,26 +1383,6 @@ function extractPublicStoragePath(url: string, bucket?: string) {
   const index = url.indexOf(marker);
   if (index === -1) return null;
   return decodeURIComponent(url.slice(index + marker.length).split("?")[0] ?? "");
-}
-
-export async function upsertPresence(supabase: DatabaseClient, roomId: string, profile: Profile, displayName: string) {
-  const { error } = await supabase.from("room_presence").upsert(
-    {
-      room_id: roomId,
-      user_id: profile.id,
-      display_name: displayName,
-      role: profile.role,
-      last_seen_at: new Date().toISOString()
-    },
-    { onConflict: "room_id,user_id" }
-  );
-
-  if (error) throw error;
-}
-
-export async function removePresence(supabase: DatabaseClient, roomId: string, userId: string) {
-  const { error } = await supabase.from("room_presence").delete().eq("room_id", roomId).eq("user_id", userId);
-  if (error) throw error;
 }
 
 export async function createPlayerNote(supabase: DatabaseClient, characterId: string, values: { title: string; content: string }) {

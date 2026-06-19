@@ -164,6 +164,7 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
               ? "Rientra come Master"
               : "Entra come eroe"}
         </button>
+        <span className="mysterium-corners-br" />
       </form>
     </section>
   );

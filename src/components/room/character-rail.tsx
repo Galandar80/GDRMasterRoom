@@ -1,17 +1,16 @@
-import { Brain, Circle, HeartPulse, ShieldAlert } from "lucide-react";
+import { Brain, HeartPulse, ShieldAlert } from "lucide-react";
 import type React from "react";
-import type { Character, InventoryItem, RoomPresence } from "@/lib/types";
+import type { Character, InventoryItem } from "@/lib/types";
 import { parseCharacterMetadata } from "@/lib/character-metadata";
 
 type CharacterRailProps = {
   characters: Character[];
   inventory?: InventoryItem[];
-  presence?: RoomPresence[];
   side: "left" | "right";
   onOpenCharacter?: (characterId: string) => void;
 };
 
-export function CharacterRail({ characters, inventory = [], presence = [], side, onOpenCharacter }: CharacterRailProps) {
+export function CharacterRail({ characters, inventory = [], side, onOpenCharacter }: CharacterRailProps) {
   return (
     <aside className="player-character-rail hidden xl:block">
       <div className="sticky top-4 flex flex-col gap-3">
@@ -29,7 +28,6 @@ export function CharacterRail({ characters, inventory = [], presence = [], side,
                 <h3 className="truncate text-lg font-semibold" style={{ color: character.color }}>
                   {character.character_name}
                 </h3>
-                <PresenceDot online={isOnline(presence, character.user_id)} />
               </header>
               <div
                 className={`mx-3 aspect-[4/5] rounded-lg border border-white/10 bg-cover bg-center ${character.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
@@ -99,20 +97,6 @@ function StatRow({ icon, label, value, tone, progress }: { icon: React.ReactNode
         <span className={`block h-full ${tone === "rose" ? "bg-rose-400" : "bg-sky-400"}`} style={{ width: `${progress}%` }} />
       </span>
     </div>
-  );
-}
-
-function isOnline(presence: RoomPresence[], userId: string) {
-  const item = presence.find((entry) => entry.user_id === userId);
-  if (!item) return false;
-  return Date.now() - new Date(item.last_seen_at).getTime() < 45000;
-}
-
-function PresenceDot({ online }: { online: boolean }) {
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[0.65rem] ${online ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-200" : "border-slate-500/20 bg-slate-500/10 text-slate-400"}`}>
-      <Circle size={8} fill="currentColor" /> {online ? "online" : "offline"}
-    </span>
   );
 }
 

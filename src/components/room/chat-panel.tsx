@@ -730,7 +730,7 @@ export function ChatPanel({
           role="dialog"
           aria-modal="true"
         >
-          <div className="ui-panel-window w-full max-w-3xl overflow-hidden rounded-xl border border-brass/25 text-white shadow-2xl relative">
+          <div className="ui-panel-window glass-panel w-full max-w-3xl overflow-hidden rounded-xl border border-brass/25 text-white shadow-2xl relative">
             
             {/* Close button */}
             <button
@@ -879,10 +879,11 @@ export function ChatPanel({
 
               </div>
             </div>
-
+            <span className="mysterium-corners-br" />
           </div>
         </div>
       )}
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

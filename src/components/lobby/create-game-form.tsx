@@ -132,6 +132,7 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
             I giocatori useranno questo codice per accedere come eroi a questa sessione di gioco.
           </p>
         </div>
+        <span className="mysterium-corners-br" />
       </aside>
 
       <form
@@ -193,6 +194,7 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
         <button type="submit" className="w-full flex items-center justify-center gap-2 ui-btn-fantasy py-3.5">
           <Clapperboard size={16} /> Crea e apri cabina di regia
         </button>
+        <span className="mysterium-corners-br" />
       </form>
     </section>
   );

@@ -213,7 +213,7 @@ export function MasterControlRoom({
     <section className={`director-control-room relative -m-4 grid min-h-screen gap-4 overflow-hidden px-4 py-4 sm:-m-6 sm:px-5 sm:py-5 ${immersiveMode ? "is-immersive" : ""}`}>
       <div className="pointer-events-none absolute inset-0 app-theme-bg bg-cover bg-center opacity-70" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_68%_20%,rgba(147,51,234,0.18),transparent_32rem),linear-gradient(90deg,rgba(2,3,7,0.82),rgba(3,4,9,0.62)_48%,rgba(2,3,7,0.88)),linear-gradient(180deg,rgba(0,0,0,0.25),rgba(0,0,0,0.78))]" />
-      <header className="director-card relative z-10 rounded-xl p-4">
+      <header className="director-card relative z-10 rounded-xl p-4 glass-panel">
         <div className="grid gap-4 md:grid-cols-3 md:items-stretch">
           {/* Left panel: Info & Scene */}
           <div className="flex gap-3 min-w-0">
@@ -373,6 +373,7 @@ export function MasterControlRoom({
             </div>
           </div>
         </div>
+        <span className="mysterium-corners-br" />
       </header>
       <div className="relative z-10">
         <DirectorStatusBar state={state} currentAudio={currentAudio} actionLog={actionLog} />
@@ -380,7 +381,7 @@ export function MasterControlRoom({
 
       <div className={`director-workbench relative z-10 grid gap-4 ${immersiveMode ? "grid-cols-1" : "2xl:grid-cols-[16rem_minmax(0,1fr)_25rem]"}`}>
         {!immersiveMode && (
-          <nav className="director-sidebar hidden 2xl:block rounded-xl p-3" aria-label="Strumenti Master">
+          <nav className="director-sidebar hidden 2xl:block rounded-xl p-3 glass-panel" aria-label="Strumenti Master">
             <p className="px-3 pb-3 font-serif text-xs uppercase tracking-[0.28em] text-brass/80">Strumenti</p>
             <ControlLink icon={<Eye size={16} />} label="Panoramica" active={activeTool === "preview"} onClick={() => setActiveTool("preview")} />
             <ControlLink icon={<ImageUp size={16} />} label="Scene" active={activeTool === "scenes"} onClick={() => setActiveTool("scenes")} />
@@ -391,6 +392,7 @@ export function MasterControlRoom({
             <ControlLink icon={<Volume2 size={16} />} label="Soundbar" active={isSoundbarOpen} onClick={() => setIsSoundbarOpen(true)} />
             <ControlLink icon={<Library size={16} />} label="Libreria media" active={activeTool === "media"} onClick={() => setActiveTool("media")} />
             <ControlLink icon={<Shield size={16} />} label="Inventari" active={activeTool === "inventory"} onClick={() => setActiveTool("inventory")} />
+            <span className="mysterium-corners-br" />
           </nav>
         )}
 
@@ -981,7 +983,7 @@ function DirectorRightRail({
   const masterAvatar = state.profile.username.slice(0, 1).toUpperCase();
 
   return (
-    <aside className="director-right-rail grid content-start gap-4 rounded-xl p-3">
+    <aside className="director-right-rail grid content-start gap-4 rounded-xl p-3 glass-panel">
       {/* 1. Pannello Master */}
       <section className="director-rail-section">
         <h2 className="director-section-title">
@@ -1082,6 +1084,7 @@ function DirectorRightRail({
           <Trash2 size={15} /> Chiudi
         </button>
       </div>
+      <span className="mysterium-corners-br" />
     </aside>
   );
 }
@@ -1655,7 +1658,6 @@ function DirectorStatusBar({
   currentAudio: AudioTrack;
   actionLog: { id: string; label: string; detail?: string; created_at: string }[];
 }) {
-  const onlinePlayers = state.presence.filter((entry) => Date.now() - new Date(entry.last_seen_at).getTime() < 45000);
   const activeTyping = state.typing.filter((entry) => entry.user_id !== state.profile.id && Date.now() - new Date(entry.updated_at).getTime() < 6000);
   const pinnedCount = [...state.messages, ...state.offMessages, ...state.privateMessages].filter((message) => message.is_pinned).length;
 
@@ -1664,7 +1666,7 @@ function DirectorStatusBar({
       <div className="director-card rounded-xl p-3">
         <div className="grid gap-2 sm:grid-cols-4">
           <StatusPill icon={<Activity size={15} />} label="Sessione" value="Live" />
-          <StatusPill icon={<UsersRound size={15} />} label="Presenze" value={`${onlinePlayers.length}/${state.characters.length + 1}`} />
+          <StatusPill icon={<UsersRound size={15} />} label="Eroi" value={`${state.characters.length}`} />
           <StatusPill icon={<AudioLines size={15} />} label="Audio" value={currentAudio.title} />
           <StatusPill icon={<PinIcon />} label="Pin" value={String(pinnedCount)} />
         </div>
@@ -1889,7 +1891,6 @@ function CharactersPanel({ state, expanded = false }: { state: RoomState; expand
               <p className="mt-1 text-xs text-slate-300">
                 PF {character.hp} · {character.mental_state} · {character.visible_status}
               </p>
-              <p className="mt-1 text-xs text-slate-500">{isOnline(state, character.user_id) ? "online" : "offline"}</p>
               <div className="mt-2 flex flex-wrap gap-1">
                 {(character.conditions?.length ? character.conditions : [character.visible_status]).filter(Boolean).map((condition) => (
                   <span key={condition} className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-xs text-slate-200">
@@ -1924,10 +1925,7 @@ function CharactersPanel({ state, expanded = false }: { state: RoomState; expand
   );
 }
 
-function isOnline(state: RoomState, userId: string) {
-  const presence = state.presence.find((entry) => entry.user_id === userId);
-  return Boolean(presence && Date.now() - new Date(presence.last_seen_at).getTime() < 45000);
-}
+
 
 function buildQuickMapPositions(map: NarrativeMap, characters: RoomState["characters"], positions: MapCharacterPosition[]) {
   const existingForMap = positions.filter((position) => position.map_id === map.id);
@@ -2794,7 +2792,58 @@ function MediaLibraryPanel({
   const [tags, setTags] = useState("");
   const [visibility, setVisibility] = useState<MediaAsset["visibility"]>("room");
   const [file, setFile] = useState<File | undefined>();
+  const [isDragOver, setIsDragOver] = useState(false);
   const [query, setQuery] = useState("");
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const droppedFile = e.dataTransfer.files?.[0];
+    if (droppedFile) {
+      processFile(droppedFile);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      processFile(selectedFile);
+    }
+  };
+
+  const processFile = (selectedFile: File) => {
+    setFile(selectedFile);
+    
+    // Auto-detect type
+    let detectedType: MediaAsset["asset_type"] = "image";
+    if (selectedFile.type.startsWith("image/")) {
+      detectedType = "image";
+    } else if (selectedFile.type.startsWith("video/")) {
+      detectedType = "video";
+    } else if (selectedFile.type.startsWith("audio/")) {
+      detectedType = "audio";
+    }
+    setAssetType(detectedType);
+
+    // Default title from file name
+    const baseName = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
+    const capitalizedTitle = baseName
+      .replace(/[_\-]+/g, " ")
+      .trim()
+      .split(/\s+/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+    setTitle(capitalizedTitle);
+  };
   const [typeFilter, setTypeFilter] = useState<MediaAsset["asset_type"] | "all">("all");
   const [scopeFilter, setScopeFilter] = useState<"all" | "room" | "mine" | "shared" | "global" | "portraits">("all");
   const ownedBytes = assets
@@ -2957,10 +3006,39 @@ function MediaLibraryPanel({
             <option value="shared">Condiviso con altri Master</option>
             <option value="global">Proponi alla libreria globale</option>
           </select>
-          <label className="block rounded-lg border border-dashed border-brass/30 bg-brass/5 px-3 py-3 text-center text-xs text-brass">
-            Carica file
-            <input className="sr-only" type="file" onChange={(event) => setFile(event.target.files?.[0])} />
-          </label>
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleFileDrop}
+            className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-6 text-center text-xs transition-all duration-200 cursor-pointer ${
+              isDragOver
+                ? "border-ember-400 bg-ember-500/10 text-ember-300 shadow-[0_0_12px_rgba(249,115,22,0.15)] animate-pulse"
+                : file
+                ? "border-emerald-500/50 bg-emerald-500/5 text-emerald-300"
+                : "border-brass/30 bg-brass/5 text-brass hover:border-brass/50 hover:bg-brass/10"
+            }`}
+            onClick={() => document.getElementById("media-file-input")?.click()}
+          >
+            <input
+              id="media-file-input"
+              className="sr-only"
+              type="file"
+              onChange={handleFileChange}
+            />
+            {file ? (
+              <div className="space-y-1">
+                <p className="font-semibold text-emerald-400">{"File pronto per l'upload"}</p>
+                <p className="font-mono text-[10px] opacity-75">{file.name}</p>
+                <p className="text-[10px] opacity-50">Dimensione: {formatBytes(file.size)}</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5 pointer-events-none">
+                <p className="font-serif uppercase tracking-wider text-sm font-semibold">Trascina qui il file</p>
+                <p className="opacity-70">oppure clicca per sfogliare</p>
+                <p className="opacity-40 text-[10px]">Supporta Immagini, Video, Audio</p>
+              </div>
+            )}
+          </div>
           <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-ember-400/25 bg-ember-500/10 px-3 py-2 text-sm font-medium text-ember-100 hover:bg-ember-500/20">
             <Plus size={16} /> Salva asset
           </button>

@@ -50,7 +50,7 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
 
   return (
     <section className="mx-auto grid min-h-[calc(100vh-2.5rem)] w-full max-w-6xl content-center gap-5 p-4 text-white">
-      <header className="ui-panel-window rounded-xl p-5 shadow-2xl">
+      <header className="ui-panel-window rounded-xl p-5 shadow-2xl glass-panel">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
@@ -93,9 +93,10 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
           <SessionMetric icon={<UserRound size={15} />} label="Tavoli" value={playerSessions.length} />
           <SessionMetric icon={<AlertCircle size={15} />} label="Da completare" value={incompleteSessions.length} tone={incompleteSessions.length ? "warn" : "calm"} />
         </div>
+        <span className="mysterium-corners-br" />
       </header>
 
-      <main className="ui-panel-window rounded-xl p-5 shadow-2xl">
+      <main className="ui-panel-window rounded-xl p-5 shadow-2xl glass-panel">
         {recommendedSession ? (
           <RecommendedSession
             session={recommendedSession}
@@ -193,6 +194,7 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
         ) : (
           <EmptySessionsState role={tab} hasFilters={Boolean(query.trim()) || filter !== "all"} />
         )}
+        <span className="mysterium-corners-br" />
       </main>
     </section>
   );

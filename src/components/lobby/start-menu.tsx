@@ -271,6 +271,7 @@ export function StartMenu({
                 <input type="checkbox" checked={moonMode} onChange={(event) => setMoonMode(event.target.checked)} />
               </label>
             </div>
+            <span className="mysterium-corners-br" />
           </div>
         ) : null}
 
@@ -407,6 +408,7 @@ export function StartMenu({
                 <QuickOption icon={<Wand2 size={25} />} title="Cabina Master" text="Prepara la scena" onClick={onCreate} />
               </div>
             </div>
+            <span className="mysterium-corners-br" />
           </article>
         </div>
 
@@ -468,7 +470,7 @@ function ActiveSessionPanel({
 
   return (
     <section
-      className="mt-6 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-left shadow-[0_0_34px_rgba(16,185,129,0.1)]"
+      className="mt-6 rounded-xl border border-emerald-400/25 bg-emerald-500/10 p-4 text-left shadow-[0_0_34px_rgba(16,185,129,0.1)] glass-panel"
       aria-label="Sessione attiva"
     >
       <div className="flex items-start gap-3">
@@ -525,6 +527,7 @@ function ActiveSessionPanel({
           />
         ) : null}
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

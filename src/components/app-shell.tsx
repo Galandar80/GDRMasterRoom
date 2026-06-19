@@ -52,8 +52,6 @@ import {
   rollDiceRequest,
   setActiveNarrativeMap,
   triggerRoomSoundEffect,
-  removePresence,
-  upsertPresence,
   updateCurrentAudio,
   updateCurrentScene,
   updateCharacterByMaster,
@@ -90,6 +88,7 @@ const SuperAdminRooms = dynamic(
 );
 
 import { DiceRollAnimationOverlay } from "@/components/room/dice-roll-overlay";
+import { DiceTray } from "@/components/room/dice-tray";
 
 type View = "menu" | "create" | "join" | "sessions" | "character" | "player" | "master" | "superadmin";
 type CinematicEvent =
@@ -117,6 +116,14 @@ export function AppShell() {
   const [view, setView] = useState<View>("menu");
   const [activeCue, setActiveCue] = useState<{ cueId: string; tone: string; message: string } | null>(null);
   const [activeDiceOverlay, setActiveDiceOverlay] = useState<{ type: "critical" | "fumble"; rollerName: string; reason: string } | null>(null);
+  const [activeDiceTray, setActiveDiceTray] = useState<{
+    request: DiceRequest;
+    diceCount: number;
+    diceSides: number;
+    results: number[];
+    reason: string;
+    rollerName: string;
+  } | null>(null);
   const shakeTimeoutRef = useRef<number | null>(null);
   const activeShakeClassRef = useRef<string | null>(null);
   const cueTimeoutRef = useRef<number | null>(null);
@@ -457,13 +464,7 @@ export function AppShell() {
           setRoomState((state) => updateCollectionEvent(state, "characters", payload, "created_at", true));
         }
       )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "inventory_items" },
-        (payload) => {
-          setRoomState((state) => updateInventoryEvent(state, payload));
-        }
-      )
+
       .on(
         "broadcast",
         { event: "map-sync" },
@@ -516,19 +517,7 @@ export function AppShell() {
     setRoomState((state) => applyMapSyncState(state, latestSync));
   }, [roomState.messages, roomState.offMessages, roomState.privateMessages]);
 
-  useEffect(() => {
-    if (!supabase || demoMode || !hasCurrentSession || !roomState.room.id) return;
 
-    const displayName = currentCharacter
-      ? `${currentCharacter.character_name} ${currentCharacter.character_surname}`
-      : roomState.profile.username;
-
-    upsertPresence(supabase, roomState.room.id, roomState.profile, displayName).catch(() => undefined);
-
-    return () => {
-      removePresence(supabase, roomState.room.id, roomState.profile.id).catch(() => undefined);
-    };
-  }, [supabase, hasCurrentSession, roomState.room.id, roomState.profile, currentCharacter]);
 
   useEffect(() => {
     if (view !== "player" && view !== "master") {
@@ -1748,11 +1737,25 @@ export function AppShell() {
   async function rollDice(request: DiceRequest) {
     const diceCount = getDiceCount(request);
     const roll = rollDiceValues(diceCount, request.dice_sides);
-    const result = roll.total;
     const characterName = currentCharacter ? `${currentCharacter.character_name} ${currentCharacter.character_surname}` : roomState.profile.username;
     const reason = stripDiceCountMarker(request.reason);
-    const rollDetail = diceCount > 1 ? `[${roll.results.join(", ")}] totale ${result}` : `${result}`;
-    const text = `${characterName} tira ${diceCount}d${request.dice_sides}: ${rollDetail}${reason ? ` (${reason})` : ""}`;
+
+    setActiveDiceTray({
+      request,
+      diceCount,
+      diceSides: request.dice_sides,
+      results: roll.results,
+      reason,
+      rollerName: characterName
+    });
+  }
+
+  async function completeDiceRoll() {
+    if (!activeDiceTray) return;
+    const { request, diceCount, diceSides, results, reason, rollerName } = activeDiceTray;
+    const result = results.reduce((a, b) => a + b, 0);
+    const rollDetail = diceCount > 1 ? `[${results.join(", ")}] totale ${result}` : `${result}`;
+    const text = `${rollerName} tira ${diceCount}d${diceSides}: ${rollDetail}${reason ? ` (${reason})` : ""}`;
 
     try {
       setError("");
@@ -1769,16 +1772,18 @@ export function AppShell() {
       }));
 
       if (demoMode) {
-        if (request.dice_sides === 20 && diceCount === 1 && (result === 20 || result === 1)) {
+        if (diceSides === 20 && diceCount === 1 && (result === 20 || result === 1)) {
           setActiveDiceOverlay({
             type: result === 20 ? "critical" : "fumble",
-            rollerName: characterName,
+            rollerName,
             reason
           });
         }
       }
     } catch (diceError) {
       setError(readError(diceError));
+    } finally {
+      setActiveDiceTray(null);
     }
   }
 
@@ -2575,6 +2580,17 @@ export function AppShell() {
           rollerName={activeDiceOverlay.rollerName}
           reason={activeDiceOverlay.reason}
           onClose={() => setActiveDiceOverlay(null)}
+        />
+      ) : null}
+      {activeDiceTray ? (
+        <DiceTray
+          diceCount={activeDiceTray.diceCount}
+          diceSides={activeDiceTray.diceSides}
+          results={activeDiceTray.results}
+          reason={activeDiceTray.reason}
+          rollerName={activeDiceTray.rollerName}
+          onComplete={completeDiceRoll}
+          onClose={() => setActiveDiceTray(null)}
         />
       ) : null}
     </div>

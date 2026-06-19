@@ -253,15 +253,7 @@ export const demoRoomState: RoomState = {
     }
   ],
   mediaAssets: [],
-  presence: [
-    {
-      room_id: "room-1",
-      user_id: "user-master",
-      display_name: "Mastro della Cenere",
-      role: "master",
-      last_seen_at: now
-    }
-  ],
+  presence: [],
   typing: [],
   inventory: [
     {
