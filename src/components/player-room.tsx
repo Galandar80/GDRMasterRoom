@@ -200,7 +200,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
         />
         <MobileCharacterStrip characters={state.characters} currentUserId={state.profile.id} onOpenCharacter={openCharacterSheet} />
         <div className={`grid gap-3 ${immersiveMode ? "xl:grid-cols-[minmax(0,1fr)]" : "xl:grid-cols-[17rem_minmax(0,1fr)_17rem]"}`}>
-      {immersiveMode ? null : <CharacterRail side="left" characters={leftCharacters} inventory={state.inventory} presence={state.presence} onOpenCharacter={openCharacterSheet} />}
+      {immersiveMode ? null : <CharacterRail side="left" characters={leftCharacters} inventory={state.inventory} onOpenCharacter={openCharacterSheet} />}
 
       <div className="grid min-w-0 gap-3">
         {spotlightVisible ? <SpotlightPanel room={state.room} npcs={state.npcs} currentUserId={state.profile.id} /> : null}
@@ -289,7 +289,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
         />
       </div>
 
-      {immersiveMode ? null : <CharacterRail side="right" characters={rightCharacters} inventory={state.inventory} presence={state.presence} onOpenCharacter={openCharacterSheet} />}
+      {immersiveMode ? null : <CharacterRail side="right" characters={rightCharacters} inventory={state.inventory} onOpenCharacter={openCharacterSheet} />}
         </div>
       </div>
       {modalCharacter ? (
@@ -403,6 +403,7 @@ function PlayerHeader({
           </div>
         </div>
       </div>
+      <span className="mysterium-corners-br" />
     </header>
   );
 }
@@ -857,6 +858,7 @@ function PlayerUtilityModal({
             </article>
           </div>
         ) : null}
+        <span className="mysterium-corners-br" />
       </section>
     </div>
   );

@@ -290,7 +290,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
   return (
     <div className="mx-auto grid w-full max-w-6.5xl gap-5 py-4 p-4 text-white">
       {/* Top Selection Strip - Fluid Grid for 10 items */}
-      <section className="character-archetype-panel ui-panel-window rounded-xl relative shadow-2xl">
+      <section className="character-archetype-panel ui-panel-window rounded-xl relative shadow-2xl glass-panel">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-brass/15 pb-3 mb-4">
           <button
             type="button"
@@ -329,11 +329,12 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             </button>
           ))}
         </div>
+        <span className="mysterium-corners-br" />
       </section>
 
       <div className="grid gap-5 lg:grid-cols-[1fr_1.5fr]">
         {/* Left Side: Avatar Card */}
-        <aside className="relative overflow-hidden rounded-xl border border-brass/25 bg-black/60 p-6 flex flex-col justify-between min-h-[30rem] shadow-2xl">
+        <aside className="glass-panel relative overflow-hidden rounded-xl border border-brass/25 bg-black/60 p-6 flex flex-col justify-between min-h-[30rem] shadow-2xl">
           <div className="absolute left-1 top-1 h-3 w-3 border-l border-t border-brass/40" />
           <div className="absolute right-1 top-1 h-3 w-3 border-r border-t border-brass/40" />
           <div className="absolute left-1 bottom-1 h-3 w-3 border-l border-b border-brass/40" />
@@ -380,11 +381,12 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             )}
             <p className="italic">&ldquo;{publicBio || "Nessuna biografia inserita."}&rdquo;</p>
           </div>
+          <span className="mysterium-corners-br" />
         </aside>
 
         {/* Right Side: Setup Form */}
         <form
-          className="ui-panel-window grid gap-4 rounded-xl p-8 relative shadow-2xl"
+          className="ui-panel-window grid gap-4 rounded-xl p-8 relative shadow-2xl glass-panel"
           onSubmit={(event) => {
             event.preventDefault();
             setIsSaving(true);
@@ -626,6 +628,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
           >
             <UserRoundPlus size={18} /> {isSaving ? "Ingresso in Camera..." : "Completa Eroe ed Entra in Gioco"}
           </button>
+          <span className="mysterium-corners-br" />
         </form>
       </div>
     </div>
