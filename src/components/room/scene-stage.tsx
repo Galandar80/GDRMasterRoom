@@ -18,30 +18,16 @@ type SceneStageProps = {
   activeSpotlightNpc?: Npc | null;
 };
 
-function detectWeather(scene: Scene) {
-  const text = ((scene.title || "") + " " + (scene.description || "")).toLowerCase();
-  if (text.includes("pioggia") || text.includes("temporale") || text.includes("diluvio") || text.includes("storm") || text.includes("rain")) return "rain";
-  if (text.includes("neve") || text.includes("ghiaccio") || text.includes("tormenta") || text.includes("snow") || text.includes("ice")) return "snow";
-  if (text.includes("nebbia") || text.includes("fumo") || text.includes("mist") || text.includes("fog") || text.includes("smoke") || text.includes("glitch")) return "fog";
-  if (text.includes("scintille") || text.includes("magia") || text.includes("polvere") || text.includes("stelle") || text.includes("magic") || text.includes("sparkles") || text.includes("luce")) return "sparkles";
-  return "none";
-}
+// Weather effects removed
 
 export function SceneStage({ scene, compact = false, audioVolume = 55, audioMuted = false, audioTitle, onAudioVolumeChange, onAudioMutedChange, activeSpotlightNpc }: SceneStageProps) {
   const [displayScene, setDisplayScene] = useState(scene);
   const [prevScene, setPrevScene] = useState<Scene | null>(null);
   const [isFading, setIsFading] = useState(false);
-  const [weather, setWeather] = useState<"none" | "rain" | "snow" | "fog" | "sparkles">("none");
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
 
 
-  // Detect weather automatically on scene change
-  useEffect(() => {
-    const detected = detectWeather(displayScene);
-    setWeather(detected);
-  }, [displayScene]);
+
 
   useEffect(() => {
     if (scene.id !== displayScene.id) {
@@ -69,151 +55,7 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
     }
   }, [prevScene]);
 
-  // Particle Engine Canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
-    let animationId: number;
-    let width = (canvas.width = canvas.offsetWidth);
-    let height = (canvas.height = canvas.offsetHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = canvas.offsetWidth;
-      height = canvas.height = canvas.offsetHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    interface Particle {
-      x: number;
-      y: number;
-      speed: number;
-      size: number;
-      opacity: number;
-      extra?: number;
-    }
-
-    let particles: Particle[] = [];
-    const maxParticles = weather === "fog" ? 12 : weather === "rain" ? 80 : weather === "snow" ? 60 : 40;
-
-    function createParticle(randomY = false): Particle {
-      const pY = randomY ? Math.random() * height : -10;
-      if (weather === "rain") {
-        return {
-          x: Math.random() * width,
-          y: pY,
-          speed: 6 + Math.random() * 4,
-          size: 1 + Math.random() * 1.5,
-          opacity: 0.15 + Math.random() * 0.25,
-        };
-      } else if (weather === "snow") {
-        return {
-          x: Math.random() * width,
-          y: pY,
-          speed: 0.8 + Math.random() * 1.2,
-          size: 1.5 + Math.random() * 3,
-          opacity: 0.3 + Math.random() * 0.5,
-          extra: Math.random() * Math.PI * 2,
-        };
-      } else if (weather === "fog") {
-        return {
-          x: Math.random() * (width + 300) - 150,
-          y: Math.random() * height,
-          speed: 0.1 + Math.random() * 0.2,
-          size: 80 + Math.random() * 100,
-          opacity: 0.05 + Math.random() * 0.08,
-        };
-      } else { // sparkles
-        return {
-          x: Math.random() * width,
-          y: randomY ? Math.random() * height : height + 10,
-          speed: 0.4 + Math.random() * 0.6,
-          size: 1 + Math.random() * 2,
-          opacity: 0.2 + Math.random() * 0.5,
-          extra: Math.random() * Math.PI * 2,
-        };
-      }
-    }
-
-    // Initialize particles
-    for (let i = 0; i < maxParticles; i++) {
-      particles.push(createParticle(true));
-    }
-
-    const render = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      if (weather === "none") return;
-
-      particles.forEach((p, index) => {
-        if (weather === "rain") {
-          p.y += p.speed;
-          p.x += p.speed * 0.05; // wind slant
-          if (p.y > height) {
-            particles[index] = createParticle();
-          }
-          ctx.beginPath();
-          ctx.strokeStyle = `rgba(180, 200, 220, ${p.opacity})`;
-          ctx.lineWidth = p.size;
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.x + p.speed * 0.05, p.y + p.speed * 1.5);
-          ctx.stroke();
-        } else if (weather === "snow") {
-          p.y += p.speed;
-          p.extra = (p.extra || 0) + 0.01;
-          p.x += Math.sin(p.extra) * 0.3;
-          if (p.y > height || p.x < -10 || p.x > width + 10) {
-            particles[index] = createParticle();
-          }
-          ctx.beginPath();
-          ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (weather === "fog") {
-          p.x += p.speed;
-          if (p.x > width + p.size) {
-            p.x = -p.size;
-          }
-          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-          grad.addColorStop(0, `rgba(220, 220, 230, ${p.opacity})`);
-          grad.addColorStop(0.5, `rgba(220, 220, 230, ${p.opacity * 0.4})`);
-          grad.addColorStop(1, "rgba(220, 220, 230, 0)");
-          ctx.beginPath();
-          ctx.fillStyle = grad;
-          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (weather === "sparkles") {
-          p.y -= p.speed;
-          p.extra = (p.extra || 0) + 0.02;
-          p.x += Math.sin(p.extra) * 0.2;
-          const currentOpacity = Math.max(0.01, Math.min(1, p.opacity * Math.abs(Math.sin(p.extra))));
-          if (p.y < -10) {
-            particles[index] = createParticle();
-          }
-          ctx.beginPath();
-          const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-          grad.addColorStop(0, `rgba(200, 163, 93, ${currentOpacity})`);
-          grad.addColorStop(0.3, `rgba(200, 163, 93, ${currentOpacity * 0.5})`);
-          grad.addColorStop(1, "rgba(200, 163, 93, 0)");
-          ctx.fillStyle = grad;
-          ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      });
-
-      animationId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      cancelAnimationFrame(animationId);
-    };
-  }, [weather]);
 
   const isVideo = displayScene.media_type === "video";
   const mediaUrl = isVideo ? displayScene.video_url || displayScene.image_url : displayScene.image_url;
@@ -342,8 +184,7 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
           </div>
         )}
 
-        {/* Layer meteo ad alte prestazioni */}
-        <canvas ref={canvasRef} className="absolute inset-0 z-20 pointer-events-none w-full h-full" />
+
       </div>
 
       <div className="scene-stage-caption border-t border-white/10 bg-ink-900/75 p-4 sm:p-5">

@@ -10871,7 +10871,6 @@ select.field option {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   transform: translateX(-25%);
-  animation: liquid-wave 2s linear infinite;
 }
 
 @keyframes liquid-wave {
@@ -11115,6 +11114,13 @@ select.field option {
 .theme-cyberpunk {
   --color-brass: #f43f5e; /* override color to hot pink */
   --color-brass-rgb: 244, 63, 94;
+  --atlas-texture-parchment: url("/assets/atlas/themes/cyberpunk-texture-bg.png");
+  --atlas-texture-glass: url("/assets/atlas/themes/cyberpunk-texture-bg.png");
+  --atlas-ui-button: url("/assets/atlas/themes/cyberpunk-seal.png");
+  --atlas-ui-plaque: url("/assets/atlas/themes/cyberpunk-plaque.png");
+  --atlas-ui-corner: none;
+  --atlas-ui-divider: linear-gradient(90deg, transparent, #f43f5e, transparent);
+  --atlas-empty-scroll: url("/assets/atlas/themes/cyberpunk-seal.png");
 }
 .theme-cyberpunk body {
   background: #020204 !important;
@@ -11151,6 +11157,12 @@ select.field option {
 .theme-lovecraft {
   --color-brass: #2dd4bf;
   --color-brass-rgb: 45, 212, 191;
+  --atlas-texture-parchment: url("/assets/atlas/themes/lovecraft-texture-bg.png");
+  --atlas-texture-ink: url("/assets/atlas/themes/lovecraft-texture-bg.png");
+  --atlas-ui-button: url("/assets/atlas/themes/lovecraft-seal.png");
+  --atlas-ui-plaque: url("/assets/atlas/themes/lovecraft-plaque.png");
+  --atlas-ui-divider: linear-gradient(90deg, transparent, rgba(45, 212, 191, 0.4), transparent);
+  --atlas-empty-scroll: url("/assets/atlas/themes/lovecraft-seal.png");
 }
 .theme-lovecraft body {
   background: #050807 !important;
@@ -11178,6 +11190,13 @@ select.field option {
 .theme-scifi {
   --color-brass: #38bdf8;
   --color-brass-rgb: 56, 189, 248;
+  --atlas-texture-parchment: url("/assets/atlas/themes/scifi-texture-bg.png");
+  --atlas-texture-metal: url("/assets/atlas/themes/scifi-texture-bg.png");
+  --atlas-ui-button: url("/assets/atlas/themes/scifi-seal.png");
+  --atlas-ui-plaque: url("/assets/atlas/themes/scifi-plaque.png");
+  --atlas-ui-corner: none;
+  --atlas-ui-divider: linear-gradient(90deg, transparent, #38bdf8, transparent);
+  --atlas-empty-scroll: url("/assets/atlas/themes/scifi-seal.png");
 }
 .theme-scifi body {
   background: #02050b !important;
