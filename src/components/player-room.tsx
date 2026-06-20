@@ -149,6 +149,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
   }, [markInventorySeen, markPrivateSeen, mobileTab]);
   const visibleDiceRequests = state.diceRequests.filter((request) => !request.target_user_id || request.target_user_id === state.profile.id);
   const spotlightVisible = state.room.spotlight_visibility !== "off" && Boolean(state.room.spotlight_npc_id);
+  const spotlightNpc = useMemo(() => state.npcs.find((item) => item.id === state.room.spotlight_npc_id), [state.npcs, state.room.spotlight_npc_id]);
   const soundEffectVisible = Boolean(state.room.current_sound_effect_id);
   const isPlayerTurn = !state.room.turn_enabled || 
     (state.room.turn_order && state.room.turn_order[state.room.current_turn_index ?? 0] === state.profile.id);
@@ -203,9 +204,8 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
       {immersiveMode ? null : <CharacterRail side="left" characters={leftCharacters} inventory={state.inventory} onOpenCharacter={openCharacterSheet} />}
 
       <div className="grid min-w-0 gap-3">
-        {spotlightVisible ? <SpotlightPanel room={state.room} npcs={state.npcs} currentUserId={state.profile.id} /> : null}
         {soundEffectVisible ? <SoundEffectPlayer room={state.room} soundEffects={state.soundEffects} /> : null}
-        <SceneStage scene={state.scene} compact />
+        <SceneStage scene={state.scene} compact activeSpotlightNpc={spotlightVisible && spotlightNpc ? spotlightNpc : null} />
         {visibleDiceRequests.length > 0 ? <PlayerDicePanel requests={visibleDiceRequests} onRoll={onRollDice} /> : null}
         <MobilePlayerTabs active={mobileTab} onChange={setMobileTab} />
         <div className={mobileTab === "chat" ? "block" : "hidden lg:block"}>
@@ -357,13 +357,13 @@ function PlayerHeader({
   onToggleImmersive: () => void;
 }) {
   return (
-    <header className="player-room-header rounded-xl p-5 border border-brass/35 shadow-glow atlas-plaque">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex min-w-0 items-center gap-4">
+    <header className="player-room-header rounded-xl p-3 border border-brass/35 shadow-glow atlas-plaque">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
           <button 
             type="button" 
             onClick={onBack} 
-            className="player-logo-mark shrink-0" 
+            className="player-logo-mark shrink-0 scale-90" 
             title="Torna al menu" 
             aria-label="Torna al menu"
           >
@@ -372,50 +372,51 @@ function PlayerHeader({
           <button 
             type="button" 
             onClick={onBack} 
-            className="btn-iron-premium px-4 py-2 text-xs flex items-center gap-2 rounded-lg"
+            className="btn-iron-premium px-3 py-1.5 text-[11px] flex items-center gap-1.5 rounded-lg"
           >
-            <ArrowLeft size={14} /> Menu
+            <ArrowLeft size={13} /> Menu
           </button>
           <div className="min-w-0">
-            <p className="font-serif text-[10px] uppercase tracking-[0.2em] text-brass/70">Stanza narrativa</p>
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="truncate font-serif text-2xl uppercase tracking-wider text-stone-100 sm:text-3xl" style={{ fontFamily: "var(--font-cinzel)" }}>
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate font-serif text-lg uppercase tracking-wider text-stone-100 sm:text-xl" style={{ fontFamily: "var(--font-cinzel)" }}>
                 {state.campaigns[0].title}
               </h1>
-              <span className="rounded-md border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">
+              <span className="rounded bg-emerald-500/10 border border-emerald-400/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-emerald-300">
                 In corso
               </span>
             </div>
-            <p className="mt-1 text-xs text-stone-300 font-serif">{state.room.name} · {state.scene.title}</p>
-            <p className="mt-1 line-clamp-1 text-xs text-stone-400 italic">{state.campaigns[0].description}</p>
+            <p className="text-[11px] text-stone-400 font-serif mt-0.5">
+              {state.room.name} <span className="text-stone-500 mx-1">·</span> <span className="text-brass">Scena: {state.scene.title}</span>
+            </p>
           </div>
         </div>
-        <div className="grid gap-2.5 xl:min-w-[36rem]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 xl:min-w-[40rem] justify-end">
           {currentCharacter ? (
-            <div className="player-current-strip bg-black/30 border border-white/5 rounded-xl p-3 flex items-center gap-3">
+            <div className="player-current-strip bg-black/40 border border-white/5 rounded-lg p-1.5 flex items-center gap-2.5 sm:max-w-[15rem] shrink-0">
               <span
-                className={`h-12 w-12 shrink-0 rounded-full border border-brass/45 char-medallion-premium bg-cover bg-center ${currentCharacter.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+                className={`h-8 w-8 shrink-0 rounded-full border border-brass/45 char-medallion-premium bg-cover bg-center ${currentCharacter.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
                 style={currentCharacter.portrait_url ? { backgroundImage: `url(${currentCharacter.portrait_url})` } : undefined}
               />
-              <span className="min-w-0 flex-1">
-                <small className="block text-[10px] uppercase text-stone-400 font-serif">Stai interpretando</small>
-                <strong className="block text-sm truncate" style={{ color: currentCharacter.color }}>
-                  {currentCharacter.character_name} {currentCharacter.character_surname}
+              <span className="min-w-0 flex-1 leading-tight">
+                <small className="block text-[8px] uppercase text-stone-500 font-serif">Interpreti</small>
+                <strong className="block text-xs truncate" style={{ color: currentCharacter.color }}>
+                  {currentCharacter.character_name}
                 </strong>
               </span>
-              <span className="fial-hp-container shrink-0" title={`PF: ${currentCharacter.hp}`}>
+              <span className="fial-hp-container shrink-0 scale-90" title={`PF: ${currentCharacter.hp}`}>
                 <div className="fial-hp-liquid" style={{ height: `${Math.min(100, Math.max(0, currentCharacter.hp * 10))}%` }} />
               </span>
             </div>
           ) : null}
-          <div className="player-header-actions grid gap-1.5 grid-cols-3 sm:grid-cols-4 xl:grid-cols-7" aria-label="Strumenti rapidi giocatore">
-            <HeaderAction icon={<Sparkles size={14} />} label="Azioni" atlasArea="regia" onClick={() => onOpenUtility("next")} />
-            <HeaderAction icon={<ScrollText size={14} />} label="Note" atlasArea="scene" onClick={() => onOpenUtility("notes")} />
-            <HeaderAction icon={<Backpack size={14} />} label="Zaino" atlasArea="zaini" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
-            <HeaderAction icon={<BookOpenText size={14} />} label="Sussurri" atlasArea="chat" badge={privateCount} onClick={() => onOpenUtility("private")} />
-            <HeaderAction icon={<MapPinned size={14} />} label="Mappa" atlasArea="mappa" onClick={() => onOpenUtility("map")} />
-            <HeaderAction icon={immersiveMode ? <EyeOff size={14} /> : <Eye size={14} />} label={immersiveMode ? "UI" : "Immergiti"} atlasArea="media" onClick={onToggleImmersive} />
-            <HeaderAction icon={<UserRound size={14} />} label="Scheda" atlasArea="eroi" onClick={() => onOpenUtility("sheet")} />
+          <div className="player-header-actions grid gap-1 grid-cols-4 sm:grid-cols-4 xl:grid-cols-8 flex-1" aria-label="Strumenti rapidi giocatore">
+            <HeaderAction icon={<Sparkles size={13} />} label="Azioni" atlasArea="regia" onClick={() => onOpenUtility("next")} />
+            <HeaderAction icon={<ScrollText size={13} />} label="Note" atlasArea="scene" onClick={() => onOpenUtility("notes")} />
+            <HeaderAction icon={<Backpack size={13} />} label="Inventario" atlasArea="zaini" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
+            <HeaderAction icon={<BookOpenText size={13} />} label="Sussurri" atlasArea="chat" badge={privateCount} onClick={() => onOpenUtility("private")} />
+            <HeaderAction icon={<MapPinned size={13} />} label="Mappa" atlasArea="mappa" onClick={() => onOpenUtility("map")} />
+            <HeaderAction icon={immersiveMode ? <EyeOff size={13} /> : <Eye size={13} />} label={immersiveMode ? "UI" : "Immergiti"} atlasArea="media" onClick={onToggleImmersive} />
+            <HeaderAction icon={<UserRound size={13} />} label="Scheda" atlasArea="eroi" onClick={() => onOpenUtility("sheet")} />
+            <HeaderAction icon={<CircleHelp size={13} />} label="?" atlasArea="superadmin" onClick={() => onOpenUtility("help")} />
           </div>
         </div>
       </div>

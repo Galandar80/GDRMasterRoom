@@ -1,8 +1,8 @@
 "use client";
 
-import { CalendarDays, Eye, ImageIcon, LockKeyhole, Volume2, VolumeX } from "lucide-react";
+import { CalendarDays, Eye, ImageIcon, LockKeyhole, Volume2, VolumeX, Sparkles } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
-import type { Scene } from "@/lib/types";
+import type { Scene, Npc } from "@/lib/types";
 import { shortTime } from "@/lib/utils";
 import { playUiClick, playUiHover } from "@/lib/sound-generator";
 
@@ -15,6 +15,7 @@ type SceneStageProps = {
   audioTitle?: string;
   onAudioVolumeChange?: (vol: number) => void;
   onAudioMutedChange?: (muted: boolean) => void;
+  activeSpotlightNpc?: Npc | null;
 };
 
 function detectWeather(scene: Scene) {
@@ -26,7 +27,7 @@ function detectWeather(scene: Scene) {
   return "none";
 }
 
-export function SceneStage({ scene, compact = false, audioVolume = 55, audioMuted = false, audioTitle, onAudioVolumeChange, onAudioMutedChange }: SceneStageProps) {
+export function SceneStage({ scene, compact = false, audioVolume = 55, audioMuted = false, audioTitle, onAudioVolumeChange, onAudioMutedChange, activeSpotlightNpc }: SceneStageProps) {
   const [displayScene, setDisplayScene] = useState(scene);
   const [prevScene, setPrevScene] = useState<Scene | null>(null);
   const [isFading, setIsFading] = useState(false);
@@ -234,7 +235,7 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
         </div>
       ) : null}
 
-      <div className="relative w-full overflow-hidden bg-ink-950">
+      <div className="relative w-full aspect-video overflow-hidden bg-ink-950">
         {/* Floating HUD Controls — only shown when master passes audio props */}
         {onAudioVolumeChange ? (
           <div
@@ -277,10 +278,10 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
 
         {/* Layer della scena precedente (sfondo solido su cui sfuma la nuova) */}
         {prevScene && prevMediaUrl && (
-          <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 z-0 pointer-events-none w-full h-full">
             {prevIsVideo ? (
               <video
-                className={`${mediaClassName} bg-black object-cover`}
+                className="w-full h-full object-cover bg-black"
                 src={prevMediaUrl}
                 autoPlay
                 muted
@@ -289,7 +290,7 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
               />
             ) : (
               <div
-                className={`${mediaClassName} bg-cover bg-center`}
+                className="w-full h-full bg-cover bg-center"
                 style={{ backgroundImage: `url(${prevMediaUrl})` }}
               />
             )}
@@ -297,26 +298,49 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
         )}
 
         {/* Layer della scena attiva */}
-        <div className={`scene-stage-active-wrap relative z-10 transition-opacity duration-700 ease-in-out ${isFading ? "opacity-0" : "opacity-100"}`}>
+        <div className={`scene-stage-active-wrap absolute inset-0 z-10 transition-opacity duration-700 ease-in-out ${isFading ? "opacity-0" : "opacity-100"} w-full h-full`}>
           {isVideo ? (
             <video
-              className={`${mediaClassName} bg-black object-cover`}
+              className="w-full h-full object-cover bg-black"
               src={mediaUrl}
               aria-label={displayScene.title}
               autoPlay
               muted
               loop={displayScene.loop_video !== false}
               playsInline
-              controls
+              controls={displayScene.loop_video === false}
             />
           ) : (
             <div
-              className={`${mediaClassName} bg-cover bg-center`}
+              className="w-full h-full bg-cover bg-center"
               style={{ backgroundImage: `url(${mediaUrl})` }}
               aria-label={displayScene.title}
             />
           )}
         </div>
+
+        {/* Spotlight NPC Dialogue Box */}
+        {activeSpotlightNpc && (
+          <div className="absolute bottom-4 left-4 z-30 max-w-[85%] sm:max-w-[24rem] rounded-xl border border-brass/45 bg-black/85 p-3 shadow-2xl backdrop-blur-md flex items-center gap-3 animate-slide-up">
+            {activeSpotlightNpc.portrait_url ? (
+              <span
+                className="h-14 w-14 shrink-0 rounded-lg border border-brass/35 bg-cover bg-center shadow"
+                style={{ backgroundImage: `url(${activeSpotlightNpc.portrait_url})` }}
+              />
+            ) : (
+              <span className="h-14 w-14 shrink-0 rounded-lg border border-brass/35 bg-black/50 flex items-center justify-center text-brass/40 bg-brass/5">
+                <Sparkles size={20} />
+              </span>
+            )}
+            <div className="min-w-0 leading-tight">
+              <span className="text-[9px] uppercase tracking-wider text-brass font-bold">In conversazione</span>
+              <strong className="block text-sm font-serif mt-0.5" style={{ color: activeSpotlightNpc.color }}>{activeSpotlightNpc.name}</strong>
+              <p className="text-[11px] text-stone-300 italic truncate mt-1">
+                &ldquo;{activeSpotlightNpc.description}&rdquo;
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Layer meteo ad alte prestazioni */}
         <canvas ref={canvasRef} className="absolute inset-0 z-20 pointer-events-none w-full h-full" />

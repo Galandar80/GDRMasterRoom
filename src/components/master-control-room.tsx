@@ -199,6 +199,8 @@ export function MasterControlRoom({
 
   const sessionMediaAssets = useMemo(() => buildSessionMediaAssets(state), [state]);
   const libraryMediaAssets = useMemo(() => mergeMediaAssets(sessionMediaAssets, reusableMediaAssets), [sessionMediaAssets, reusableMediaAssets]);
+  const spotlightVisible = state.room.spotlight_visibility !== "off" && Boolean(state.room.spotlight_npc_id);
+  const spotlightNpc = useMemo(() => state.npcs.find((item) => item.id === state.room.spotlight_npc_id), [state.npcs, state.room.spotlight_npc_id]);
   const sendMasterChat = (text?: string) => {
     const msg = text || masterChatText;
     if (!msg.trim()) return;
@@ -437,7 +439,6 @@ export function MasterControlRoom({
               
               <div className="grid gap-4 xl:grid-cols-2">
                 <div className="grid gap-4">
-                  <SpotlightPanel room={state.room} npcs={state.npcs} currentUserId={state.profile.id} />
                   <CharactersPanel state={state} />
                 </div>
                 <div className="grid gap-4">
@@ -454,6 +455,7 @@ export function MasterControlRoom({
                 audioTitle={currentAudio.title}
                 onAudioVolumeChange={handleLocalVolumeChange}
                 onAudioMutedChange={handleLocalMutedChange}
+                activeSpotlightNpc={spotlightVisible && spotlightNpc ? spotlightNpc : null}
               />
             </div>
           ) : null}
