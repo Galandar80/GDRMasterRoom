@@ -119,15 +119,15 @@ export function StartMenu({
       fallback: "https://assets.mixkit.co/videos/preview/mixkit-fire-burning-in-a-forest-close-up-42826-large.mp4"
     },
     cyberpunk: {
-      local: "/assets/menu/theme-cyberpunk.mp4",
+      local: "/assets/menu/theme-cyber-master-room-hero.mp4",
       fallback: "https://assets.mixkit.co/videos/preview/mixkit-retro-futuristic-grid-background-with-glowing-lines-48906-large.mp4"
     },
     lovecraft: {
-      local: "/assets/menu/theme-lovecraft.mp4",
+      local: "/assets/menu/theme-eldritch-master-room-hero.mp4",
       fallback: "https://assets.mixkit.co/videos/preview/mixkit-ink-swirling-in-water-43301-large.mp4"
     },
     scifi: {
-      local: "/assets/menu/theme-scifi.mp4",
+      local: "/assets/menu/theme-scifi-master-room-hero.mp4",
       fallback: "https://assets.mixkit.co/videos/preview/mixkit-starry-night-sky-and-milky-way-4447-large.mp4"
     }
   };
@@ -412,12 +412,14 @@ export function StartMenu({
           </article>
         </div>
 
-        <footer className="hidden items-center gap-6 pb-2 text-xs uppercase tracking-[0.5em] text-brass/80 sm:flex">
-          <span className="text-stone-500">v1.0.0</span>
-          <span className="h-px flex-1 bg-gradient-to-r from-transparent via-brass/40 to-transparent" />
-          <span className="font-serif">Ogni storia inizia con una scelta.</span>
-          <span className="h-px flex-1 bg-gradient-to-r from-transparent via-brass/40 to-transparent" />
-          <span className="font-serif tracking-[0.28em] text-stone-400">Dario Germanà</span>
+        <footer className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6 pb-2 text-xs uppercase tracking-[0.28em] text-brass/80">
+          <div className="flex flex-col items-center sm:items-start">
+            <span className="text-stone-500">v1.0.0</span>
+            <span className="font-serif text-[10px] tracking-[0.15em] text-stone-400 mt-0.5">Creatore: Dario Germanà</span>
+          </div>
+          <span className="hidden sm:block h-px flex-1 bg-gradient-to-r from-transparent via-brass/40 to-transparent" />
+          <span className="font-serif hidden sm:block">Ogni storia inizia con una scelta.</span>
+          <span className="hidden sm:block h-px flex-1 bg-gradient-to-r from-transparent to-transparent" />
         </footer>
       </div>
     </section>

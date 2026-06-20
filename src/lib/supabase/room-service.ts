@@ -554,6 +554,20 @@ export async function createGameInSupabase(
     }
   ]);
 
+  // Insert default ambient sound effects
+  await supabase.from("sound_effects").insert([
+    { room_id: room.id, title: "Pioggia", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/rain.mp3", loop: true },
+    { room_id: room.id, title: "Vento", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/wind.mp3", loop: true },
+    { room_id: room.id, title: "Fuoco", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/fireplace.mp3", loop: true },
+    { room_id: room.id, title: "Taverna", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/coffee-shop.mp3", loop: true },
+    { room_id: room.id, title: "Oceano", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/ocean.mp3", loop: true },
+    { room_id: room.id, title: "Temporale", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/thunder.mp3", loop: true },
+    { room_id: room.id, title: "Foresta", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/forest.mp3", loop: true },
+    { room_id: room.id, title: "Notte Stellata", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/night.mp3", loop: true },
+    { room_id: room.id, title: "Passi", audio_url: "/assets/audio/distant_footsteps_on_wood.mp3", loop: false },
+    { room_id: room.id, title: "Porta", audio_url: "/assets/audio/creaking_wooden_door.mp3", loop: false }
+  ]);
+
   return loadRoomState(supabase, room.id, profile);
 }
 
