@@ -860,9 +860,14 @@ create policy "masters manage map custom markers" on public.map_custom_markers f
   with check (exists (select 1 from public.maps m where m.id = map_custom_markers.map_id and (public.is_room_master(m.room_id) or public.is_superadmin())));
 
 drop policy if exists "masters read map fog areas" on public.map_fog_areas;
+drop policy if exists "room members read map fog areas" on public.map_fog_areas;
 drop policy if exists "masters manage map fog areas" on public.map_fog_areas;
-create policy "masters read map fog areas" on public.map_fog_areas for select to authenticated using (
-  exists (select 1 from public.maps m where m.id = map_fog_areas.map_id and (public.is_room_master(m.room_id) or public.is_superadmin()))
+create policy "room members read map fog areas" on public.map_fog_areas for select to authenticated using (
+  exists (
+    select 1 from public.maps m
+    where m.id = map_fog_areas.map_id
+      and (public.is_room_master(m.room_id) or public.is_superadmin() or (m.is_visible_to_players and public.is_room_player(m.room_id)))
+  )
 );
 create policy "masters manage map fog areas" on public.map_fog_areas for all to authenticated
   using (exists (select 1 from public.maps m where m.id = map_fog_areas.map_id and (public.is_room_master(m.room_id) or public.is_superadmin())))

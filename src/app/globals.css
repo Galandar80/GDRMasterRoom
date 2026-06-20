@@ -10871,7 +10871,6 @@ select.field option {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   transform: translateX(-25%);
-  animation: liquid-wave 2s linear infinite;
 }
 
 @keyframes liquid-wave {
