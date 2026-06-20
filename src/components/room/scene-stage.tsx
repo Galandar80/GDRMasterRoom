@@ -339,6 +339,7 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
         <h2 className="text-2xl font-semibold text-white sm:text-3xl">{displayScene.title}</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">{displayScene.description}</p>
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

@@ -19,12 +19,7 @@ export function DiceRequestPanel({
   const [visibility, setVisibility] = useState<"public" | "private">("public");
 
   return (
-    <section className="ui-panel-window relative p-5 shadow-lg rounded-xl border border-brass/25 bg-ink-950/90 overflow-hidden">
-      {/* Decorative Corners */}
-      <div className="absolute left-1.5 top-1.5 h-1.5 w-1.5 border-l border-t border-brass/40 pointer-events-none" />
-      <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 border-r border-t border-brass/40 pointer-events-none" />
-      <div className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 border-l border-b border-brass/40 pointer-events-none" />
-      <div className="absolute right-1.5 bottom-1.5 h-1.5 w-1.5 border-r border-b border-brass/40 pointer-events-none" />
+    <section className="ui-panel-window glass-panel relative p-5 shadow-lg rounded-xl border border-brass/25 text-white">
 
       <h2 className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-[0.24em] text-brass">
         <Dice5 size={14} className="filter drop-shadow-[0_0_5px_rgba(200,163,93,0.3)]" /> Richiedi tiro
@@ -41,7 +36,7 @@ export function DiceRequestPanel({
           <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
             Dadi
             <input
-              className="field px-3 py-2 text-xs mt-1"
+              className="input-grimoire field px-3 py-2 text-xs mt-1"
               aria-label="Numero dadi"
               type="number"
               min="1"
@@ -52,7 +47,7 @@ export function DiceRequestPanel({
           </label>
           <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
             Tipo
-            <select className="field px-3 py-2 text-xs mt-1" value={diceSides} onChange={(event) => setDiceSides(Number(event.target.value))}>
+            <select className="input-grimoire field px-3 py-2 text-xs mt-1" value={diceSides} onChange={(event) => setDiceSides(Number(event.target.value))}>
               {[4, 6, 8, 10, 12, 20, 100].map((sides) => (
                 <option key={sides} value={sides} className="bg-ink-950 text-stone-200">d{sides}</option>
               ))}
@@ -60,7 +55,7 @@ export function DiceRequestPanel({
           </label>
           <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
             Destinatario
-            <select className="field px-3 py-2 text-xs mt-1" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)}>
+            <select className="input-grimoire field px-3 py-2 text-xs mt-1" value={targetUserId} onChange={(event) => setTargetUserId(event.target.value)}>
               <option value="" className="bg-ink-950 text-stone-200">Tutti</option>
               {characters.map((character) => (
                 <option key={character.id} value={character.user_id} className="bg-ink-950 text-stone-200">
@@ -71,7 +66,7 @@ export function DiceRequestPanel({
           </label>
           <label className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
             Visibilità
-            <select className="field px-3 py-2 text-xs mt-1" value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "private")}>
+            <select className="input-grimoire field px-3 py-2 text-xs mt-1" value={visibility} onChange={(event) => setVisibility(event.target.value as "public" | "private")}>
               <option value="public" className="bg-ink-950 text-stone-200">Pubblico</option>
               <option value="private" className="bg-ink-950 text-stone-200">Privato</option>
             </select>
@@ -79,12 +74,21 @@ export function DiceRequestPanel({
         </div>
         <div className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
           Motivazione
-          <input className="field px-3 py-2 text-xs mt-1" placeholder="Es. Percezione o Storia..." value={reason} onChange={(event) => setReason(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-xs mt-1" placeholder="Es. Percezione o Storia..." value={reason} onChange={(event) => setReason(event.target.value)} />
         </div>
-        <button className="ui-btn-fantasy w-full mt-1.5 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-serif text-xs font-bold uppercase tracking-wider text-stone-900 transition">
+        <button 
+          onMouseEnter={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiHover());
+          }}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+          }}
+          className="btn-brass-premium w-full mt-1.5 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-serif text-xs font-bold uppercase tracking-wider transition"
+        >
           <Send size={13} /> Invia richiesta
         </button>
       </form>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }
@@ -94,12 +98,7 @@ export function PlayerDicePanel({ requests, onRoll }: { requests: DiceRequest[];
   if (!pending.length) return null;
 
   return (
-    <section className="ui-panel-window relative p-5 shadow-lg rounded-xl border border-brass/25 bg-ink-950/90 overflow-hidden">
-      {/* Decorative Corners */}
-      <div className="absolute left-1.5 top-1.5 h-1.5 w-1.5 border-l border-t border-brass/40 pointer-events-none" />
-      <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 border-r border-t border-brass/40 pointer-events-none" />
-      <div className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 border-l border-b border-brass/40 pointer-events-none" />
-      <div className="absolute right-1.5 bottom-1.5 h-1.5 w-1.5 border-r border-b border-brass/40 pointer-events-none" />
+    <section className="ui-panel-window glass-panel relative p-5 shadow-lg rounded-xl border border-brass/25 text-white">
 
       <h2 className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-[0.24em] text-brass">
         <Dice5 size={14} className="filter drop-shadow-[0_0_5px_rgba(200,163,93,0.3)]" /> Tiri richiesti
@@ -120,13 +119,14 @@ export function PlayerDicePanel({ requests, onRoll }: { requests: DiceRequest[];
                 import("@/lib/sound-generator").then((mod) => mod.playUiDiceRoll());
                 onRoll(request);
               }}
-              className="ui-btn-fantasy flex items-center justify-center rounded px-4 py-2 font-serif text-xs font-bold uppercase tracking-wider text-stone-900 transition"
+              className="btn-brass-premium flex items-center justify-center rounded-lg px-4 py-2 font-serif text-xs font-bold uppercase tracking-wider transition"
             >
               Tira
             </button>
           </article>
         ))}
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }
@@ -151,12 +151,7 @@ export function SpotlightPanel({ room, npcs, currentUserId }: { room: Room; npcs
   if (!visible) return null;
 
   return (
-    <section className="animate-slide-up relative overflow-hidden rounded-xl border-2 border-double border-brass/40 bg-ink-950/90 p-5 shadow-[0_0_20px_rgba(200,163,93,0.18)] backdrop-blur-md">
-      {/* Decorative corners */}
-      <div className="absolute left-1 top-1 h-2 w-2 border-l border-t border-brass/50" />
-      <div className="absolute right-1 top-1 h-2 w-2 border-r border-t border-brass/50" />
-      <div className="absolute left-1 bottom-1 h-2 w-2 border-l border-b border-brass/50" />
-      <div className="absolute right-1 bottom-1 h-2 w-2 border-r border-b border-brass/50" />
+    <section className="glass-panel animate-slide-up relative rounded-xl border-2 border-double border-brass/40 p-5 shadow-2xl text-white">
 
       <h2 className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.24em] text-brass">
         <UserRound size={14} /> In conversazione attiva
@@ -182,6 +177,7 @@ export function SpotlightPanel({ room, npcs, currentUserId }: { room: Room; npcs
           </div>
         </div>
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }
@@ -202,12 +198,7 @@ export function SpotlightManager({
   const [userIds, setUserIds] = useState<string[]>(room.spotlight_user_ids ?? []);
 
   return (
-    <section className="ui-panel-window relative p-5 shadow-lg rounded-xl border border-brass/25 bg-ink-950/90 overflow-hidden">
-      {/* Decorative Corners */}
-      <div className="absolute left-1.5 top-1.5 h-1.5 w-1.5 border-l border-t border-brass/40 pointer-events-none" />
-      <div className="absolute right-1.5 top-1.5 h-1.5 w-1.5 border-r border-t border-brass/40 pointer-events-none" />
-      <div className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 border-l border-b border-brass/40 pointer-events-none" />
-      <div className="absolute right-1.5 bottom-1.5 h-1.5 w-1.5 border-r border-b border-brass/40 pointer-events-none" />
+    <section className="ui-panel-window glass-panel relative p-5 shadow-lg rounded-xl border border-brass/25 text-white">
 
       <h2 className="flex items-center gap-2 font-serif text-xs font-bold uppercase tracking-[0.24em] text-brass">
         <Eye size={14} className="filter drop-shadow-[0_0_5px_rgba(200,163,93,0.3)]" /> Personaggio in conversazione
@@ -215,14 +206,14 @@ export function SpotlightManager({
       <div className="mt-4 grid gap-3">
         <div className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
           Seleziona NPC
-          <select className="field px-3 py-2 text-xs mt-1" value={npcId} onChange={(event) => setNpcId(event.target.value)}>
+          <select className="input-grimoire field px-3 py-2 text-xs mt-1" value={npcId} onChange={(event) => setNpcId(event.target.value)}>
             <option value="" className="bg-ink-950 text-stone-200">Nessuno</option>
             {npcs.map((npc) => <option key={npc.id} value={npc.id} className="bg-ink-950 text-stone-200">{npc.name}</option>)}
           </select>
         </div>
         <div className="flex flex-col text-[10px] font-bold uppercase tracking-wider text-stone-400">
           Visibilità
-          <select className="field px-3 py-2 text-xs mt-1" value={visibility} onChange={(event) => setVisibility(event.target.value as "off" | "public" | "private")}>
+          <select className="input-grimoire field px-3 py-2 text-xs mt-1" value={visibility} onChange={(event) => setVisibility(event.target.value as "off" | "public" | "private")}>
             <option value="off" className="bg-ink-950 text-stone-200">Nascosto</option>
             <option value="public" className="bg-ink-950 text-stone-200">Pubblico</option>
             <option value="private" className="bg-ink-950 text-stone-200">Solo selezionati</option>
@@ -243,10 +234,21 @@ export function SpotlightManager({
             ))}
           </div>
         ) : null}
-        <button type="button" onClick={() => onSave({ npcId: npcId || null, visibility, userIds })} className="ui-btn-fantasy w-full mt-1.5 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-serif text-xs font-bold uppercase tracking-wider text-stone-900 transition">
+        <button 
+          type="button" 
+          onMouseEnter={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiHover());
+          }}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+            onSave({ npcId: npcId || null, visibility, userIds });
+          }} 
+          className="btn-brass-premium w-full mt-1.5 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 font-serif text-xs font-bold uppercase tracking-wider transition"
+        >
           Salva focus
         </button>
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

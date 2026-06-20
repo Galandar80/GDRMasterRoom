@@ -200,7 +200,7 @@ export function AudioPlayer({ track, autoStart = true, externalVolume, externalM
             aria-label={playing ? "Pausa locale" : "Riproduci locale"}
             onClick={togglePlayback}
             disabled={!activeTrack.audio_url}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08] disabled:cursor-not-allowed disabled:opacity-45"
+            className="flex h-10 w-10 items-center justify-center rounded-lg btn-iron-premium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-45"
           >
             {playing ? <Pause size={17} /> : <Play size={17} />}
           </button>
@@ -213,7 +213,7 @@ export function AudioPlayer({ track, autoStart = true, externalVolume, externalM
               setMuted(next);
               onMutedChange?.(next);
             }}
-            className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white hover:bg-white/[0.08]"
+            className="flex h-10 w-10 items-center justify-center rounded-lg btn-iron-premium transition-all duration-200"
           >
             {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
           </button>
@@ -234,6 +234,7 @@ export function AudioPlayer({ track, autoStart = true, externalVolume, externalM
           />
         </div>
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

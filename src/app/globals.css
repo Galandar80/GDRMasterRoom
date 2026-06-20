@@ -5,6 +5,25 @@
 
 :root {
   color-scheme: dark;
+  
+  --color-ink-900-rgb: 7, 8, 13;
+  --color-ink-850-rgb: 10, 11, 18;
+  --color-ink-800-rgb: 13, 16, 24;
+  --color-brass-rgb: 215, 173, 91;
+  --color-brass: #d7ad5b;
+  --color-blood: #7f1d1d;
+  
+  --color-master: #d7ad5b;       /* Ember Gold */
+  --color-npc: #a78bfa;          /* Occult Violet */
+  --color-system: #2dd4bf;       /* Runic Teal */
+  --color-private: #f97316;      /* Mind Orange */
+  --color-off: #94a3b8;          /* Chalk Slate */
+  --color-event: #7f1d1d;        /* Crimson Blood */
+  
+  --font-cinzel: 'Cinzel', serif;
+  --font-medieval: 'MedievalSharp', cursive;
+  --font-space: 'Space Grotesk', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
 }
 
 .map-tool-panel {
@@ -7040,11 +7059,17 @@ select.field:focus {
 .director-nav-link.is-active,
 .player-header-action:hover,
 .player-menu-button:hover {
-  border-color: rgba(var(--color-brass-rgb), 0.42) !important;
+  border-color: rgba(var(--color-brass-rgb), 0.62) !important;
   background-image:
-    linear-gradient(180deg, rgba(var(--color-brass-rgb), 0.14), rgba(0, 0, 0, 0.18)),
-    var(--atlas-texture-gold) !important;
-  color: #fff4dc !important;
+    linear-gradient(180deg, rgba(74, 52, 28, 0.94), rgba(30, 22, 12, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: cover, cover !important;
+  background-blend-mode: normal, normal !important;
+  color: #ffe8b5 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95) !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.45),
+    0 0 10px rgba(var(--color-brass-rgb), 0.15) !important;
 }
 
 .atlas-app-shell :where(.field, input.field, textarea.field, select.field) {
@@ -8827,6 +8852,7 @@ select.field:focus {
 .director-sidebar .director-nav-link {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
   transition: all var(--codex-transition);
   animation: codex-slide-in-left 200ms ease both;
 }
@@ -8836,11 +8862,23 @@ select.field:focus {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background-image: var(--atlas-texture-metal);
+  background-image: var(--atlas-texture-parchment);
   background-size: cover;
   background-blend-mode: soft-light;
   opacity: 0;
+  z-index: -1;
   transition: opacity var(--codex-transition);
+}
+
+/* Theme overrides for the hover texture */
+.theme-cyberpunk .director-sidebar .director-nav-link::before {
+  background-image: var(--atlas-texture-metal);
+}
+.theme-lovecraft .director-sidebar .director-nav-link::before {
+  background-image: var(--atlas-texture-ink);
+}
+.theme-scifi .director-sidebar .director-nav-link::before {
+  background-image: var(--atlas-texture-glass);
 }
 
 .director-sidebar .director-nav-link svg {
@@ -9384,15 +9422,19 @@ select.field:focus {
    CODEX SESSION SWITCHER  
 ───────────────────────────────────────────────── */
 .session-command-card {
-  border: 1px solid rgba(200, 163, 93, 0.26) !important;
+  border: 1px solid rgba(200, 163, 93, 0.32) !important;
+  background-color: #1a140f !important;
   background-image:
-    linear-gradient(135deg, rgba(200, 163, 93, 0.12), rgba(124, 58, 237, 0.08)),
+    linear-gradient(180deg, rgba(28, 22, 16, 0.86) 0%, rgba(15, 12, 9, 0.94) 100%),
     var(--atlas-texture-parchment) !important;
-  background-size: auto, cover !important;
-  background-blend-mode: normal, soft-light !important;
+  background-size: cover, cover !important;
+  background-position: center, center !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-blend-mode: normal, normal !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 18px 42px rgba(0, 0, 0, 0.28) !important;
+    inset 0 0 1.5rem rgba(0, 0, 0, 0.6),
+    0 18px 42px rgba(0, 0, 0, 0.42) !important;
 }
 .session-command-button {
   border: 1px solid rgba(200, 163, 93, 0.42) !important;
@@ -10198,130 +10240,112 @@ input[type="number"]::-webkit-outer-spin-button {
 /* ═══════════════════════════════════════════════
    BASE: .premium-action
    Reset completo di tutti gli strati precedenti
+   Tavoletta gotica premium unificata
+   Note: Rimosso il border-image per evitare squish
 ═══════════════════════════════════════════════ */
 .premium-action {
-  /* Reset strati precedenti */
+  /* Reset strati e bordi precedenti */
   border-image: none !important;
   border-image-source: none !important;
   border-image-slice: unset !important;
+  border-image-width: unset !important;
+  border-image-repeat: unset !important;
 
   /* Layout */
   position: relative !important;
   display: grid !important;
-  grid-template-columns: 5rem 1fr !important;
+  grid-template-columns: 4.5rem 1fr !important;
   align-items: center !important;
-  gap: 0 !important;
-  min-height: 5.5rem !important;
+  gap: 1.25rem !important;
+  min-height: 6rem !important;
   width: 100% !important;
   text-align: left !important;
   cursor: pointer !important;
   isolation: isolate !important;
   overflow: hidden !important;
+  padding: 0.75rem 1.5rem 0.75rem 1.25rem !important;
 
-  /* Aspetto base — tutti unificati, scuro/parchment */
-  border: 1px solid rgba(200, 163, 93, 0.32) !important;
-  border-bottom: 2px solid rgba(200, 163, 93, 0.22) !important;
-  border-radius: 0.72rem !important;
+  /* Aspetto base — tavoletta gotica unificata */
+  border: 1px solid rgba(200, 163, 93, 0.38) !important;
+  border-bottom: 2px solid rgba(200, 163, 93, 0.28) !important;
+  border-radius: 0.75rem !important;
+  
+  /* Sfondo pergamena scura con gradiente caldo */
+  background-color: #0f0c08 !important;
   background-image:
-    linear-gradient(90deg,
-      rgba(8, 7, 12, 0.96) 0%,
-      rgba(12, 10, 18, 0.92) 40%,
-      rgba(8, 7, 12, 0.96) 100%
+    linear-gradient(90deg, 
+      rgba(15, 12, 8, 0.98) 0%, 
+      rgba(24, 18, 12, 0.93) 30%, 
+      rgba(24, 18, 12, 0.93) 70%, 
+      rgba(15, 12, 8, 0.98) 100%
     ),
-    var(--atlas-texture-metal) !important;
-  background-size: auto, cover !important;
-  background-blend-mode: normal, soft-light !important;
-  background-color: transparent !important;
+    var(--atlas-texture-parchment) !important;
+  background-size: cover, cover !important;
+  background-position: center, center !important;
+  background-repeat: no-repeat, no-repeat !important;
+  background-blend-mode: normal, normal !important;
 
   /* Shadow base */
   box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.5),
-    0 1px 0 rgba(255, 241, 210, 0.06) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.5) inset !important;
+    0 8px 32px rgba(0, 0, 0, 0.65),
+    inset 0 0 2.2rem rgba(0, 0, 0, 0.85),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.04) !important;
 
   /* Transition */
   transition:
-    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 180ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 220ms cubic-bezier(0.16, 1, 0.3, 1) !important;
   filter: none !important;
-  padding: 0 !important;
 }
 
-/* ── Linea decorativa sotto la divisione icona / testo ── */
+/* Rimosso divisore centrale duro per migliorare la fluidità del blocco */
 .premium-action::before {
-  content: "" !important;
-  position: absolute !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  left: 5rem !important;
-  width: 1px !important;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    rgba(200, 163, 93, 0.28) 20%,
-    rgba(200, 163, 93, 0.38) 50%,
-    rgba(200, 163, 93, 0.28) 80%,
-    transparent
-  ) !important;
-  pointer-events: none !important;
-  z-index: 0 !important;
-  display: block !important;
-  inset: unset !important;
-  height: auto !important;
-  border-radius: 0 !important;
-  border: none !important;
-  opacity: 1 !important;
-  filter: none !important;
-  background-size: auto !important;
-  background-repeat: no-repeat !important;
-  transform: none !important;
+  display: none !important;
 }
 
 /* ── Shimmer sweep su hover ── */
 .premium-action::after {
   content: "" !important;
   position: absolute !important;
-  top: 0 !important;
-  left: -200% !important;
-  width: 50% !important;
-  height: 100% !important;
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 241, 210, 0.09),
+    rgba(255, 241, 210, 0.08) 30%,
+    rgba(255, 241, 210, 0.16) 50%,
+    rgba(255, 241, 210, 0.08) 70%,
     transparent
   ) !important;
-  transform: skewX(-18deg) !important;
+  transform: translateX(-100%) skewX(-20deg) !important;
   pointer-events: none !important;
   z-index: 5 !important;
-  opacity: 1 !important;
+  opacity: 0 !important;
+  transition: transform 0.6s ease, opacity 0.6s ease !important;
+  border-radius: inherit !important;
   display: block !important;
-  inset: unset !important;
-  border-radius: 0 !important;
-  filter: none !important;
-  border: none !important;
-  background-size: auto !important;
-  transition: none !important;
+  width: 50% !important;
+  height: 100% !important;
+  top: 0 !important;
+  left: -200% !important;
 }
 
 /* ── Hover state ── */
 .premium-action:hover {
   transform: translateY(-2px) !important;
-  border-color: rgba(200, 163, 93, var(--btn-border-opacity, 0.60)) !important;
-  border-bottom-color: rgba(200, 163, 93, var(--btn-border-opacity, 0.45)) !important;
+  border-color: rgba(200, 163, 93, var(--btn-border-opacity, 0.68)) !important;
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.58),
-    0 0 28px var(--btn-glow, rgba(200, 163, 93, 0.12)),
-    0 1px 0 rgba(255, 241, 210, 0.08) inset,
-    0 -1px 0 rgba(0, 0, 0, 0.5) inset !important;
+    0 12px 36px rgba(0, 0, 0, 0.75),
+    0 0 28px var(--btn-glow, rgba(200, 163, 93, 0.22)),
+    inset 0 0 1.8rem rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(255, 241, 210, 0.08) !important;
   background-image:
-    linear-gradient(90deg,
-      rgba(8, 7, 12, 0.94) 0%,
-      rgba(18, 14, 26, 0.88) 40%,
-      rgba(8, 7, 12, 0.94) 100%
+    linear-gradient(90deg, 
+      rgba(20, 16, 12, 0.98) 0%, 
+      rgba(36, 28, 20, 0.93) 30%, 
+      rgba(36, 28, 20, 0.93) 70%, 
+      rgba(20, 16, 12, 0.98) 100%
     ),
-    var(--atlas-texture-metal) !important;
+    var(--atlas-texture-parchment) !important;
   filter: none !important;
 }
 
@@ -10344,8 +10368,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Ember/Gold — Crea partita */
 .premium-action-ember {
-  --btn-border-opacity: 0.62;
-  --btn-glow: rgba(212, 140, 60, 0.20);
+  --btn-border-opacity: 0.68;
+  --btn-glow: rgba(212, 140, 60, 0.22);
   --btn-icon-color: #f0b860;
   --btn-icon-glow: rgba(212, 140, 60, 0.60);
   --btn-icon-border: rgba(212, 140, 60, 0.55);
@@ -10356,8 +10380,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Violet — Sessioni / Entra con codice */
 .premium-action-violet {
-  --btn-border-opacity: 0.52;
-  --btn-glow: rgba(145, 85, 230, 0.16);
+  --btn-border-opacity: 0.58;
+  --btn-glow: rgba(145, 85, 230, 0.18);
   --btn-icon-color: #c084fc;
   --btn-icon-glow: rgba(145, 85, 230, 0.55);
   --btn-icon-border: rgba(145, 85, 230, 0.52);
@@ -10368,8 +10392,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 /* Emerald — Superadmin */
 .premium-action-emerald {
-  --btn-border-opacity: 0.52;
-  --btn-glow: rgba(16, 185, 129, 0.14);
+  --btn-border-opacity: 0.58;
+  --btn-glow: rgba(16, 185, 129, 0.16);
   --btn-icon-color: #6ee7b7;
   --btn-icon-glow: rgba(16, 185, 129, 0.55);
   --btn-icon-border: rgba(16, 185, 129, 0.48);
@@ -10381,21 +10405,24 @@ input[type="number"]::-webkit-outer-spin-button {
 /* ═══════════════════════════════════════════════
    ICON MEDALLION — .premium-action-icon
 ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════
+   ICON MEDALLION — .premium-action-icon
+═══════════════════════════════════════════════ */
 .premium-action-icon {
   position: relative !important;
   display: grid !important;
   place-items: center !important;
-  align-self: stretch !important;
-  width: 5rem !important;
-  height: auto !important;
-  min-height: 5.5rem !important;
-  background: var(--btn-icon-bg, rgba(30, 22, 10, 0.72)) !important;
-  border-right: 1px solid rgba(200, 163, 93, 0.18) !important;
-  border-radius: 0.65rem 0 0 0.65rem !important;
+  align-self: center !important;
+  width: 3.6rem !important;
+  height: 3.6rem !important;
+  border-radius: 50% !important;
+  background: var(--btn-icon-bg, rgba(20, 15, 10, 0.75)) !important;
+  border: 1px solid var(--btn-icon-border, rgba(200, 163, 93, 0.36)) !important;
+  box-shadow:
+    inset 0 0 0.75rem rgba(0, 0, 0, 0.8),
+    0 0 12px var(--btn-icon-glow, rgba(200, 163, 93, 0.12)) !important;
   flex-shrink: 0 !important;
   overflow: hidden !important;
-  border: none !important;
-  box-shadow: none !important;
 }
 
 /* Sfondo radial glow nell'area icona */
@@ -10414,46 +10441,42 @@ input[type="number"]::-webkit-outer-spin-button {
   display: block !important;
   opacity: 0.65 !important;
   filter: none !important;
+  z-index: 1 !important;
 }
 
 /* Cerchio medallion attorno all'icona */
 .premium-action-icon::after {
   content: "" !important;
   position: absolute !important;
-  inset: auto !important;
-  width: 3rem !important;
-  height: 3rem !important;
-  border-radius: 999px !important;
-  border: 1px solid var(--btn-icon-border, rgba(200, 163, 93, 0.45)) !important;
-  background:
-    var(--atlas-ui-ring) center / 100% 100% no-repeat,
-    var(--btn-icon-bg, rgba(10, 8, 16, 0.85)) !important;
-  box-shadow:
-    0 0 0 3px rgba(0, 0, 0, 0.42),
-    inset 0 0 1rem rgba(0, 0, 0, 0.72) !important;
-  opacity: 0.52 !important;
+  inset: 0 !important;
+  border-radius: inherit !important;
+  border: none !important;
+  background: var(--atlas-ui-ring) center / 108% 108% no-repeat !important;
+  box-shadow: none !important;
+  opacity: 0.72 !important;
   pointer-events: none !important;
-  z-index: 0 !important;
+  z-index: 2 !important;
+  top: 0 !important;
+  left: 0 !important;
+  transform: none !important;
   display: block !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  filter: none !important;
+  width: auto !important;
+  height: auto !important;
 }
 
 /* L'atlas-icon dentro l'area icona */
 .premium-action-icon .atlas-icon {
   position: relative !important;
-  z-index: 2 !important;
-  width: 2.1rem !important;
-  height: 2.1rem !important;
-  opacity: 0.92 !important;
+  z-index: 3 !important;
+  width: 2rem !important;
+  height: 2rem !important;
+  opacity: 0.95 !important;
   background-size: contain !important;
   background-position: center !important;
   filter:
     saturate(0.8)
-    brightness(1.1)
-    drop-shadow(0 0 0.55rem var(--btn-icon-glow, rgba(200, 163, 93, 0.55))) !important;
+    brightness(1.15)
+    drop-shadow(0 0 0.4rem var(--btn-icon-glow, rgba(200, 163, 93, 0.55))) !important;
   animation: menu-icon-pulse 3s ease-in-out infinite !important;
 }
 
@@ -10462,9 +10485,11 @@ input[type="number"]::-webkit-outer-spin-button {
 ═══════════════════════════════════════════════ */
 .premium-action > span:not(.premium-action-icon) {
   position: relative !important;
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
   min-width: 0 !important;
-  padding: 0.9rem 4.5rem 0.9rem 1.35rem !important;
+  padding: 0.25rem 2.2rem 0.25rem 0 !important;
   z-index: 2 !important;
 }
 
@@ -10483,7 +10508,6 @@ input[type="number"]::-webkit-outer-spin-button {
   display: block !important;
   left: unset !important;
   bottom: unset !important;
-  height: 3.4rem !important;
   border-radius: 0 !important;
   filter: saturate(0) brightness(2) !important;
 }
@@ -10492,26 +10516,26 @@ input[type="number"]::-webkit-outer-spin-button {
 .premium-action span:not(.premium-action-icon) span:first-child {
   display: block !important;
   font-family: var(--font-cinzel), Georgia, serif !important;
-  font-size: 1.05rem !important;
+  font-size: 1.15rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.14em !important;
+  letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
-  color: #f5edda !important;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85) !important;
-  line-height: 1.2 !important;
+  color: #f7edd4 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.95) !important;
+  line-height: 1.25 !important;
 }
 
 /* Sottotitolo del bottone */
 .premium-action span:not(.premium-action-icon) span:last-child {
   display: block !important;
   margin-top: 0.35rem !important;
-  font-size: 0.8rem !important;
+  font-size: 0.82rem !important;
   font-family: inherit !important;
   font-weight: 400 !important;
   letter-spacing: 0.02em !important;
   text-transform: none !important;
-  color: rgba(220, 200, 165, 0.65) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72) !important;
+  color: rgba(224, 204, 172, 0.68) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85) !important;
   line-height: 1.45 !important;
 }
 
@@ -10519,37 +10543,38 @@ input[type="number"]::-webkit-outer-spin-button {
 .premium-action > span:not(.premium-action-icon)::after {
   content: "" !important;
   position: absolute !important;
-  right: 1rem !important;
+  right: 0.25rem !important;
   top: 50% !important;
-  width: 1.4rem !important;
-  height: 1.4rem !important;
+  width: 1.25rem !important;
+  height: 1.25rem !important;
   transform: translateY(-50%) !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(200%2C163%2C93%2C0.55)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E") !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(200%2C163%2C93%2C0.6)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
   background-size: contain !important;
   background-position: center !important;
   pointer-events: none !important;
   display: block !important;
-  opacity: 1 !important;
+  opacity: 0.72 !important;
   border: none !important;
   filter: none !important;
   border-radius: 0 !important;
   left: unset !important;
   bottom: unset !important;
   inset: unset !important;
-  transition: transform 180ms ease !important;
+  transition: transform 220ms ease, opacity 220ms ease !important;
 }
 
 .premium-action:hover > span:not(.premium-action-icon)::after {
   transform: translateY(-50%) translateX(3px) !important;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(220%2C185%2C110%2C0.85)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='9 18 15 12 9 6'/%3E%3C/svg%3E") !important;
+  opacity: 1 !important;
 }
 
 /* ── Hover sull'icona: glow intensificato ── */
 .premium-action:hover .premium-action-icon {
-  background: var(--btn-icon-bg, rgba(30, 22, 10, 0.72)) !important;
-  box-shadow: none !important;
-  border: none !important;
+  border-color: rgba(200, 163, 93, 0.55) !important;
+  box-shadow:
+    inset 0 0 0.75rem rgba(0, 0, 0, 0.8),
+    0 0 16px var(--btn-icon-glow, rgba(200, 163, 93, 0.22)) !important;
 }
 .premium-action:hover .premium-action-icon .atlas-icon {
   filter:
@@ -10729,4 +10754,495 @@ select.field option {
   background-color: #0b0c10 !important;
   color: #e5e7eb !important;
 }
+
+/* ==========================================================================
+   ELEMENTI PREMIUM REDESIGN - DARK GRIMOIRE & ALCHEMY
+   ========================================================================== */
+
+/* Vignettatura cinematografica fissa ai bordi dello schermo */
+.vignette-overlay-cinematic {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  box-shadow: inset 0 0 8rem rgba(0, 0, 0, 0.85);
+}
+
+/* Bottone Ottone Premium */
+.btn-brass-premium {
+  position: relative;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.5) !important;
+  background-image: 
+    linear-gradient(180deg, rgba(35, 28, 18, 0.92), rgba(15, 12, 8, 0.96)),
+    var(--atlas-ui-button) !important;
+  background-size: cover;
+  color: var(--color-brass) !important;
+  font-family: var(--font-cinzel), serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.15em !important;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 0 10px rgba(var(--color-brass-rgb), 0.1) !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+}
+
+.btn-brass-premium:hover {
+  border-color: var(--color-brass) !important;
+  color: #ffedd5 !important;
+  box-shadow: 
+    0 6px 18px rgba(var(--color-brass-rgb), 0.3),
+    inset 0 0 15px rgba(var(--color-brass-rgb), 0.2) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+/* Bottone Ferro Battuto Premium */
+.btn-iron-premium {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background-image: 
+    linear-gradient(180deg, rgba(20, 22, 28, 0.92), rgba(8, 9, 12, 0.96)),
+    var(--atlas-texture-metal) !important;
+  background-size: cover;
+  color: #d1d5db !important;
+  font-family: var(--font-cinzel), serif !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.4),
+    inset 0 0 8px rgba(255, 255, 255, 0.05) !important;
+  cursor: pointer;
+  transition: all 0.2s ease !important;
+}
+
+.btn-iron-premium:hover {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+  box-shadow: 
+    0 6px 14px rgba(255, 255, 255, 0.1),
+    inset 0 0 12px rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1.5px) !important;
+}
+
+/* Contenitore input stile grimorio */
+.input-grimoire {
+  background-image: 
+    linear-gradient(180deg, rgba(12, 13, 18, 0.9), rgba(5, 6, 10, 0.95)),
+    var(--atlas-texture-ink) !important;
+  background-size: cover;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.22) !important;
+  color: #ffedd5 !important;
+  font-family: var(--font-space), sans-serif !important;
+}
+
+.input-grimoire:focus {
+  border-color: var(--color-brass) !important;
+  box-shadow: 0 0 15px rgba(var(--color-brass-rgb), 0.2), inset 0 0 10px rgba(var(--color-brass-rgb), 0.08) !important;
+}
+
+/* Fiala HP Liquida Animata */
+.fial-hp-container {
+  position: relative;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  border: 2px solid rgba(var(--color-brass-rgb), 0.4);
+  background: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.fial-hp-liquid {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(180deg, #ef4444, #7f1d1d);
+  transition: height 0.4s ease-in-out;
+}
+
+.fial-hp-liquid::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translateX(-25%);
+  animation: liquid-wave 2s linear infinite;
+}
+
+@keyframes liquid-wave {
+  0% { transform: translateX(-50%) rotate(0deg); }
+  100% { transform: translateX(0%) rotate(360deg); }
+}
+
+/* Medaglione dei personaggi con rune */
+.char-medallion-premium {
+  position: relative;
+  border-radius: 999px;
+  border: 2px solid rgba(var(--color-brass-rgb), 0.4);
+  box-shadow: 0 0 14px rgba(var(--color-brass-rgb), 0.15);
+  background-image: var(--atlas-ui-ring);
+  background-position: center;
+  background-size: cover;
+}
+
+/* ==========================================================================
+   ATLANTE VIVO 2.0 - PREMIUM REDESIGN EXTENSIONS
+   ========================================================================== */
+
+/* 1. Unificazione Palette & Font nelle variabili base */
+:root {
+  --color-ink-900: #040508;
+  --color-ink-850: #0d1017;
+  --color-ink-800: #161c28;
+  
+  --color-brass-glow: #e2c082;
+  --color-brass-raw: #bfa065;
+  --color-brass-muted: #73603e;
+  
+  --color-blood-dark: #4a0e0e;
+  --color-blood-glow: #991b1b;
+  
+  --color-teal-rune: #115e59;
+  --color-teal-glow: #14b8a6;
+}
+
+/* 2. Scrollbar Gotica / Custom */
+.scrollbar-soft::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scrollbar-soft::-webkit-scrollbar-track {
+  background: rgba(4, 5, 8, 0.6);
+  border-radius: 4px;
+}
+.scrollbar-soft::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-brass-muted), var(--color-brass-raw));
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+}
+.scrollbar-soft::-webkit-scrollbar-thumb:hover {
+  background: var(--color-brass-glow);
+}
+
+/* 3. Tasti Navbar e Sidebar Intagliati */
+.director-sidebar .premium-quick-option,
+.director-sidebar button,
+.premium-icon-button {
+  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)) !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.15) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+  position: relative;
+  overflow: hidden;
+}
+.premium-icon-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.4s ease;
+}
+.premium-icon-button:hover::after {
+  transform: translateX(100%);
+}
+
+/* 4. Chat Overrides: Messaggi Pergamena & Fumetti */
+.story-message {
+  position: relative;
+  margin-bottom: 0.85rem;
+  padding: 0.85rem 1rem !important;
+  border-radius: 0.65rem;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.12) !important;
+  background: linear-gradient(180deg, rgba(20, 22, 28, 0.45), rgba(10, 11, 16, 0.65)) !important;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.story-message:hover {
+  border-color: rgba(var(--color-brass-rgb), 0.28) !important;
+  transform: translateX(2px);
+}
+
+/* Messaggi Master - Stile Editto Dorato */
+.story-message--master {
+  background-image: 
+    linear-gradient(180deg, rgba(20, 17, 10, 0.82), rgba(8, 7, 4, 0.92)),
+    url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l40 40-40 40L0 40z' fill='%23c8a35d' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E") !important;
+  border-left: 3px solid var(--color-brass) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4), inset 0 0 10px rgba(var(--color-brass-rgb), 0.06) !important;
+}
+
+/* Messaggi NPC - Stile Occulto Viola */
+.story-message--npc {
+  background-image: 
+    linear-gradient(180deg, rgba(16, 12, 22, 0.85), rgba(7, 5, 10, 0.93)),
+    url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='10' fill='%23a78bfa' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E") !important;
+  border-left: 3px solid #a78bfa !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Messaggi Privati / Sussurri - Stile Lettera Sigillata */
+.story-message--private {
+  background-image: 
+    linear-gradient(180deg, rgba(30, 20, 12, 0.9), rgba(15, 8, 4, 0.95)),
+    url("data:image/svg+xml,%3Csvg width='100' height='20' viewBox='0 0 100 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h100v1H0zm0 18h100v1H0z' fill='%23f97316' fill-opacity='0.04'/%3E%3C/svg%3E") !important;
+  border: 1px dashed rgba(249, 115, 22, 0.4) !important;
+  border-left: 4px solid #f97316 !important;
+  box-shadow: 0 0 18px rgba(249, 115, 22, 0.15) !important;
+}
+
+/* Messaggi Narrativi */
+.story-message--narrative-azione {
+  border-left: 3px solid #2dd4bf !important;
+}
+.story-message--narrative-pensiero {
+  border-left: 3px solid #94a3b8 !important;
+  font-style: italic;
+  opacity: 0.88;
+}
+.story-message--narrative-evento,
+.story-message--narrative-capitolo {
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.28), rgba(4, 5, 8, 0.95)) !important;
+  border: 1px solid rgba(127, 29, 29, 0.4) !important;
+  border-left: 4px solid #ef4444 !important;
+  text-align: center;
+}
+.story-message--narrative-evento p,
+.story-message--narrative-capitolo p {
+  font-family: var(--font-cinzel), serif;
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  color: #fca5a5;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* 5. Pulsante Invio come Sigillo di Ceralacca Rossa */
+.btn-wax-seal {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px !important;
+  background-image: url("/assets/atlas/ui/wax-seal.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  border: none !important;
+  box-shadow: 
+    0 4px 10px rgba(0, 0, 0, 0.55),
+    0 0 14px rgba(239, 68, 68, 0.35),
+    inset 0 2px 5px rgba(255, 255, 255, 0.35) !important;
+  color: white !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease !important;
+}
+.btn-wax-seal:hover {
+  transform: scale(1.06) rotate(15deg) !important;
+  box-shadow: 
+    0 6px 14px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(239, 68, 68, 0.55),
+    inset 0 2px 8px rgba(255, 255, 255, 0.5) !important;
+}
+.btn-wax-seal:active {
+  transform: scale(0.95) !important;
+}
+
+/* 6. Cornici e Medaglioni Asimmetrici PC e NPC */
+.char-medallion-premium {
+  border: 2px solid rgba(var(--color-brass-rgb), 0.38) !important;
+  box-shadow: 
+    0 6px 15px rgba(0, 0, 0, 0.6),
+    0 0 12px rgba(var(--color-brass-rgb), 0.15) !important;
+  transition: transform 0.25s ease, border-color 0.25s ease;
+}
+.player-character-card:hover .char-medallion-premium {
+  transform: scale(1.05) rotate(3deg);
+  border-color: var(--color-brass) !important;
+  box-shadow: 
+    0 8px 20px rgba(0, 0, 0, 0.7),
+    0 0 18px rgba(var(--color-brass-rgb), 0.35) !important;
+}
+
+/* Asimmetria nel Rail Girovagante */
+.player-character-rail .player-character-card {
+  transition: transform 0.25s cubic-bezier(0.1, 0.8, 0.3, 1), border-color 0.2s ease !important;
+}
+.player-character-rail .player-character-card:nth-child(even) {
+  transform: rotate(-0.5deg);
+}
+.player-character-rail .player-character-card:nth-child(odd) {
+  transform: rotate(0.5deg);
+}
+.player-character-rail .player-character-card:hover {
+  transform: translateY(-3px) scale(1.01) rotate(0deg) !important;
+  z-index: 20;
+}
+
+/* 7. Divisore Gotico SVG */
+.atlas-divider {
+  width: 100%;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg width='200' height='24' viewBox='0 0 200 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100 2l4 6h-8l4-6zm-90 10h80m20 0h80M100 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z' stroke='%23c8a35d' stroke-width='1.5' stroke-opacity='0.6'/%3E%3C/svg%3E");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  margin: 1.5rem 0;
+  opacity: 0.8;
+}
+
+/* 8. CARATTERIZZAZIONE RADICALE DEI QUATTRO TEMI VISIVI */
+
+/* --- TEMA 1: CLASSIC FANTASY (Default) --- */
+.theme-fantasy .app-theme-bg {
+  background-image: var(--atlas-texture-wood) !important;
+  opacity: 0.85;
+}
+.theme-fantasy .glass-panel {
+  background-image: 
+    linear-gradient(180deg, rgba(14, 16, 22, 0.94), rgba(6, 7, 10, 0.98)),
+    var(--atlas-texture-parchment) !important;
+  background-size: cover;
+  background-blend-mode: normal, soft-light;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.24) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), inset 0 0 15px rgba(var(--color-brass-rgb), 0.05) !important;
+}
+
+/* --- TEMA 2: CYBERPUNK NEON --- */
+.theme-cyberpunk {
+  --color-brass: #f43f5e; /* override color to hot pink */
+  --color-brass-rgb: 244, 63, 94;
+}
+.theme-cyberpunk body {
+  background: #020204 !important;
+}
+.theme-cyberpunk .glass-panel {
+  background: rgba(4, 4, 8, 0.88) !important;
+  border: 1px solid #06b6d4 !important;
+  box-shadow: 
+    0 0 15px rgba(6, 182, 212, 0.15),
+    inset 0 0 10px rgba(244, 63, 94, 0.08) !important;
+  backdrop-filter: blur(12px) !important;
+  border-radius: 0px !important; /* Spigoli vivi Cyberpunk */
+}
+.theme-cyberpunk .glass-panel::after {
+  border-color: rgba(244, 63, 94, 0.15) !important;
+  border-radius: 0px !important;
+}
+.theme-cyberpunk .story-message {
+  border-radius: 0px !important;
+  border: 1px solid rgba(6, 182, 212, 0.2) !important;
+  background: rgba(10, 10, 18, 0.85) !important;
+}
+.theme-cyberpunk .story-message--master {
+  border-left: 4px solid #f43f5e !important;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.15) !important;
+}
+.theme-cyberpunk .btn-wax-seal {
+  background: radial-gradient(circle at 45% 45%, #06b6d4, #0891b2) !important;
+  border: 2px solid #f43f5e !important;
+  box-shadow: 0 0 14px rgba(6, 182, 212, 0.45) !important;
+}
+
+/* --- TEMA 3: LOVECRAFT (ELD RITCH TERROR) --- */
+.theme-lovecraft {
+  --color-brass: #2dd4bf;
+  --color-brass-rgb: 45, 212, 191;
+}
+.theme-lovecraft body {
+  background: #050807 !important;
+}
+.theme-lovecraft .glass-panel {
+  background-image: 
+    linear-gradient(180deg, rgba(8, 14, 12, 0.94), rgba(3, 6, 5, 0.98)),
+    var(--atlas-texture-ink) !important;
+  background-size: cover;
+  background-blend-mode: normal, overlay;
+  border: 1px solid rgba(45, 212, 191, 0.22) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.75), 0 0 14px rgba(20, 184, 166, 0.05) !important;
+  border-radius: 0.75rem 0.15rem !important; /* Asimmetria Lovecraftiana */
+}
+.theme-lovecraft .story-message {
+  border-radius: 0.5rem 0.1rem !important;
+  background: rgba(12, 18, 16, 0.7) !important;
+  border-color: rgba(45, 212, 191, 0.12) !important;
+}
+.theme-lovecraft .story-message--master {
+  border-left: 3px solid #14b8a6 !important;
+}
+
+/* --- TEMA 4: SPACE ODYSSEY (SCI-FI) --- */
+.theme-scifi {
+  --color-brass: #38bdf8;
+  --color-brass-rgb: 56, 189, 248;
+}
+.theme-scifi body {
+  background: #02050b !important;
+}
+.theme-scifi .glass-panel {
+  background: rgba(6, 11, 20, 0.9) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 10px 30px rgba(0,0,0,0.8) !important;
+  backdrop-filter: blur(16px) !important;
+  background-image: radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.03), transparent 25rem) !important;
+}
+.theme-scifi .glass-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  background-size: 100% 4px, 6px 100%;
+  opacity: 0.12;
+  pointer-events: none;
+}
+.theme-scifi .story-message {
+  font-family: var(--font-mono-data), monospace !important;
+  background: rgba(12, 18, 28, 0.8) !important;
+  border: 1px solid rgba(56, 189, 248, 0.18) !important;
+  border-radius: 4px !important;
+}
+.theme-scifi .story-message--master {
+  border-left: 3px solid #38bdf8 !important;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.08), transparent) !important;
+}
+
+/* 9. Fiale HP Liquidate Sensibili e Vetrose */
+.fial-hp-container::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 25%, rgba(255, 255, 255, 0.35), transparent 45%);
+  pointer-events: none;
+  z-index: 5;
+}
+.fial-hp-liquid {
+  background: linear-gradient(180deg, #f43f5e, #be123c, #881337) !important;
+  box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+}
+
+/* 10. Glow dadi critici */
+.story-message--dice .story-message-content strong {
+  text-shadow: 0 0 8px rgba(var(--color-brass-rgb), 0.6);
+  font-weight: bold;
+}
+.story-message--dice.story-message--crit-success {
+  border: 1px solid #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25) !important;
+}
+.story-message--dice.story-message--crit-failure {
+  border: 1px solid #ef4444 !important;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.25) !important;
+}
+
+
+
 

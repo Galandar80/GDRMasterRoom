@@ -299,7 +299,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
               playUiClick();
               onBack();
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-3.5 py-2 text-xs uppercase tracking-wider text-stone-300 hover:border-brass/55 hover:bg-brass/10 hover:text-white transition font-serif"
+            className="btn-iron-premium inline-flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg"
           >
             <ArrowLeft size={14} /> Indietro
           </button>
@@ -518,7 +518,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             <label className="grid gap-1.5 text-sm text-slate-300">
               Punti Ferita (HP)
               <input
-                className="field px-3 py-2 text-sm"
+                className="field px-3 py-2 text-sm input-grimoire"
                 type="number"
                 min="1"
                 max="99"
@@ -535,7 +535,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             <label className="grid gap-1.5 text-sm text-slate-300">
               Origine / Background Narrativo
               <input
-                className="field px-3 py-2 text-sm"
+                className="field px-3 py-2 text-sm input-grimoire"
                 placeholder="es. Strada, Nobiltà, Accademia, Eremita..."
                 value={origin}
                 onMouseEnter={playUiHover}
@@ -545,7 +545,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             <label className="grid gap-1.5 text-sm text-slate-300">
               Tratti Speciali / Abilità (separati da virgola)
               <input
-                className="field px-3 py-2 text-sm"
+                className="field px-3 py-2 text-sm input-grimoire"
                 placeholder="es. Forza fisica, Sesto senso"
                 value={traitsString}
                 onMouseEnter={playUiHover}
@@ -558,7 +558,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             <label className="grid gap-1.5 text-sm text-slate-300">
               Allineamento / Tratto Psicologico
               <select
-                className="field px-3 py-2 text-sm"
+                className="field px-3 py-2 text-sm input-grimoire"
                 value={alignment}
                 onMouseEnter={playUiHover}
                 onChange={(event) => {
@@ -578,7 +578,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             <label className="grid gap-1.5 text-sm text-slate-300">
               Tratto Estetico Distintivo / Aspetto
               <input
-                className="field px-3 py-2 text-sm"
+                className="field px-3 py-2 text-sm input-grimoire"
                 placeholder="es. Occhio bionico, Cicatrice sul volto"
                 value={appearance}
                 onMouseEnter={playUiHover}
@@ -590,7 +590,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
           <label className="grid gap-1.5 text-sm text-slate-300">
             Connessione con il Gruppo / Legame Narrativo
             <input
-              className="field px-3 py-2 text-sm"
+              className="field px-3 py-2 text-sm input-grimoire"
               placeholder="es. Deve la vita al Detective, conosce l'Hacker da anni..."
               value={bond}
               onMouseEnter={playUiHover}
@@ -598,11 +598,10 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
             />
           </label>
 
-
           <label className="grid gap-1.5 text-sm text-slate-300">
             Segreto Privato (Visibile solo a te e al Master)
             <textarea
-              className="field min-h-16 resize-none px-3 py-2 text-sm leading-relaxed border border-orange-500/20 shadow-[inset_0_0_8px_rgba(249,115,22,0.02)]"
+              className="field min-h-16 resize-none px-3 py-2 text-sm leading-relaxed border border-orange-500/20 shadow-[inset_0_0_8px_rgba(249,115,22,0.02)] input-grimoire"
               placeholder="Scrivi un segreto inconfessabile o un obiettivo nascosto..."
               value={privateSecret}
               onMouseEnter={playUiHover}
@@ -613,7 +612,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
           <label className="grid gap-1.5 text-sm text-slate-300">
             Biografia Pubblica (Visibile a tutti i giocatori)
             <textarea
-              className="field min-h-20 resize-none px-3 py-2 text-sm leading-relaxed"
+              className="field min-h-20 resize-none px-3 py-2 text-sm leading-relaxed input-grimoire"
               placeholder="Scrivi la biografia e la storia del tuo eroe..."
               value={publicBio}
               onMouseEnter={playUiHover}
@@ -624,7 +623,7 @@ export function CharacterSetupForm({ defaultName, portraitAssets = [], onBack, o
           <button
             type="submit"
             onMouseEnter={playUiHover}
-            className="w-full flex items-center justify-center gap-2 ui-btn-fantasy py-3.5"
+            className="w-full flex items-center justify-center gap-2 btn-brass-premium py-3.5 rounded-lg"
           >
             <UserRoundPlus size={18} /> {isSaving ? "Ingresso in Camera..." : "Completa Eroe ed Entra in Gioco"}
           </button>
@@ -651,14 +650,14 @@ function Field({
       {label}
       {textarea ? (
         <textarea
-          className="field min-h-24 resize-none px-3 py-2 text-sm leading-relaxed"
+          className="field min-h-24 resize-none px-3 py-2 text-sm leading-relaxed input-grimoire"
           value={value}
           onMouseEnter={playUiHover}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : (
         <input
-          className="field px-3 py-2 text-sm"
+          className="field px-3 py-2 text-sm input-grimoire"
           value={value}
           onMouseEnter={playUiHover}
           onChange={(event) => onChange(event.target.value)}

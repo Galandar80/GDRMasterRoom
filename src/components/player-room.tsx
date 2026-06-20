@@ -357,49 +357,65 @@ function PlayerHeader({
   onToggleImmersive: () => void;
 }) {
   return (
-    <header className="player-room-header rounded-xl p-4">
+    <header className="player-room-header rounded-xl p-5 border border-brass/35 shadow-glow atlas-plaque">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <button type="button" onClick={onBack} className="player-logo-mark" title="Torna al menu" aria-label="Torna al menu">
+          <button 
+            type="button" 
+            onClick={onBack} 
+            className="player-logo-mark shrink-0" 
+            title="Torna al menu" 
+            aria-label="Torna al menu"
+          >
             <span />
           </button>
-          <button type="button" onClick={onBack} className="player-menu-button">
-            <ArrowLeft size={16} /> Menu
+          <button 
+            type="button" 
+            onClick={onBack} 
+            className="btn-iron-premium px-4 py-2 text-xs flex items-center gap-2 rounded-lg"
+          >
+            <ArrowLeft size={14} /> Menu
           </button>
           <div className="min-w-0">
-            <p className="player-session-kicker">Stanza narrativa</p>
+            <p className="font-serif text-[10px] uppercase tracking-[0.2em] text-brass/70">Stanza narrativa</p>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="truncate font-serif text-2xl text-stone-100 sm:text-3xl">{state.campaigns[0].title}</h1>
-              <span className="rounded-md border border-emerald-400/25 bg-emerald-500/10 px-2 py-1 text-xs font-bold uppercase tracking-[0.14em] text-emerald-200">In corso</span>
+              <h1 className="truncate font-serif text-2xl uppercase tracking-wider text-stone-100 sm:text-3xl" style={{ fontFamily: "var(--font-cinzel)" }}>
+                {state.campaigns[0].title}
+              </h1>
+              <span className="rounded-md border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">
+                In corso
+              </span>
             </div>
-            <p className="mt-1 text-sm text-stone-300">{state.room.name} · {state.scene.title}</p>
-            <p className="mt-1 line-clamp-1 text-sm text-stone-400">{state.campaigns[0].description}</p>
+            <p className="mt-1 text-xs text-stone-300 font-serif">{state.room.name} · {state.scene.title}</p>
+            <p className="mt-1 line-clamp-1 text-xs text-stone-400 italic">{state.campaigns[0].description}</p>
           </div>
         </div>
-        <div className="grid gap-2 xl:min-w-[36rem]">
+        <div className="grid gap-2.5 xl:min-w-[36rem]">
           {currentCharacter ? (
-            <div className="player-current-strip">
+            <div className="player-current-strip bg-black/30 border border-white/5 rounded-xl p-3 flex items-center gap-3">
               <span
-                className={`h-12 w-12 shrink-0 rounded-lg bg-cover bg-center ${currentCharacter.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
+                className={`h-12 w-12 shrink-0 rounded-full border border-brass/45 char-medallion-premium bg-cover bg-center ${currentCharacter.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
                 style={currentCharacter.portrait_url ? { backgroundImage: `url(${currentCharacter.portrait_url})` } : undefined}
               />
-              <span className="min-w-0">
-                <small>Stai interpretando</small>
-                <strong style={{ color: currentCharacter.color }}>{currentCharacter.character_name} {currentCharacter.character_surname}</strong>
+              <span className="min-w-0 flex-1">
+                <small className="block text-[10px] uppercase text-stone-400 font-serif">Stai interpretando</small>
+                <strong className="block text-sm truncate" style={{ color: currentCharacter.color }}>
+                  {currentCharacter.character_name} {currentCharacter.character_surname}
+                </strong>
               </span>
-              <span className="player-current-stat">PF {currentCharacter.hp}</span>
+              <span className="fial-hp-container shrink-0" title={`PF: ${currentCharacter.hp}`}>
+                <div className="fial-hp-liquid" style={{ height: `${Math.min(100, Math.max(0, currentCharacter.hp * 10))}%` }} />
+              </span>
             </div>
           ) : null}
-          <div className="player-header-actions grid gap-2 sm:grid-cols-3 xl:grid-cols-7" aria-label="Strumenti rapidi giocatore">
-            <HeaderAction icon={<Sparkles size={16} />} label="Azioni" atlasArea="regia" onClick={() => onOpenUtility("next")} />
-            <HeaderAction icon={<ScrollText size={16} />} label="Note" atlasArea="scene" onClick={() => onOpenUtility("notes")} />
-            <HeaderAction icon={<Backpack size={16} />} label="Inventario" atlasArea="zaini" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
-            <HeaderAction icon={<BookOpenText size={16} />} label="Sussurri" atlasArea="chat" badge={privateCount} onClick={() => onOpenUtility("private")} />
-            <HeaderAction icon={<MapPinned size={16} />} label="Mappa" atlasArea="mappa" onClick={() => onOpenUtility("map")} />
-            <HeaderAction icon={immersiveMode ? <EyeOff size={16} /> : <Eye size={16} />} label={immersiveMode ? "UI" : "Immersione"} atlasArea="media" onClick={onToggleImmersive} />
-            <HeaderAction icon={<UserRound size={16} />} label="Scheda" atlasArea="eroi" onClick={() => onOpenUtility("sheet")} />
-            <InfoTile label="Stanza" value={state.scene.title} />
-            <InfoTile label="Codice invito" value={state.room.invite_code} copy />
+          <div className="player-header-actions grid gap-1.5 grid-cols-3 sm:grid-cols-4 xl:grid-cols-7" aria-label="Strumenti rapidi giocatore">
+            <HeaderAction icon={<Sparkles size={14} />} label="Azioni" atlasArea="regia" onClick={() => onOpenUtility("next")} />
+            <HeaderAction icon={<ScrollText size={14} />} label="Note" atlasArea="scene" onClick={() => onOpenUtility("notes")} />
+            <HeaderAction icon={<Backpack size={14} />} label="Zaino" atlasArea="zaini" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
+            <HeaderAction icon={<BookOpenText size={14} />} label="Sussurri" atlasArea="chat" badge={privateCount} onClick={() => onOpenUtility("private")} />
+            <HeaderAction icon={<MapPinned size={14} />} label="Mappa" atlasArea="mappa" onClick={() => onOpenUtility("map")} />
+            <HeaderAction icon={immersiveMode ? <EyeOff size={14} /> : <Eye size={14} />} label={immersiveMode ? "UI" : "Immergiti"} atlasArea="media" onClick={onToggleImmersive} />
+            <HeaderAction icon={<UserRound size={14} />} label="Scheda" atlasArea="eroi" onClick={() => onOpenUtility("sheet")} />
           </div>
         </div>
       </div>

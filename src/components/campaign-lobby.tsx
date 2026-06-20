@@ -60,6 +60,7 @@ export function CampaignLobby({ campaigns, room, mode = "master", onBack }: Camp
           </div>
         </div>
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

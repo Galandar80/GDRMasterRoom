@@ -429,6 +429,18 @@ export function ChatPanel({
             setReplyTo(message);
           };
 
+          let critClass = "";
+          if (meta.isDice) {
+            const contentLower = getVisibleMessageContent(message.content).toLowerCase();
+            if (contentLower.includes("critico") || contentLower.includes("critica") || contentLower.includes("20") || contentLower.includes("successo")) {
+              if (contentLower.includes("falliment") || contentLower.includes(" 1 ") || contentLower.includes(" 1")) {
+                critClass = "story-message--crit-failure";
+              } else {
+                critClass = "story-message--crit-success";
+              }
+            }
+          }
+
           return (
             <article
               key={message.id}
@@ -436,6 +448,7 @@ export function ChatPanel({
                 "story-message",
                 `story-message--${message.sender_type}`,
                 meta.isDice ? "story-message--dice" : "",
+                critClass,
                 narrative.kind ? `story-message--narrative-${narrative.kind}` : "",
                 message.is_private ? "story-message--private" : "",
                 message.is_pinned ? "story-message--pinned" : "",
@@ -691,7 +704,7 @@ export function ChatPanel({
         <div className="flex gap-2">
           <textarea
             ref={composeRef}
-            className="field min-h-12 flex-1 resize-none px-3 py-3 text-sm"
+            className="field min-h-12 flex-1 resize-none px-3 py-3 text-sm input-grimoire"
             placeholder={disabled ? (disabledReason ?? "Chat disattivata dal Master") : "Scrivi in scena... Shift+Invio va a capo"}
             value={value}
             onChange={(event) => {
@@ -712,13 +725,19 @@ export function ChatPanel({
             disabled={disabled}
           />
           <button
-            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-ember-500 text-ink-900 transition hover:bg-ember-400 disabled:cursor-not-allowed disabled:opacity-45"
+            className="btn-wax-seal shrink-0 flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-45"
             type="submit"
             aria-label="Invia messaggio"
             title="Invia messaggio"
             disabled={disabled}
+            onMouseEnter={() => {
+              import("@/lib/sound-generator").then((mod) => mod.playUiHover());
+            }}
+            onClick={() => {
+              import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+            }}
           >
-            <Send size={18} />
+            <Send size={16} className="relative left-[1px]" />
           </button>
         </div>
       </form>

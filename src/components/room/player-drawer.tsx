@@ -37,6 +37,7 @@ export function PlayerDrawer({ character, inventory, notes, privateMessages, onC
           ))}
           {!characterItems.length ? <p className="player-empty-copy">Nessun oggetto assegnato.</p> : null}
         </div>
+        <span className="mysterium-corners-br" />
       </article>
 
       <article className="player-tool-card player-diary-card glass-panel rounded-lg p-4">
@@ -53,8 +54,8 @@ export function PlayerDrawer({ character, inventory, notes, privateMessages, onC
             setContent("");
           }}
         >
-          <input className="field px-3 py-2 text-sm" placeholder="Titolo nota" value={title} onChange={(event) => setTitle(event.target.value)} />
-          <textarea className="field min-h-20 resize-none px-3 py-2 text-sm" placeholder="Scrivi una nota privata..." value={content} onChange={(event) => setContent(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Titolo nota" value={title} onChange={(event) => setTitle(event.target.value)} />
+          <textarea className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm" placeholder="Scrivi una nota privata..." value={content} onChange={(event) => setContent(event.target.value)} />
           <button className="inline-flex items-center justify-center gap-2 rounded-lg border border-brass/25 bg-brass/10 px-3 py-2 text-sm font-medium text-brass hover:bg-brass/15">
             <Plus size={16} /> Aggiungi nota
           </button>
@@ -68,6 +69,7 @@ export function PlayerDrawer({ character, inventory, notes, privateMessages, onC
           ))}
           {!characterNotes.length ? <p className="player-empty-copy">Il diario e ancora vuoto.</p> : null}
         </div>
+        <span className="mysterium-corners-br" />
       </article>
 
       <article className="player-tool-card glass-panel rounded-lg p-4">
@@ -81,6 +83,7 @@ export function PlayerDrawer({ character, inventory, notes, privateMessages, onC
             </p>
           ))}
         </div>
+        <span className="mysterium-corners-br" />
       </article>
     </section>
   );

@@ -55,7 +55,7 @@ export function SoundEffectPlayer({ room, soundEffects }: SoundEffectPlayerProps
   }
 
   return (
-    <div className="rounded-lg border border-white/10 bg-black/25 px-3 py-2 text-xs text-slate-300">
+    <div className="rounded-lg border border-brass/20 bg-black/40 px-3 py-2 text-xs text-stone-300">
       <audio ref={audioRef} />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2">
