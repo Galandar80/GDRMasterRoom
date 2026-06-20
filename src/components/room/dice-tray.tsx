@@ -487,13 +487,8 @@ export function DiceTray({
     <div className="fixed inset-0 z-[9990] flex items-center justify-center bg-black/70 p-4 animate-fade-in">
       <div 
         ref={containerRef}
-        className="relative w-full max-w-[530px] rounded-xl border border-brass/40 bg-stone-900 p-4 shadow-[0_15px_40px_rgba(0,0,0,0.8)]"
+        className="relative w-full max-w-[530px] rounded-xl border border-brass/40 glass-panel p-4 shadow-[0_15px_40px_rgba(0,0,0,0.8)] text-white"
       >
-        {/* Ornate border frames */}
-        <div className="absolute left-2 top-2 h-2 w-2 border-l border-t border-brass/60 pointer-events-none" />
-        <div className="absolute right-2 top-2 h-2 w-2 border-r border-t border-brass/60 pointer-events-none" />
-        <div className="absolute left-2 bottom-2 h-2 w-2 border-l border-b border-brass/60 pointer-events-none" />
-        <div className="absolute right-2 bottom-2 h-2 w-2 border-r border-b border-brass/60 pointer-events-none" />
 
         <header className="flex items-center justify-between border-b border-white/10 pb-2.5">
           <div>
@@ -552,6 +547,7 @@ export function DiceTray({
             {isDone ? "Mostra in Chat" : "Lancio in corso..."}
           </button>
         </footer>
+        <span className="mysterium-corners-br" />
       </div>
     </div>
   );

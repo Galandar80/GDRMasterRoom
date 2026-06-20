@@ -101,7 +101,7 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
             <span className="relative flex-1">
               <KeyRound className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brass/70" size={17} />
               <input
-                className="field w-full px-10 py-3.5 text-center font-mono text-xl uppercase tracking-[0.18em]"
+                className="field w-full px-10 py-3.5 text-center font-mono text-xl uppercase tracking-[0.18em] input-grimoire"
                 value={code}
                 onChange={(event) => {
                   setCode(normalizeInviteCode(event.target.value));
@@ -139,10 +139,10 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
           </span>
         </label>
 
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] leading-5 text-stone-400">
+        <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[11px] leading-5 text-stone-400 font-serif">
           {mode === "master"
             ? "La regia si apre solo se il codice appartiene a una campagna creata da questo account."
-            : "Se e il primo ingresso in questa stanza, dopo il codice ti chiedero di completare l'eroe."}
+            : "Se è il primo ingresso in questa stanza, dopo il codice ti chiederò di completare l'eroe."}
         </div>
 
         {error ? (
@@ -153,9 +153,15 @@ export function JoinRoomForm({ onBack, onJoin, suggestedInviteCode }: JoinRoomFo
 
         <button
           type="submit"
-          className="mt-4 w-full flex items-center justify-center gap-2 ui-btn-fantasy py-3"
+          className="mt-4 w-full flex items-center justify-center gap-2 btn-brass-premium py-3 rounded-lg"
           disabled={isJoining || !isCodeReady}
           aria-busy={isJoining}
+          onMouseEnter={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiHover());
+          }}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+          }}
         >
           {isJoining ? <Loader2 className="animate-spin" size={16} /> : <DoorOpen size={16} />}{" "}
           {isJoining

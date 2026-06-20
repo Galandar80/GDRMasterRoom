@@ -140,11 +140,11 @@ export function SuperAdminRooms({ rooms, media, onBack, onRefresh, onUpdate, onD
               <label className="relative block">
                 <span className="sr-only">Cerca stanze</span>
                 <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
-                <input className="field w-full py-2 pl-9 pr-3 text-sm" placeholder="Cerca nome, codice, campagna..." value={roomQuery} onChange={(event) => setRoomQuery(event.target.value)} />
+                <input className="input-grimoire field w-full py-2 pl-9 pr-3 text-sm" placeholder="Cerca nome, codice, campagna..." value={roomQuery} onChange={(event) => setRoomQuery(event.target.value)} />
               </label>
               <label className="grid gap-1 text-xs text-slate-400">
                 Filtro
-                <select className="field px-3 py-2 text-sm" value={roomFilter} onChange={(event) => setRoomFilter(event.target.value as typeof roomFilter)}>
+                <select className="input-grimoire field px-3 py-2 text-sm" value={roomFilter} onChange={(event) => setRoomFilter(event.target.value as typeof roomFilter)}>
                   <option value="all">Tutte</option>
                   <option value="empty">Vuote</option>
                   <option value="full">Piene</option>
@@ -154,7 +154,7 @@ export function SuperAdminRooms({ rooms, media, onBack, onRefresh, onUpdate, onD
               </label>
               <label className="grid gap-1 text-xs text-slate-400">
                 Ordina
-                <select className="field px-3 py-2 text-sm" value={roomSort} onChange={(event) => setRoomSort(event.target.value as typeof roomSort)}>
+                <select className="input-grimoire field px-3 py-2 text-sm" value={roomSort} onChange={(event) => setRoomSort(event.target.value as typeof roomSort)}>
                   <option value="risk">Priorita</option>
                   <option value="created">Creazione</option>
                   <option value="players">Giocatori</option>
@@ -180,8 +180,8 @@ export function SuperAdminRooms({ rooms, media, onBack, onRefresh, onUpdate, onD
               </p>
             </div>
             <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(14rem,1fr)_10rem_10rem]">
-              <input className="field px-3 py-2 text-sm" placeholder="Cerca media..." value={mediaQuery} onChange={(event) => setMediaQuery(event.target.value)} />
-              <select className="field px-3 py-2 text-sm" value={mediaFilter} onChange={(event) => setMediaFilter(event.target.value as typeof mediaFilter)} aria-label="Filtra media per tipo">
+              <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Cerca media..." value={mediaQuery} onChange={(event) => setMediaQuery(event.target.value)} />
+              <select className="input-grimoire field px-3 py-2 text-sm" value={mediaFilter} onChange={(event) => setMediaFilter(event.target.value as typeof mediaFilter)} aria-label="Filtra media per tipo">
                 <option value="all">Tutti</option>
                 <option value="image">Immagini</option>
                 <option value="video">Video</option>
@@ -190,7 +190,7 @@ export function SuperAdminRooms({ rooms, media, onBack, onRefresh, onUpdate, onD
                 <option value="portrait">Portrait</option>
                 <option value="object">Oggetti</option>
               </select>
-              <select className="field px-3 py-2 text-sm" value={mediaSort} onChange={(event) => setMediaSort(event.target.value as typeof mediaSort)} aria-label="Ordina media">
+              <select className="input-grimoire field px-3 py-2 text-sm" value={mediaSort} onChange={(event) => setMediaSort(event.target.value as typeof mediaSort)} aria-label="Ordina media">
                 <option value="created">Recenti</option>
                 <option value="title">Titolo</option>
                 <option value="type">Tipo</option>
@@ -386,15 +386,15 @@ function AdminRoomCard({
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_10rem_8rem_9rem_7rem] lg:items-end">
         <label className="grid gap-2 text-sm text-slate-200">
           Nome stanza
-          <input className="field px-3 py-2" value={name} onChange={(event) => setName(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2" value={name} onChange={(event) => setName(event.target.value)} />
         </label>
         <label className="grid gap-2 text-sm text-slate-200">
           Codice
-          <input className="field px-3 py-2 font-mono" value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} />
+          <input className="input-grimoire field px-3 py-2 font-mono" value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} />
         </label>
         <label className="grid gap-2 text-sm text-slate-200">
           Posti
-          <input className="field px-3 py-2" type="number" min={1} max={12} value={maxPlayers} onChange={(event) => setMaxPlayers(Number(event.target.value))} />
+          <input className="input-grimoire field px-3 py-2" type="number" min={1} max={12} value={maxPlayers} onChange={(event) => setMaxPlayers(Number(event.target.value))} />
         </label>
         <div className="text-sm text-slate-300">
           <p className="truncate text-white">{room.campaign_title ?? "Campagna"}</p>

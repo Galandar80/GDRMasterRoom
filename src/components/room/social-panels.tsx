@@ -68,7 +68,7 @@ export function OffChatPanel({ messages, value, onChange, onSend, onDeleteMessag
       >
         <div className="flex gap-2">
           <textarea
-            className="field min-h-12 flex-1 resize-none px-3 py-3 text-sm"
+            className="input-grimoire field min-h-12 flex-1 resize-none px-3 py-3 text-sm"
             placeholder="Scrivi fuori gioco..."
             value={value}
             onChange={(event) => onChange(event.target.value)}
@@ -124,7 +124,7 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
           </h2>
         </div>
         {isMaster ? (
-          <select className="field max-w-56 px-3 py-2 text-sm" value={selectedCharacter?.user_id ?? ""} onChange={(event) => setSelectedUserId(event.target.value)}>
+          <select className="input-grimoire field max-w-56 px-3 py-2 text-sm" value={selectedCharacter?.user_id ?? ""} onChange={(event) => setSelectedUserId(event.target.value)}>
             {visibleCharacters.map((character) => (
               <option key={character.id} value={character.user_id}>
                 {character.character_name} {character.character_surname}
@@ -179,7 +179,7 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
       >
         <div className="flex gap-2">
           <textarea
-            className="field min-h-12 flex-1 resize-none px-3 py-3 text-sm"
+            className="input-grimoire field min-h-12 flex-1 resize-none px-3 py-3 text-sm"
             placeholder={isMaster ? "Scrivi al giocatore selezionato..." : "Rispondi privatamente al Master..."}
             value={text}
             onChange={(event) => setText(event.target.value)}

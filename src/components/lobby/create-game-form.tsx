@@ -69,9 +69,15 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
       <aside className="ui-panel-window self-start rounded-xl p-8 flex flex-col gap-4 text-white shadow-2xl relative">
         <button
           type="button"
-          onClick={onBack}
           aria-label="Torna al menu principale"
-          className="self-start inline-flex items-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-3.5 py-2 text-xs uppercase tracking-wider text-stone-300 hover:border-brass/55 hover:bg-brass/10 hover:text-white transition font-serif"
+          className="btn-iron-premium self-start inline-flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg"
+          onMouseEnter={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiHover());
+          }}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+            onBack();
+          }}
         >
           <ArrowLeft size={14} /> Menu
         </button>
@@ -166,7 +172,7 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
           <label className="grid gap-2 text-xs font-serif font-bold uppercase tracking-wider text-slate-300">
             Numero giocatori disponibili
             <input
-              className="field px-3 py-2"
+              className="field px-3 py-2 input-grimoire"
               type="number"
               min={1}
               max={12}
@@ -191,7 +197,16 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
           <Field label="Descrizione scena" value={values.sceneDescription} onChange={(value) => update("sceneDescription", value)} textarea />
         </FormSection>
 
-        <button type="submit" className="w-full flex items-center justify-center gap-2 ui-btn-fantasy py-3.5">
+        <button 
+          type="submit" 
+          className="w-full flex items-center justify-center gap-2 btn-brass-premium py-3.5 rounded-lg"
+          onMouseEnter={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiHover());
+          }}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+          }}
+        >
           <Clapperboard size={16} /> Crea e apri cabina di regia
         </button>
         <span className="mysterium-corners-br" />
@@ -251,9 +266,9 @@ function Field({
     <label className="grid gap-2 text-xs font-serif font-bold uppercase tracking-wider text-slate-300">
       {label}
       {textarea ? (
-        <textarea className="field min-h-24 resize-none px-3 py-2 font-sans text-sm font-normal normal-case" value={value} onChange={(event) => onChange(event.target.value)} />
+        <textarea className="field min-h-24 resize-none px-3 py-2 font-sans text-sm font-normal normal-case input-grimoire" value={value} onChange={(event) => onChange(event.target.value)} />
       ) : (
-        <input className="field px-3 py-2 font-sans text-sm font-normal normal-case" value={value} onChange={(event) => onChange(event.target.value)} />
+        <input className="field px-3 py-2 font-sans text-sm font-normal normal-case input-grimoire" value={value} onChange={(event) => onChange(event.target.value)} />
       )}
     </label>
   );

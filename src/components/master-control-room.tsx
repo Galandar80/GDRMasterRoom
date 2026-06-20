@@ -106,7 +106,7 @@ type MasterControlRoomProps = {
   onDeleteRoom: () => void;
 };
 
-type ControlTool = "preview" | "scenes" | "map" | "chat" | "players" | "audio" | "media" | "inventory";
+type ControlTool = "preview" | "scenes" | "map" | "chat" | "players" | "audio" | "media" | "inventory" | "preparation";
 
 export function MasterControlRoom({
   state,
@@ -213,14 +213,14 @@ export function MasterControlRoom({
     <section className={`director-control-room relative -m-4 grid min-h-screen gap-4 overflow-hidden px-4 py-4 sm:-m-6 sm:px-5 sm:py-5 ${immersiveMode ? "is-immersive" : ""}`}>
       <div className="pointer-events-none absolute inset-0 app-theme-bg bg-cover bg-center opacity-70" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_68%_20%,rgba(147,51,234,0.18),transparent_32rem),linear-gradient(90deg,rgba(2,3,7,0.82),rgba(3,4,9,0.62)_48%,rgba(2,3,7,0.88)),linear-gradient(180deg,rgba(0,0,0,0.25),rgba(0,0,0,0.78))]" />
-      <header className="director-card relative z-10 rounded-xl p-4 glass-panel">
+      <header className="director-card relative z-10 rounded-xl p-4 atlas-plaque border border-brass/35 shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
         <div className="grid gap-4 md:grid-cols-3 md:items-stretch">
           {/* Left panel: Info & Scene */}
           <div className="flex gap-3 min-w-0">
             <button
               type="button"
               onClick={onBack}
-              className="director-icon-button h-10 w-10 shrink-0 self-start mt-1"
+              className="btn-iron-premium h-10 w-10 shrink-0 self-start mt-1 flex items-center justify-center rounded-lg"
               title="Torna al menu"
               aria-label="Torna al menu"
             >
@@ -236,7 +236,7 @@ export function MasterControlRoom({
                     Sessione Live
                   </span>
                 </div>
-                <h1 className="mt-1.5 truncate font-serif text-2xl text-stone-100">{state.campaigns[0].title}</h1>
+                <h1 className="mt-1.5 truncate font-serif text-2xl text-stone-100 tracking-wider" style={{ fontFamily: "var(--font-cinzel)" }}>{state.campaigns[0].title}</h1>
                 <p className="mt-0.5 text-xs text-stone-300">
                   {state.room.name} · codice <span className="font-mono text-ember-100">{state.room.invite_code}</span>
                 </p>
@@ -280,7 +280,11 @@ export function MasterControlRoom({
                 <button
                   type="button"
                   title="Play globale"
-                  onClick={() => onSaveRoomAudioState({ audioStatus: "playing", audioVolume: state.room.audio_volume ?? 55 })}
+                  onMouseEnter={playUiHover}
+                  onClick={() => {
+                    playUiClick();
+                    onSaveRoomAudioState({ audioStatus: "playing", audioVolume: state.room.audio_volume ?? 55 });
+                  }}
                   className={`flex h-6 w-6 items-center justify-center rounded border border-white/10 hover:bg-white/10 transition ${state.room.audio_status === "playing" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/35" : "bg-white/[0.02] text-stone-400"}`}
                 >
                   <Play size={10} fill={state.room.audio_status === "playing" ? "currentColor" : "none"} />
@@ -288,7 +292,11 @@ export function MasterControlRoom({
                 <button
                   type="button"
                   title="Pausa globale"
-                  onClick={() => onSaveRoomAudioState({ audioStatus: "paused", audioVolume: state.room.audio_volume ?? 55 })}
+                  onMouseEnter={playUiHover}
+                  onClick={() => {
+                    playUiClick();
+                    onSaveRoomAudioState({ audioStatus: "paused", audioVolume: state.room.audio_volume ?? 55 });
+                  }}
                   className={`flex h-6 w-6 items-center justify-center rounded border border-white/10 hover:bg-white/10 transition ${state.room.audio_status === "paused" ? "bg-amber-500/20 text-amber-300 border-amber-500/35" : "bg-white/[0.02] text-stone-400"}`}
                 >
                   <Pause size={10} />
@@ -296,7 +304,11 @@ export function MasterControlRoom({
                 <button
                   type="button"
                   title="Stop globale"
-                  onClick={() => onSaveRoomAudioState({ audioStatus: "stopped", audioVolume: state.room.audio_volume ?? 55 })}
+                  onMouseEnter={playUiHover}
+                  onClick={() => {
+                    playUiClick();
+                    onSaveRoomAudioState({ audioStatus: "stopped", audioVolume: state.room.audio_volume ?? 55 });
+                  }}
                   className={`flex h-6 w-6 items-center justify-center rounded border border-white/10 hover:bg-white/10 transition ${state.room.audio_status === "stopped" ? "bg-rose-500/20 text-rose-300 border-rose-500/35" : "bg-white/[0.02] text-stone-400"}`}
                 >
                   <Square size={10} fill={state.room.audio_status === "stopped" ? "currentColor" : "none"} />
@@ -392,6 +404,7 @@ export function MasterControlRoom({
             <ControlLink icon={<Volume2 size={16} />} label="Soundbar" active={isSoundbarOpen} onClick={() => setIsSoundbarOpen(true)} />
             <ControlLink icon={<Library size={16} />} label="Libreria media" active={activeTool === "media"} onClick={() => setActiveTool("media")} />
             <ControlLink icon={<Shield size={16} />} label="Inventari" active={activeTool === "inventory"} onClick={() => setActiveTool("inventory")} />
+            <ControlLink icon={<Sparkles size={16} />} label="Preparazione" active={activeTool === "preparation"} onClick={() => setActiveTool("preparation")} />
             <span className="mysterium-corners-br" />
           </nav>
         )}
@@ -399,27 +412,6 @@ export function MasterControlRoom({
         <div className="grid min-w-0 gap-4">
           {activeTool === "preview" ? (
             <div className="director-overview grid gap-4">
-              {showNextSteps ? (
-                <DirectorNextStepsPanel
-                  state={state}
-                  currentAudio={currentAudio}
-                  onOpenTool={setActiveTool}
-                  onOpenPlayerView={onOpenPlayerView}
-                  onHide={() => setShowNextSteps(false)}
-                />
-              ) : (
-                <button
-                  type="button"
-                  onMouseEnter={playUiHover}
-                  onClick={() => {
-                    playUiClick();
-                    setShowNextSteps(true);
-                  }}
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-brass/25 bg-brass/10 px-4 py-3 font-serif text-xs font-bold uppercase tracking-[0.16em] text-brass transition hover:bg-brass/15"
-                >
-                  <Sparkles size={15} /> Mostra prossime mosse
-                </button>
-              )}
 
               <ChatPanel
                 messages={state.messages}
@@ -581,6 +573,16 @@ export function MasterControlRoom({
 
           {activeTool === "inventory" ? (
             <InventoryPanel state={state} onCreateInventoryItem={onCreateInventoryItem} onDeleteInventoryItem={onDeleteInventoryItem} />
+          ) : null}
+
+          {activeTool === "preparation" ? (
+            <DirectorNextStepsPanel
+              state={state}
+              currentAudio={currentAudio}
+              onOpenTool={setActiveTool}
+              onOpenPlayerView={onOpenPlayerView}
+              onHide={() => setActiveTool("preview")}
+            />
           ) : null}
         </div>
 
@@ -900,15 +902,23 @@ function DirectorTurnManager({
           <div className="mt-3 flex gap-2">
             <button
               type="button"
-              onClick={() => handleStep(-1)}
-              className="flex-1 rounded border border-white/10 bg-white/[0.04] py-1 text-center text-xs text-stone-300 hover:bg-white/[0.08]"
+              onMouseEnter={() => import("@/lib/sound-generator").then((mod) => mod.playUiHover())}
+              onClick={() => {
+                import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+                handleStep(-1);
+              }}
+              className="btn-iron-premium flex-1 rounded-lg py-1.5 text-center text-xs font-serif uppercase tracking-wider"
             >
               Precedente
             </button>
             <button
               type="button"
-              onClick={() => handleStep(1)}
-              className="flex-1 rounded bg-ember-500 py-1 text-center text-xs font-semibold text-ink-900 hover:bg-ember-400"
+              onMouseEnter={() => import("@/lib/sound-generator").then((mod) => mod.playUiHover())}
+              onClick={() => {
+                import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+                handleStep(1);
+              }}
+              className="btn-brass-premium flex-1 rounded-lg py-1.5 text-center text-xs font-semibold font-serif uppercase tracking-wider"
             >
               Prossimo Turno
             </button>
@@ -990,7 +1000,7 @@ function DirectorRightRail({
           <Sparkles size={15} /> Pannello Master
         </h2>
         <label className="mt-3 block text-xs uppercase tracking-[0.18em] text-stone-500">Scrivi come</label>
-        <select className="field mt-2 w-full px-3 py-2 text-sm" value={identityId} onChange={(event) => onIdentityChange(event.target.value)}>
+        <select className="input-grimoire field mt-2 w-full px-3 py-2 text-sm" value={identityId} onChange={(event) => onIdentityChange(event.target.value)}>
           <option value="master">Master / Narratore</option>
           {state.npcs.map((npc) => (
             <option key={npc.id} value={npc.id}>
@@ -1069,7 +1079,7 @@ function DirectorRightRail({
       <section className="director-rail-section">
         <h3 className="director-mini-title">Appunti rapidi</h3>
         <div className="mt-3 flex gap-2">
-          <input className="field min-w-0 flex-1 px-3 py-2 text-sm" placeholder="Scrivi un appunto per te..." />
+          <input className="input-grimoire field min-w-0 flex-1 px-3 py-2 text-sm" placeholder="Scrivi un appunto per te..." />
           <button type="button" className="director-icon-button h-10 w-10" title="Fissa appunto" aria-label="Fissa appunto">
             <Bell size={15} />
           </button>
@@ -1077,10 +1087,26 @@ function DirectorRightRail({
       </section>
 
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={onSaveRoom} className="director-session-button is-save">
+        <button 
+          type="button" 
+          onMouseEnter={() => import("@/lib/sound-generator").then((mod) => mod.playUiHover())}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+            onSaveRoom();
+          }} 
+          className="btn-brass-premium flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-serif font-bold uppercase tracking-wider"
+        >
           <Save size={15} /> Salva
         </button>
-        <button type="button" onClick={onDeleteRoom} className="director-session-button is-danger">
+        <button 
+          type="button" 
+          onMouseEnter={() => import("@/lib/sound-generator").then((mod) => mod.playUiHover())}
+          onClick={() => {
+            import("@/lib/sound-generator").then((mod) => mod.playUiClick());
+            onDeleteRoom();
+          }} 
+          className="btn-iron-premium flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-serif font-bold uppercase tracking-wider text-rose-400 border-rose-500/35 hover:text-rose-300"
+        >
           <Trash2 size={15} /> Chiudi
         </button>
       </div>
@@ -1331,18 +1357,18 @@ function DirectorRandomPanel({
         >
           <p>Richiesta tiro rapida</p>
           <div className="grid grid-cols-[4.5rem_1fr] gap-2">
-            <input className="field px-2 py-2 text-sm" type="number" min="1" max="20" value={diceCount} onChange={(event) => setDiceCount(Math.max(1, Number(event.target.value)))} aria-label="Numero dadi rapido" />
-            <select className="field px-2 py-2 text-sm" value={diceSides} onChange={(event) => setDiceSides(Number(event.target.value))}>
+            <input className="input-grimoire field px-2 py-2 text-sm" type="number" min="1" max="20" value={diceCount} onChange={(event) => setDiceCount(Math.max(1, Number(event.target.value)))} aria-label="Numero dadi rapido" />
+            <select className="input-grimoire field px-2 py-2 text-sm" value={diceSides} onChange={(event) => setDiceSides(Number(event.target.value))}>
               {[4, 6, 8, 10, 12, 20, 100].map((sides) => <option key={sides} value={sides}>d{sides}</option>)}
             </select>
           </div>
-          <select className="field px-2 py-2 text-sm" value={diceTarget} onChange={(event) => setDiceTarget(event.target.value)}>
+          <select className="input-grimoire field px-2 py-2 text-sm" value={diceTarget} onChange={(event) => setDiceTarget(event.target.value)}>
             <option value="">Tutti</option>
             {state.characters.map((character) => (
               <option key={character.id} value={character.user_id}>{character.character_name} {character.character_surname}</option>
             ))}
           </select>
-          <input className="field px-2 py-2 text-sm" placeholder="Motivo" value={diceReason} onChange={(event) => setDiceReason(event.target.value)} />
+          <input className="input-grimoire field px-2 py-2 text-sm" placeholder="Motivo" value={diceReason} onChange={(event) => setDiceReason(event.target.value)} />
           <button className="director-small-button is-warm" type="submit">Richiedi tiro</button>
         </form>
 
@@ -1360,17 +1386,17 @@ function DirectorRandomPanel({
           }}
         >
           <p>Estrazione carte</p>
-          <select className="field px-2 py-2 text-sm" value={cardDeck} onChange={(event) => setCardDeck(event.target.value as CardDeckType)}>
+          <select className="input-grimoire field px-2 py-2 text-sm" value={cardDeck} onChange={(event) => setCardDeck(event.target.value as CardDeckType)}>
             <option value="poker">Mazzo poker</option>
             <option value="regional">Mazzo regionale italiano</option>
           </select>
-          <select className="field px-2 py-2 text-sm" value={cardTarget} onChange={(event) => setCardTarget(event.target.value)}>
+          <select className="input-grimoire field px-2 py-2 text-sm" value={cardTarget} onChange={(event) => setCardTarget(event.target.value)}>
             <option value="">Pubblica</option>
             {state.characters.map((character) => (
               <option key={character.id} value={character.user_id}>Privata: {character.character_name}</option>
             ))}
           </select>
-          <input className="field px-2 py-2 text-sm" placeholder="Motivo estrazione" value={cardReason} onChange={(event) => setCardReason(event.target.value)} />
+          <input className="input-grimoire field px-2 py-2 text-sm" placeholder="Motivo estrazione" value={cardReason} onChange={(event) => setCardReason(event.target.value)} />
           <button className="director-small-button is-warm" type="submit">Estrai carta</button>
         </form>
       </div>
@@ -1450,7 +1476,7 @@ function DirectorEventBuilder({
           </button>
         ))}
       </div>
-      <select className="field mt-3 w-full px-3 py-2 text-sm" value={target} onChange={(event) => setTarget(event.target.value)}>
+      <select className="input-grimoire field mt-3 w-full px-3 py-2 text-sm" value={target} onChange={(event) => setTarget(event.target.value)}>
         <option value="public">Pubblico: tutta la stanza</option>
         {state.characters.map((character) => (
           <option key={character.id} value={character.user_id}>
@@ -1459,7 +1485,7 @@ function DirectorEventBuilder({
         ))}
       </select>
       <textarea
-        className="field mt-2 min-h-24 resize-none px-3 py-2 text-sm"
+        className="input-grimoire field mt-2 min-h-24 resize-none px-3 py-2 text-sm"
         value={message}
         onChange={(event) => setMessage(event.target.value)}
         placeholder="Scrivi evento narrativo..."
@@ -1774,7 +1800,14 @@ function DirectorNextStepsPanel({
   const engagement = useMemo(() => buildMasterEngagement(state), [state]);
 
   return (
-    <section className="next-steps-panel director-next-steps rounded-xl border border-brass/20 bg-black/35 p-4 shadow-[0_0_28px_rgba(0,0,0,0.18)]">
+    <section 
+      className="next-steps-panel director-next-steps rounded-xl p-4 shadow-[0_0_32px_rgba(0,0,0,0.6)]"
+      style={{
+        backgroundImage: 'linear-gradient(180deg, rgba(28, 22, 16, 0.95), rgba(15, 12, 9, 0.98)), var(--atlas-texture-parchment)',
+        backgroundSize: 'cover',
+        border: '2px double rgba(var(--color-brass-rgb), 0.45)'
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="director-kicker">
@@ -2213,17 +2246,17 @@ function SceneManager({
           }}
         >
           <p className="director-form-title">{editingScene ? `Modifica scena` : "Nuova scena"}</p>
-          <input className="field px-3 py-2 text-sm" placeholder="Titolo scena" value={title} onChange={(event) => setTitle(event.target.value)} />
-          <select className="field px-3 py-2 text-sm" value={mediaType} onChange={(event) => setMediaType(event.target.value as SceneMediaType)}>
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Titolo scena" value={title} onChange={(event) => setTitle(event.target.value)} />
+          <select className="input-grimoire field px-3 py-2 text-sm" value={mediaType} onChange={(event) => setMediaType(event.target.value as SceneMediaType)}>
             <option value="image">Immagine 16:9</option>
             <option value="video">Video MP4 in scena</option>
           </select>
-          <input className="field px-3 py-2 text-sm" placeholder="Link immagine 16:9" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link immagine 16:9" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
           <label className="director-upload-target">
             {imageFile ? imageFile.name : "Carica immagine 16:9"}
             <input className="sr-only" type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0])} />
           </label>
-          <input className="field px-3 py-2 text-sm" placeholder="Link video MP4 in loop" value={videoUrl} onChange={(event) => {
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link video MP4 in loop" value={videoUrl} onChange={(event) => {
             setVideoUrl(event.target.value);
             if (event.target.value.trim()) setMediaType("video");
           }} />
@@ -2243,11 +2276,11 @@ function SceneManager({
             <input type="checkbox" checked={loopVideo} onChange={(event) => setLoopVideo(event.target.checked)} />
             Ripeti video in loop
           </label>
-          <select className="field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as SceneVisibility)}>
+          <select className="input-grimoire field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as SceneVisibility)}>
             <option value="public">Scena pubblica</option>
             <option value="private">Scena privata</option>
           </select>
-          <select className="field px-3 py-2 text-sm" value={linkedAudioId} onChange={(event) => setLinkedAudioId(event.target.value)}>
+          <select className="input-grimoire field px-3 py-2 text-sm" value={linkedAudioId} onChange={(event) => setLinkedAudioId(event.target.value)}>
             <option value="">Nessuna traccia collegata</option>
             {state.audioTracks.map((track) => (
               <option key={track.id} value={track.id}>
@@ -2266,7 +2299,7 @@ function SceneManager({
               ))}
             </div>
           ) : null}
-          <textarea className="field min-h-24 resize-none px-3 py-2 text-sm" placeholder="Descrizione" value={description} onChange={(event) => setDescription(event.target.value)} />
+          <textarea className="input-grimoire field min-h-24 resize-none px-3 py-2 text-sm" placeholder="Descrizione" value={description} onChange={(event) => setDescription(event.target.value)} />
           <div className="grid gap-2">
             <button className="director-primary-action w-full">
               {editingScene ? (
@@ -2363,12 +2396,12 @@ function NpcPanel({
           setDescription("");
         }}
       >
-        <input className="field px-3 py-2 text-sm" placeholder="Nome NPC" value={name} onChange={(event) => setName(event.target.value)} />
+        <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Nome NPC" value={name} onChange={(event) => setName(event.target.value)} />
         <div className="grid gap-2 sm:grid-cols-[5rem_minmax(0,1fr)]">
-          <input className="field h-10 px-2 py-1" aria-label="Colore NPC" type="color" value={color} onChange={(event) => setColor(event.target.value)} />
+          <input className="input-grimoire field h-10 px-2 py-1" aria-label="Colore NPC" type="color" value={color} onChange={(event) => setColor(event.target.value)} />
           <div className="grid gap-2 grid-cols-2">
             <input
-              className="field px-3 py-2 text-sm"
+              className="input-grimoire field px-3 py-2 text-sm"
               placeholder="Link portrait NPC"
               value={portraitUrl}
               onChange={(event) => {
@@ -2395,7 +2428,7 @@ function NpcPanel({
           </div>
         </div>
         <textarea
-          className="field min-h-20 resize-none px-3 py-2 text-sm"
+          className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm"
           placeholder="Descrizione NPC"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
@@ -2527,8 +2560,8 @@ function AudioManager({
           }}
         >
           <p className="director-form-title">Nuova traccia</p>
-          <input className="field px-3 py-2 text-sm" placeholder="Titolo traccia" value={title} onChange={(event) => setTitle(event.target.value)} />
-          <input className="field px-3 py-2 text-sm" placeholder="Link audio" value={audioUrl} onChange={(event) => setAudioUrl(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Titolo traccia" value={title} onChange={(event) => setTitle(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link audio" value={audioUrl} onChange={(event) => setAudioUrl(event.target.value)} />
           <label className="director-upload-target">
             Carica audio
             <input className="sr-only" type="file" accept="audio/*" onChange={(event) => setAudioFile(event.target.files?.[0])} />
@@ -2744,13 +2777,13 @@ function SoundbarModal({
           >
             <p className="text-[10px] uppercase tracking-widest text-slate-500">Nuovo rumore</p>
             <input
-              className="field px-2.5 py-1.5 text-xs"
+              className="input-grimoire field px-2.5 py-1.5 text-xs"
               placeholder="Nome rumore"
               value={soundTitle}
               onChange={(event) => setSoundTitle(event.target.value)}
             />
             <input
-              className="field px-2.5 py-1.5 text-xs"
+              className="input-grimoire field px-2.5 py-1.5 text-xs"
               placeholder="Link audio (URL)"
               value={soundUrl}
               onChange={(event) => setSoundUrl(event.target.value)}
@@ -2876,7 +2909,7 @@ function MediaLibraryPanel({
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brass">
           <Library size={16} /> Libreria media
         </h2>
-        <input className="field max-w-xs px-3 py-2 text-sm" placeholder="Cerca asset..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input className="input-grimoire field max-w-xs px-3 py-2 text-sm" placeholder="Cerca asset..." value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
       <div className="mt-4 rounded-lg border border-white/10 bg-black/25 p-3">
         <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
@@ -2943,7 +2976,7 @@ function MediaLibraryPanel({
               </div>
               {!asset.id.includes(":") ? (
                 <select
-                  className="field mt-2 w-full px-2 py-1 text-xs"
+                  className="input-grimoire field mt-2 w-full px-2 py-1 text-xs"
                   value={asset.visibility ?? "room"}
                   onChange={(event) => onUpdateVisibility(asset, event.target.value as MediaAsset["visibility"])}
                   aria-label={`Visibilita ${asset.title}`}
@@ -2988,8 +3021,8 @@ function MediaLibraryPanel({
             setFile(undefined);
           }}
         >
-          <input className="field px-3 py-2 text-sm" placeholder="Titolo asset" value={title} onChange={(event) => setTitle(event.target.value)} />
-          <select className="field px-3 py-2 text-sm" value={assetType} onChange={(event) => setAssetType(event.target.value as MediaAsset["asset_type"])}>
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Titolo asset" value={title} onChange={(event) => setTitle(event.target.value)} />
+          <select className="input-grimoire field px-3 py-2 text-sm" value={assetType} onChange={(event) => setAssetType(event.target.value as MediaAsset["asset_type"])}>
             <option value="image">Immagine scena</option>
             <option value="video">Video scena</option>
             <option value="map">Mappa</option>
@@ -2998,9 +3031,9 @@ function MediaLibraryPanel({
             <option value="portrait">Portrait</option>
             <option value="object">Oggetto</option>
           </select>
-          <input className="field px-3 py-2 text-sm" placeholder="Link asset" value={url} onChange={(event) => setUrl(event.target.value)} />
-          <input className="field px-3 py-2 text-sm" placeholder="Tag separati da virgola" value={tags} onChange={(event) => setTags(event.target.value)} />
-          <select className="field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as MediaAsset["visibility"])}>
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link asset" value={url} onChange={(event) => setUrl(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Tag separati da virgola" value={tags} onChange={(event) => setTags(event.target.value)} />
+          <select className="input-grimoire field px-3 py-2 text-sm" value={visibility} onChange={(event) => setVisibility(event.target.value as MediaAsset["visibility"])}>
             <option value="private">Privato, solo nella mia libreria</option>
             <option value="room">Disponibile in questa stanza</option>
             <option value="shared">Condiviso con altri Master</option>
@@ -3160,13 +3193,13 @@ function PlayersManager({
           </div>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
-          <input className="field px-3 py-2 text-sm" placeholder="Nome" value={draft.characterName} onChange={(event) => setDraft({ ...draft, characterName: event.target.value })} />
-          <input className="field px-3 py-2 text-sm" placeholder="Cognome" value={draft.characterSurname} onChange={(event) => setDraft({ ...draft, characterSurname: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Nome" value={draft.characterName} onChange={(event) => setDraft({ ...draft, characterName: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Cognome" value={draft.characterSurname} onChange={(event) => setDraft({ ...draft, characterSurname: event.target.value })} />
         </div>
         <div className="grid gap-2 sm:grid-cols-[5rem_minmax(0,1fr)_7rem]">
-          <input className="field h-10 px-2 py-1" aria-label="Colore personaggio" type="color" value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })} />
-          <input className="field px-3 py-2 text-sm" placeholder="Link portrait" value={draft.portraitUrl} onChange={(event) => setDraft({ ...draft, portraitUrl: event.target.value })} />
-          <input className="field px-3 py-2 text-sm" type="number" value={draft.hp} onChange={(event) => setDraft({ ...draft, hp: Number(event.target.value) })} />
+          <input className="input-grimoire field h-10 px-2 py-1" aria-label="Colore personaggio" type="color" value={draft.color} onChange={(event) => setDraft({ ...draft, color: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link portrait" value={draft.portraitUrl} onChange={(event) => setDraft({ ...draft, portraitUrl: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" type="number" value={draft.hp} onChange={(event) => setDraft({ ...draft, hp: Number(event.target.value) })} />
         </div>
         <button type="button" className="director-secondary-action" onClick={() => setDraft({ ...draft, portraitUrl: "" })}>
           Rimuovi portrait
@@ -3176,26 +3209,26 @@ function PlayersManager({
           <input className="sr-only" type="file" accept="image/*" onChange={(event) => setPortraitFile(event.target.files?.[0])} />
         </label>
         <div className="grid gap-2 sm:grid-cols-2">
-          <input className="field px-3 py-2 text-sm" placeholder="Stato mentale" value={draft.mentalState} onChange={(event) => setDraft({ ...draft, mentalState: event.target.value })} />
-          <input className="field px-3 py-2 text-sm" placeholder="Religione / Credo" value={draft.visibleStatus} onChange={(event) => setDraft({ ...draft, visibleStatus: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Stato mentale" value={draft.mentalState} onChange={(event) => setDraft({ ...draft, mentalState: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Religione / Credo" value={draft.visibleStatus} onChange={(event) => setDraft({ ...draft, visibleStatus: event.target.value })} />
         </div>
-          <input className="field px-3 py-2 text-sm" placeholder="Condizioni con icone, separate da virgola" value={draft.conditions} onChange={(event) => setDraft({ ...draft, conditions: event.target.value })} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Condizioni con icone, separate da virgola" value={draft.conditions} onChange={(event) => setDraft({ ...draft, conditions: event.target.value })} />
           
           <div className="grid gap-2 sm:grid-cols-2">
             <label className="grid gap-1 text-xs text-slate-400">
               Archetipo Narrativo
-              <input className="field px-3 py-2 text-sm" placeholder="es. Investigatore, Hacker" value={draft.archetype} onChange={(event) => setDraft({ ...draft, archetype: event.target.value })} />
+              <input className="input-grimoire field px-3 py-2 text-sm" placeholder="es. Investigatore, Hacker" value={draft.archetype} onChange={(event) => setDraft({ ...draft, archetype: event.target.value })} />
             </label>
             <label className="grid gap-1 text-xs text-slate-400">
               Origine / Background Narrativo
-              <input className="field px-3 py-2 text-sm" placeholder="es. Strada, Nobiltà, Accademia, Eremita..." value={draft.origin} onChange={(event) => setDraft({ ...draft, origin: event.target.value })} />
+              <input className="input-grimoire field px-3 py-2 text-sm" placeholder="es. Strada, Nobiltà, Accademia, Eremita..." value={draft.origin} onChange={(event) => setDraft({ ...draft, origin: event.target.value })} />
             </label>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-2">
             <label className="grid gap-1 text-xs text-slate-400">
               Allineamento / Tratto Psicologico
-              <select className="field px-3 py-2 text-sm" value={draft.alignment} onChange={(event) => setDraft({ ...draft, alignment: event.target.value })}>
+              <select className="input-grimoire field px-3 py-2 text-sm" value={draft.alignment} onChange={(event) => setDraft({ ...draft, alignment: event.target.value })}>
                 <option value="Idealista">Idealista</option>
                 <option value="Pragmatico">Pragmatico</option>
                 <option value="Cinico">Cinico</option>
@@ -3207,26 +3240,26 @@ function PlayersManager({
             </label>
             <label className="grid gap-1 text-xs text-slate-400">
               Tratto Estetico Distintivo / Aspetto
-              <input className="field px-3 py-2 text-sm" placeholder="es. Occhio bionico, Cicatrice sul volto" value={draft.appearance} onChange={(event) => setDraft({ ...draft, appearance: event.target.value })} />
+              <input className="input-grimoire field px-3 py-2 text-sm" placeholder="es. Occhio bionico, Cicatrice sul volto" value={draft.appearance} onChange={(event) => setDraft({ ...draft, appearance: event.target.value })} />
             </label>
           </div>
 
           <label className="grid gap-1 text-xs text-slate-400">
             Tratti Speciali / Abilità (separati da virgola)
-            <input className="field px-3 py-2 text-sm" placeholder="es. Forza fisica, Intuizione" value={draft.traitsString} onChange={(event) => setDraft({ ...draft, traitsString: event.target.value })} />
+            <input className="input-grimoire field px-3 py-2 text-sm" placeholder="es. Forza fisica, Intuizione" value={draft.traitsString} onChange={(event) => setDraft({ ...draft, traitsString: event.target.value })} />
           </label>
 
           <label className="grid gap-1 text-xs text-slate-400">
             Connessione con il Gruppo / Legame Narrativo
-            <input className="field px-3 py-2 text-sm" placeholder="es. Deve la vita al Detective, conosce l'Hacker da anni..." value={draft.bond} onChange={(event) => setDraft({ ...draft, bond: event.target.value })} />
+            <input className="input-grimoire field px-3 py-2 text-sm" placeholder="es. Deve la vita al Detective, conosce l'Hacker da anni..." value={draft.bond} onChange={(event) => setDraft({ ...draft, bond: event.target.value })} />
           </label>
           <label className="grid gap-1 text-xs text-slate-400">
             Segreto Privato (Visibile solo a Giocatore e Master)
-            <textarea className="field min-h-16 resize-none px-3 py-2 text-sm border border-orange-500/25 bg-orange-500/5 shadow-[inset_0_0_8px_rgba(249,115,22,0.02)] text-amber-200" placeholder="Segreto del personaggio..." value={draft.privateSecret} onChange={(event) => setDraft({ ...draft, privateSecret: event.target.value })} />
+            <textarea className="input-grimoire field min-h-16 resize-none px-3 py-2 text-sm border border-orange-500/25 bg-orange-500/5 shadow-[inset_0_0_8px_rgba(249,115,22,0.02)] text-amber-200" placeholder="Segreto del personaggio..." value={draft.privateSecret} onChange={(event) => setDraft({ ...draft, privateSecret: event.target.value })} />
           </label>
           <label className="grid gap-1 text-xs text-slate-400">
             Biografia Pubblica (Biografia visibile a tutti)
-            <textarea className="field min-h-20 resize-none px-3 py-2 text-sm" placeholder="Biografia pubblica..." value={draft.publicBio} onChange={(event) => setDraft({ ...draft, publicBio: event.target.value })} />
+            <textarea className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm" placeholder="Biografia pubblica..." value={draft.publicBio} onChange={(event) => setDraft({ ...draft, publicBio: event.target.value })} />
           </label>
 
           <div className="flex flex-wrap gap-2 mt-2">
@@ -3318,7 +3351,7 @@ function InventoryPanel({
         }}
       >
         <p className="director-form-title">Assegna oggetto</p>
-        <select className="field px-3 py-2 text-sm" value={selectedCharacter?.id ?? ""} onChange={(event) => setCharacterId(event.target.value)}>
+        <select className="input-grimoire field px-3 py-2 text-sm" value={selectedCharacter?.id ?? ""} onChange={(event) => setCharacterId(event.target.value)}>
           {state.characters.map((character) => (
             <option key={character.id} value={character.id}>
               {character.character_name} {character.character_surname}
@@ -3326,9 +3359,9 @@ function InventoryPanel({
           ))}
         </select>
         <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_7rem]">
-          <input className="field px-3 py-2 text-sm" placeholder="Nome oggetto" value={name} onChange={(event) => setName(event.target.value)} />
+          <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Nome oggetto" value={name} onChange={(event) => setName(event.target.value)} />
           <input
-            className="field px-3 py-2 text-sm"
+            className="input-grimoire field px-3 py-2 text-sm"
             aria-label="Quantita oggetto"
             type="number"
             min="1"
@@ -3337,14 +3370,14 @@ function InventoryPanel({
           />
         </div>
         <textarea
-          className="field min-h-20 resize-none px-3 py-2 text-sm"
+          className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm"
           placeholder="Descrizione oggetto"
           value={description}
           onChange={(event) => setDescription(event.target.value)}
         />
-        <input className="field px-3 py-2 text-sm" placeholder="Link immagine oggetto" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
+        <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link immagine oggetto" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} />
         <textarea
-          className="field min-h-16 resize-none px-3 py-2 text-sm"
+          className="input-grimoire field min-h-16 resize-none px-3 py-2 text-sm"
           placeholder="Note Master"
           value={masterNotes}
           onChange={(event) => setMasterNotes(event.target.value)}
@@ -3436,7 +3469,8 @@ function MasterActionHotbar({
     { id: "players", label: "Eroi", icon: <UsersRound size={14} /> },
     { id: "audio", label: "Audio", icon: <AudioLines size={14} /> },
     { id: "media", label: "Media", icon: <Library size={14} /> },
-    { id: "inventory", label: "Zaini", icon: <Shield size={14} /> }
+    { id: "inventory", label: "Zaini", icon: <Shield size={14} /> },
+    { id: "preparation", label: "Preparazione", icon: <Sparkles size={14} /> }
   ];
 
   const handleNotificationAction = (item: SmartNotification) => {

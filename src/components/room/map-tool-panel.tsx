@@ -159,6 +159,7 @@ export function MapToolPanel({
                   </div>
                 </div>
               )}
+              <span className="mysterium-corners-br" />
             </div>
           )}
 
@@ -263,15 +264,15 @@ export function MapToolPanel({
                 <h3>
                   <ImageUp size={16} /> Nuova mappa
                 </h3>
-                <input className="field px-3 py-2 text-sm" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Nome mappa" />
-                <textarea className="field min-h-20 resize-none px-3 py-2 text-sm" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Descrizione breve" />
-                <input className="field px-3 py-2 text-sm" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Link immagine mappa" />
+                <input className="input-grimoire field px-3 py-2 text-sm" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Nome mappa" />
+                <textarea className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Descrizione breve" />
+                <input className="input-grimoire field px-3 py-2 text-sm" value={imageUrl} onChange={(event) => setImageUrl(event.target.value)} placeholder="Link immagine mappa" />
                 <label className="director-upload-target">
                   Carica immagine mappa
                   <input className="sr-only" type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0])} />
                 </label>
                 {imageFile ? <p className="text-xs text-brass">File selezionato: {imageFile.name}</p> : null}
-                <select className="field px-3 py-2 text-sm" value={levelType} onChange={(event) => setLevelType(event.target.value as NarrativeMap["level_type"])}>
+                <select className="input-grimoire field px-3 py-2 text-sm" value={levelType} onChange={(event) => setLevelType(event.target.value as NarrativeMap["level_type"])}>
                   {levelOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
@@ -290,6 +291,7 @@ export function MapToolPanel({
           )}
         </div>
       </div>
+      <span className="mysterium-corners-br" />
     </section>
   );
 }
@@ -1391,6 +1393,7 @@ function MapViewer({
           </button>
         </div>
       )}
+      <span className="mysterium-corners-br" />
     </section>
   );
 }

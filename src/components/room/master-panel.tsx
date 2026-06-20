@@ -70,7 +70,7 @@ export function MasterPanel({
           <label className="flex items-center gap-2 text-sm font-medium text-slate-200">
             <UserRoundCog size={16} className="text-ember-200" /> Scrivi come
           </label>
-          <select className="field px-3 py-2 text-sm" value={identityId} onChange={(event) => onIdentityChange(event.target.value)}>
+          <select className="input-grimoire field px-3 py-2 text-sm" value={identityId} onChange={(event) => onIdentityChange(event.target.value)}>
             <option value="master">Master / Narratore</option>
             <option value="player">Personaggio demo</option>
             {npcs.map((npc) => (
@@ -89,7 +89,7 @@ export function MasterPanel({
             }}
           >
             <textarea
-              className="field min-h-20 resize-none px-3 py-2 text-sm"
+              className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm"
               placeholder="Messaggio pubblico..."
               value={publicText}
               onChange={(event) => setPublicText(event.target.value)}
@@ -115,7 +115,7 @@ export function MasterPanel({
           <label className="flex items-center gap-2 text-sm font-medium text-slate-200">
             <KeyRound size={16} className="text-ember-200" /> Messaggio privato
           </label>
-          <select className="field px-3 py-2 text-sm" value={recipient} onChange={(event) => setRecipient(event.target.value)}>
+          <select className="input-grimoire field px-3 py-2 text-sm" value={recipient} onChange={(event) => setRecipient(event.target.value)}>
             {characters.map((character) => (
               <option key={character.id} value={character.user_id}>
                 {character.character_name} {character.character_surname}
@@ -132,7 +132,7 @@ export function MasterPanel({
             }}
           >
             <textarea
-              className="field min-h-20 resize-none px-3 py-2 text-sm"
+              className="input-grimoire field min-h-20 resize-none px-3 py-2 text-sm"
               placeholder="Sussurro, visione, indizio personale..."
               value={privateText}
               onChange={(event) => setPrivateText(event.target.value)}
@@ -198,10 +198,10 @@ export function MasterPanel({
               setSceneImageFile(undefined);
             }}
           >
-            <input className="field px-3 py-2 text-sm" placeholder="Titolo nuova scena" value={sceneTitle} onChange={(event) => setSceneTitle(event.target.value)} />
-            <input className="field px-3 py-2 text-sm" placeholder="Link immagine scena" value={sceneImageUrl} onChange={(event) => setSceneImageUrl(event.target.value)} />
+            <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Titolo nuova scena" value={sceneTitle} onChange={(event) => setSceneTitle(event.target.value)} />
+            <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link immagine scena" value={sceneImageUrl} onChange={(event) => setSceneImageUrl(event.target.value)} />
             <textarea
-              className="field min-h-16 resize-none px-3 py-2 text-sm"
+              className="input-grimoire field min-h-16 resize-none px-3 py-2 text-sm"
               placeholder="Descrizione scena"
               value={sceneDescription}
               onChange={(event) => setSceneDescription(event.target.value)}
@@ -217,7 +217,7 @@ export function MasterPanel({
             <Headphones size={16} className="text-ember-200" /> Audio scena
           </label>
           <select
-            className="field px-3 py-2 text-sm"
+            className="input-grimoire field px-3 py-2 text-sm"
             value={currentAudioId}
             onChange={(event) => {
               const track = audioTracks.find((item) => item.id === event.target.value);
@@ -246,8 +246,8 @@ export function MasterPanel({
               setAudioFile(undefined);
             }}
           >
-            <input className="field px-3 py-2 text-sm" placeholder="Titolo traccia" value={audioTitle} onChange={(event) => setAudioTitle(event.target.value)} />
-            <input className="field px-3 py-2 text-sm" placeholder="Link audio" value={audioUrl} onChange={(event) => setAudioUrl(event.target.value)} />
+            <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Titolo traccia" value={audioTitle} onChange={(event) => setAudioTitle(event.target.value)} />
+            <input className="input-grimoire field px-3 py-2 text-sm" placeholder="Link audio" value={audioUrl} onChange={(event) => setAudioUrl(event.target.value)} />
             <label className="flex items-center gap-2 text-sm text-slate-200">
               <input type="checkbox" checked={audioLoop} onChange={(event) => setAudioLoop(event.target.checked)} />
               Loop
@@ -275,6 +275,7 @@ export function MasterPanel({
           </button>
         </section>
       </div>
+      <span className="mysterium-corners-br" />
     </aside>
   );
 }

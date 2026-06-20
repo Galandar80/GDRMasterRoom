@@ -2426,6 +2426,7 @@ export function AppShell() {
 
   return (
     <div className={view === "master" ? "flex min-h-screen flex-col" : "mx-auto flex max-w-[1800px] flex-col gap-4"}>
+      <div className="vignette-overlay-cinematic" />
       {(view !== "menu" && view !== "master") || error ? <StatusBar status={status} error={error} onSignOut={signOut} /> : null}
       {view === "menu" ? (
         <StartMenu

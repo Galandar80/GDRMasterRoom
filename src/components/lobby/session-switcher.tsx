@@ -59,7 +59,7 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
               playUiClick();
               onBack();
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-3.5 py-2 text-xs uppercase tracking-wider text-stone-300 transition hover:border-brass/55 hover:bg-brass/10 hover:text-white font-serif"
+            className="btn-iron-premium inline-flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg"
           >
             <ArrowLeft size={14} /> Menu
           </button>
@@ -76,7 +76,7 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
               playUiClick();
               onRefresh();
             }}
-            className="inline-flex items-center gap-2 rounded-lg border border-brass/35 bg-black/45 px-3.5 py-2 text-xs uppercase tracking-wider text-brass transition hover:border-brass/55 hover:bg-brass/10 font-serif"
+            className="btn-iron-premium inline-flex items-center gap-2 px-3.5 py-2 text-xs rounded-lg"
             disabled={isLoading}
           >
             {isLoading ? <Loader2 className="animate-spin" size={15} /> : <RefreshCw size={15} />}
@@ -146,7 +146,7 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
             aria-label="Filtro sessioni"
             value={filter}
             onChange={(event) => setFilter(event.target.value as SessionFilter)}
-            className="field min-h-11 min-w-[12rem] px-3 py-2 text-sm"
+            className="field min-h-11 min-w-[12rem] px-3 py-2 text-sm input-grimoire"
           >
             <option value="all">Tutte le sessioni</option>
             <option value="active">Solo campagne attive</option>
@@ -157,12 +157,12 @@ export function SessionSwitcher({ sessions, isLoading = false, onBack, onRefresh
             aria-label="Ordina sessioni"
             value={sort}
             onChange={(event) => setSort(event.target.value as SessionSort)}
-            className="field min-h-11 min-w-[12rem] px-3 py-2 text-sm"
+            className="field min-h-11 min-w-[12rem] px-3 py-2 text-sm input-grimoire"
           >
-            <option value="priority">Priorita consigliata</option>
-            <option value="activity">Ultima attivita</option>
+            <option value="priority">Priorità consigliata</option>
+            <option value="activity">Ultima attività</option>
             <option value="created">Creazione recente</option>
-            <option value="players">Piu giocatori</option>
+            <option value="players">Più giocatori</option>
             <option value="name">Nome campagna</option>
           </select>
         </div>
@@ -384,7 +384,7 @@ function SessionCard({ session, onOpen }: { session: UserSessionSummary; onOpen:
             playUiClick();
             onOpen();
           }}
-          className="inline-flex items-center justify-center gap-2 ui-btn-fantasy px-4 py-2.5 font-serif text-sm uppercase tracking-[0.14em]"
+          className="btn-brass-premium inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm"
         >
           {session.role === "master" ? <Shield size={16} /> : <DoorOpen size={16} />}
           {session.role === "master" ? "Apri regia" : session.isSetupComplete ? "Rientra" : "Completa eroe"}
@@ -396,7 +396,7 @@ function SessionCard({ session, onOpen }: { session: UserSessionSummary; onOpen:
             playUiClick();
             copyCode();
           }}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-brass/25 bg-black/32 px-4 py-2.5 text-sm text-stone-300 transition hover:border-brass/55 hover:bg-brass/10 hover:text-white"
+          className="btn-iron-premium inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm text-stone-300"
         >
           <Clipboard size={15} />
           {copied ? "Copiato" : "Copia codice"}
@@ -457,7 +457,8 @@ function getSessionHealth(session: UserSessionSummary) {
     return { label: campaignStatusLabel(session.campaignStatus).label, className: "border-stone-300/20 bg-stone-500/10 text-stone-300" };
   }
   if (ageDays <= 1) {
-    return { label: "calda", className: "border-emerald-300/25 bg-emerald-500/10 text-emerald-200" };
+    const isFull = session.playerCount >= session.maxPlayers;
+    return { label: isFull ? "calda" : "in preparazione", className: "border-emerald-300/25 bg-emerald-500/10 text-emerald-200" };
   }
   if (ageDays <= 14) {
     return { label: "attiva", className: "border-sky-300/25 bg-sky-500/10 text-sky-200" };

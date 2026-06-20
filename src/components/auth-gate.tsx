@@ -315,6 +315,7 @@ export function AuthGate({ children }: AuthGateProps) {
 
           {message ? <p className="rounded-lg border border-brass/25 bg-brass/10 px-3.5 py-2.5 text-xs text-brass leading-relaxed">{message}</p> : null}
         </form>
+        <span className="mysterium-corners-br" />
       </div>
     </section>
   );
