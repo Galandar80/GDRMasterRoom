@@ -212,7 +212,7 @@ export function MasterControlRoom({
   };
 
   return (
-    <section className={`director-control-room relative -m-4 grid min-h-screen gap-4 overflow-hidden px-4 py-4 sm:-m-6 sm:px-5 sm:py-5 ${immersiveMode ? "is-immersive" : ""}`}>
+    <section className={`director-control-room director-control-room-mobile-fit relative -m-4 grid min-h-screen gap-4 overflow-hidden px-4 py-4 sm:-m-6 sm:px-5 sm:py-5 ${immersiveMode ? "is-immersive" : ""}`}>
       <div className="pointer-events-none absolute inset-0 app-theme-bg bg-cover bg-center opacity-70" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_68%_20%,rgba(147,51,234,0.18),transparent_32rem),linear-gradient(90deg,rgba(2,3,7,0.82),rgba(3,4,9,0.62)_48%,rgba(2,3,7,0.88)),linear-gradient(180deg,rgba(0,0,0,0.25),rgba(0,0,0,0.78))]" />
       <header className="director-card relative z-10 rounded-xl p-4 atlas-plaque border border-brass/35 shadow-[0_4px_30px_rgba(0,0,0,0.6)]">
@@ -3615,7 +3615,7 @@ function MasterActionHotbar({
       <div className="h-4 w-px bg-white/10" />
 
       {/* 🛠️ GM Tools Navigation */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none max-w-[40vw] sm:max-w-none">
         {tools.map((tool) => (
           <button
             key={tool.id}

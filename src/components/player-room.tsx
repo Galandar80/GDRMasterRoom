@@ -170,7 +170,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
         })();
 
   return (
-    <section className={`player-room-shell relative -m-4 min-h-screen overflow-hidden px-3 py-3 sm:-m-6 sm:px-4 sm:py-4 ${immersiveMode ? "is-immersive" : ""}`}>
+    <section className={`player-room-shell player-room-shell-mobile-fit relative -m-4 flex-1 min-h-0 lg:h-auto overflow-hidden px-3 py-3 sm:-m-6 sm:px-4 sm:py-4 ${immersiveMode ? "is-immersive" : ""}`}>
       {damageFlash && (
         <>
           <style dangerouslySetInnerHTML={{__html: `
@@ -188,7 +188,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
       )}
       <div className="pointer-events-none absolute inset-0 app-theme-bg bg-cover bg-center opacity-45" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(2,3,7,0.92),rgba(3,5,9,0.68)_50%,rgba(2,3,7,0.92)),linear-gradient(180deg,rgba(0,0,0,0.16),rgba(0,0,0,0.82))]" />
-      <div className="relative z-10 grid gap-3">
+      <div className="relative z-10 flex flex-col flex-1 min-h-0 gap-3 h-full lg:grid">
         <PlayerHeader
           state={state}
           onBack={onBack}
@@ -200,15 +200,15 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
           onToggleImmersive={() => setImmersiveMode((value) => !value)}
         />
         <MobileCharacterStrip characters={state.characters} currentUserId={state.profile.id} onOpenCharacter={openCharacterSheet} />
-        <div className={`grid gap-3 ${immersiveMode ? "xl:grid-cols-[minmax(0,1fr)]" : "xl:grid-cols-[17rem_minmax(0,1fr)_17rem]"}`}>
+        <div className={`flex-1 min-h-0 flex flex-col lg:grid gap-3 lg:grid-cols-[minmax(0,1fr)] ${immersiveMode ? "xl:grid-cols-[minmax(0,1fr)]" : "xl:grid-cols-[17rem_minmax(0,1fr)_17rem]"}`}>
       {immersiveMode ? null : <CharacterRail side="left" characters={leftCharacters} inventory={state.inventory} onOpenCharacter={openCharacterSheet} />}
 
-      <div className="grid min-w-0 gap-3">
+      <div className="flex-1 min-h-0 flex flex-col gap-3 lg:grid lg:min-w-0">
         {soundEffectVisible ? <SoundEffectPlayer room={state.room} soundEffects={state.soundEffects} /> : null}
         <SceneStage scene={state.scene} compact activeSpotlightNpc={spotlightVisible && spotlightNpc ? spotlightNpc : null} />
         {visibleDiceRequests.length > 0 ? <PlayerDicePanel requests={visibleDiceRequests} onRoll={onRollDice} /> : null}
         <MobilePlayerTabs active={mobileTab} onChange={setMobileTab} />
-        <div className={mobileTab === "chat" ? "block" : "hidden lg:block"}>
+        <div className={mobileTab === "chat" ? "flex-grow flex-1 min-h-0 flex flex-col" : "hidden lg:block lg:h-full"}>
           <ChatPanel
             messages={state.messages}
             value={playerText}
@@ -234,7 +234,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
             onRollDice={onRollDice}
           />
         </div>
-        <div className={mobileTab === "sheet" ? "block" : "hidden lg:block"}>
+        <div className={mobileTab === "sheet" ? "flex-grow flex-1 min-h-0 overflow-y-auto" : "hidden lg:block lg:h-full"}>
           <ExportChatButton messages={[...state.messages, ...state.offMessages, ...state.privateMessages]} onLoadAll={onExportMessages} />
           <div className="mt-4">
             <PlayerDrawer
@@ -246,10 +246,10 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
             />
           </div>
         </div>
-        <div className={mobileTab === "map" ? "block" : "hidden lg:block"}>
+        <div className={mobileTab === "map" ? "flex-grow flex-1 min-h-0 flex flex-col overflow-hidden" : "hidden lg:block lg:h-full"}>
           <MapToolPanel state={state} isMaster={false} />
         </div>
-        <div className={mobileTab === "private" ? "block" : "hidden lg:block"}>
+        <div className={mobileTab === "private" ? "flex-grow flex-1 min-h-0 overflow-y-auto" : "hidden lg:block lg:h-full"}>
           <details className="glass-panel rounded-lg p-4" open>
             <summary className="cursor-pointer text-sm font-semibold text-white">Privati con il Master</summary>
             <div className="mt-4">
@@ -264,7 +264,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
             </div>
           </details>
         </div>
-        <div className={mobileTab === "off" ? "block" : "hidden lg:block"}>
+        <div className={mobileTab === "off" ? "flex-grow flex-1 min-h-0 flex flex-col" : "hidden lg:block lg:h-full"}>
           <OffChatPanel
             messages={state.offMessages}
             value={offText}
@@ -372,7 +372,7 @@ function PlayerHeader({
           <button 
             type="button" 
             onClick={onBack} 
-            className="btn-iron-premium px-3 py-1.5 text-[11px] flex items-center gap-1.5 rounded-lg"
+            className="btn-iron-premium px-3 py-1.5 text-[11px] hidden sm:flex items-center gap-1.5 rounded-lg"
           >
             <ArrowLeft size={13} /> Menu
           </button>
@@ -385,14 +385,14 @@ function PlayerHeader({
                 In corso
               </span>
             </div>
-            <p className="text-[11px] text-stone-400 font-serif mt-0.5">
+            <p className="text-[11px] text-stone-400 font-serif mt-0.5 hidden sm:block">
               {state.room.name} <span className="text-stone-500 mx-1">·</span> <span className="text-brass">Scena: {state.scene.title}</span>
             </p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 xl:min-w-[40rem] justify-end">
           {currentCharacter ? (
-            <div className="player-current-strip bg-black/40 border border-white/5 rounded-lg p-1.5 flex items-center gap-2.5 sm:max-w-[15rem] shrink-0">
+            <div className="player-current-strip bg-black/40 border border-white/5 rounded-lg p-1.5 hidden sm:flex items-center gap-2.5 sm:max-w-[15rem] shrink-0">
               <span
                 className={`h-8 w-8 shrink-0 rounded-full border border-brass/45 char-medallion-premium bg-cover bg-center ${currentCharacter.portrait_url ? "" : "atlas-placeholder atlas-placeholder--hero"}`}
                 style={currentCharacter.portrait_url ? { backgroundImage: `url(${currentCharacter.portrait_url})` } : undefined}
@@ -408,7 +408,7 @@ function PlayerHeader({
               </span>
             </div>
           ) : null}
-          <div className="player-header-actions grid gap-1 grid-cols-4 sm:grid-cols-4 xl:grid-cols-8 flex-1" aria-label="Strumenti rapidi giocatore">
+          <div className="player-header-actions hidden lg:grid gap-1 grid-cols-4 sm:grid-cols-4 xl:grid-cols-8 flex-1" aria-label="Strumenti rapidi giocatore">
             <HeaderAction icon={<Sparkles size={13} />} label="Azioni" atlasArea="regia" onClick={() => onOpenUtility("next")} />
             <HeaderAction icon={<ScrollText size={13} />} label="Note" atlasArea="scene" onClick={() => onOpenUtility("notes")} />
             <HeaderAction icon={<Backpack size={13} />} label="Inventario" atlasArea="zaini" badge={inventoryCount} onClick={() => onOpenUtility("inventory")} />
@@ -1253,33 +1253,39 @@ function PlayerActionHotbar({
           </div>
         )}
       </div>
+      {/* 👤 Scheda Eroe (Mobile & Desktop) */}
+      <button
+        type="button"
+        onClick={() => { onOpenUtility("sheet"); playUiClick(); }}
+        onMouseEnter={playUiHover}
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-slate-300 hover:border-brass/30 hover:bg-brass/15 hover:text-brass transition duration-200 shrink-0"
+        title="Apri Scheda Eroe"
+        aria-label="Apri scheda eroe"
+      >
+        <UserRound size={14} />
+      </button>
 
-      <div className="h-4 w-px bg-white/10" />
+      {/* 🎒 Inventario (Mobile & Desktop) */}
+      <button
+        type="button"
+        onClick={() => { onOpenUtility("inventory"); playUiClick(); }}
+        onMouseEnter={playUiHover}
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-slate-300 hover:border-brass/30 hover:bg-brass/15 hover:text-brass transition duration-200 relative shrink-0"
+        title="Apri Inventario"
+        aria-label="Apri inventario"
+      >
+        <Backpack size={14} />
+        {unreadInventoryCount > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[8px] font-bold text-white animate-pulse">
+            {unreadInventoryCount}
+          </span>
+        )}
+      </button>
 
-      {/* 🧰 Quick Access Utility Shortcuts */}
-      <div className="flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => { onOpenUtility("sheet"); playUiClick(); }}
-          onMouseEnter={playUiHover}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.03] text-slate-300 hover:border-brass/30 hover:bg-brass/15 hover:text-brass transition-all duration-200"
-          title="Apri Scheda Eroe"
-          aria-label="Apri scheda eroe"
-        >
-          <UserRound size={14} />
-        </button>
+      <div className="hidden lg:block h-4 w-px bg-white/10" />
 
-        <button
-          type="button"
-          onClick={() => { onOpenUtility("inventory"); playUiClick(); }}
-          onMouseEnter={playUiHover}
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/5 bg-white/[0.03] text-slate-300 hover:border-brass/30 hover:bg-brass/15 hover:text-brass transition-all duration-200"
-          title="Apri Inventario"
-          aria-label="Apri inventario"
-        >
-          <Backpack size={14} />
-        </button>
-
+      {/* 🧰 Quick Access Utility Shortcuts (Desktop Only) */}
+      <div className="hidden lg:flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => { onOpenUtility("map"); playUiClick(); }}
@@ -1314,7 +1320,7 @@ function PlayerActionHotbar({
         </button>
       </div>
 
-      <div className="h-4 w-px bg-white/10" />
+      <div className="hidden lg:block h-4 w-px bg-white/10" />
 
       {/* 🔊 Local Audio Volume & Mute Controls */}
       <div className="relative flex items-center gap-1.5 group">

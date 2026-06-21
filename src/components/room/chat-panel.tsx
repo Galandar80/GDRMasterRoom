@@ -284,7 +284,7 @@ export function ChatPanel({
 
   return (
     <section className={cn("story-chat-panel glass-panel flex min-h-[34rem] flex-col rounded-lg", density === "compact" ? "story-chat-panel--compact" : "", density === "ultra" ? "story-chat-panel--ultra" : "")}>
-      <header className="story-chat-header flex items-center justify-between border-b border-white/10 px-4 py-3">
+      <header className="story-chat-header flex items-center justify-between border-b border-white/10 px-4 py-3 flex-shrink-0">
         <div className="flex items-center gap-2">
           <MessageCircle size={18} className="text-brass" />
           <div>
@@ -310,8 +310,8 @@ export function ChatPanel({
         </div>
       </header>
 
-      <div className="grid gap-2 border-b border-white/10 px-4 py-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="grid gap-2 border-b border-white/10 px-4 py-3 flex-shrink-0">
+        <div className="flex flex-nowrap overflow-x-auto scrollbar-none gap-2 pb-1">
           {[
             ["all", "Tutti"],
             ["master", "Master"],
@@ -625,7 +625,7 @@ export function ChatPanel({
       ) : null}
 
       <form
-        className="border-t border-white/10 p-3"
+        className="border-t border-white/10 p-3 flex-shrink-0"
         onSubmit={(event) => {
           event.preventDefault();
           let finalContent = value;
