@@ -17,7 +17,7 @@ type OffChatPanelProps = {
 export function OffChatPanel({ messages, value, onChange, onSend, onDeleteMessage }: OffChatPanelProps) {
   return (
     <section className="off-chat-panel glass-panel flex min-h-[22rem] flex-col rounded-lg">
-      <header className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+      <header className="flex items-center justify-between border-b border-white/10 px-4 py-3 flex-shrink-0">
         <div>
           <p className="social-panel-kicker">Fuori narrazione</p>
           <h2 className="flex items-center gap-2 font-serif text-lg text-white">
@@ -60,7 +60,7 @@ export function OffChatPanel({ messages, value, onChange, onSend, onDeleteMessag
         ) : null}
       </div>
       <form
-        className="border-t border-white/10 p-3"
+        className="border-t border-white/10 p-3 flex-shrink-0"
         onSubmit={(event) => {
           event.preventDefault();
           onSend();
@@ -116,7 +116,7 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
 
   return (
     <section className="private-thread-panel glass-panel flex min-h-[22rem] flex-col rounded-lg">
-      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
+      <header className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-3 flex-shrink-0">
         <div>
           <p className="social-panel-kicker">Canale riservato</p>
           <h2 className="flex items-center gap-2 font-serif text-lg text-white">
@@ -169,7 +169,7 @@ export function PrivateThreadsPanel({ profile, characters, messages, masterId, i
         ) : null}
       </div>
       <form
-        className="border-t border-white/10 p-3"
+        className="border-t border-white/10 p-3 flex-shrink-0"
         onSubmit={(event) => {
           event.preventDefault();
           if (!text.trim() || !recipientUserId) return;

@@ -25,9 +25,20 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
   const [prevScene, setPrevScene] = useState<Scene | null>(null);
   const [isFading, setIsFading] = useState(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsCollapsed(window.innerWidth < 1024);
+    }
+  }, []);
 
-
+  // Auto-expand scene stage when spotlight NPC is active
+  useEffect(() => {
+    if (activeSpotlightNpc) {
+      setIsCollapsed(false);
+    }
+  }, [activeSpotlightNpc]);
 
   useEffect(() => {
     if (scene.id !== displayScene.id) {
@@ -55,8 +66,6 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
     }
   }, [prevScene]);
 
-
-
   const isVideo = displayScene.media_type === "video";
   const mediaUrl = isVideo ? displayScene.video_url || displayScene.image_url : displayScene.image_url;
   const mediaClassName = compact
@@ -65,6 +74,39 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
 
   const prevIsVideo = prevScene?.media_type === "video";
   const prevMediaUrl = prevScene ? (prevIsVideo ? prevScene.video_url || prevScene.image_url : prevScene.image_url) : null;
+
+  if (isCollapsed) {
+    return (
+      <section className={`scene-stage glass-panel overflow-hidden rounded-lg ${compact ? "scene-stage--compact" : ""} scene-stage--collapsed`}>
+        <div className="flex items-center justify-between px-4 py-3 bg-black/25">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="rounded bg-brass/10 border border-brass/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brass flex items-center gap-1 shrink-0">
+              <Eye size={10} /> Scena
+            </span>
+            {displayScene.visibility === "private" ? (
+              <span className="rounded bg-amber-500/10 border border-amber-400/20 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300 flex items-center gap-1 shrink-0">
+                <LockKeyhole size={10} /> Privata
+              </span>
+            ) : null}
+            <span className="font-serif text-sm font-semibold text-stone-200 truncate">
+              {displayScene.title}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playUiClick();
+              setIsCollapsed(false);
+            }}
+            className="text-[9px] font-serif uppercase tracking-widest text-brass hover:text-white px-2.5 py-1 rounded border border-brass/35 bg-brass/5 hover:bg-brass/15 transition flex items-center gap-1 shrink-0"
+          >
+            Espandi
+          </button>
+        </div>
+        <span className="mysterium-corners-br" />
+      </section>
+    );
+  }
 
   return (
     <section className={`scene-stage glass-panel overflow-hidden rounded-lg ${compact ? "scene-stage--compact" : ""}`}>
@@ -183,23 +225,33 @@ export function SceneStage({ scene, compact = false, audioVolume = 55, audioMute
             </div>
           </div>
         )}
-
-
       </div>
 
       <div className="scene-stage-caption border-t border-white/10 bg-ink-900/75 p-4 sm:p-5">
-        <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-300">
-          <span className="scene-meta-chip inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1">
-            <ImageIcon size={13} /> {isVideo ? "Video scena" : "Scena attuale"}
-          </span>
-          {displayScene.visibility === "private" ? (
-            <span className="scene-meta-chip inline-flex items-center gap-1 rounded-md border border-ember-400/20 bg-ember-500/10 px-2 py-1 text-ember-100">
-              Privata
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="scene-meta-chip inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1">
+              <ImageIcon size={13} /> {isVideo ? "Video scena" : "Scena attuale"}
             </span>
-          ) : null}
-          <span className="scene-meta-chip inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1">
-            <CalendarDays size={13} /> {shortTime(displayScene.created_at)}
-          </span>
+            {displayScene.visibility === "private" ? (
+              <span className="scene-meta-chip inline-flex items-center gap-1 rounded-md border border-ember-400/20 bg-ember-500/10 px-2 py-1 text-ember-100">
+                Privata
+              </span>
+            ) : null}
+            <span className="scene-meta-chip inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1">
+              <CalendarDays size={13} /> {shortTime(displayScene.created_at)}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playUiClick();
+              setIsCollapsed(true);
+            }}
+            className="text-[9px] font-serif uppercase tracking-widest text-stone-400 hover:text-white px-2.5 py-1 rounded border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] transition flex items-center gap-1"
+          >
+            Riduci
+          </button>
         </div>
         <h2 className="text-2xl font-semibold text-white sm:text-3xl">{displayScene.title}</h2>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300 sm:text-base">{displayScene.description}</p>

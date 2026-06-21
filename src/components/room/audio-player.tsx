@@ -25,6 +25,14 @@ export function AudioPlayer({ track, autoStart = true, externalVolume, externalM
   const [activeTrack, setActiveTrack] = useState(track);
   const [outgoingTrack, setOutgoingTrack] = useState<AudioTrack | null>(null);
   const volumeRef = useRef(volume);
+  const [isMobile, setIsMobile] = useState(true);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const mutedRef = useRef(muted);
   const statusRef = useRef(status);
   const autoStartRef = useRef(autoStart);
@@ -178,63 +186,68 @@ export function AudioPlayer({ track, autoStart = true, externalVolume, externalM
   }
 
   return (
-    <section className="player-audio-dock glass-panel sticky bottom-3 z-20 rounded-lg p-3">
+    <>
       {activeTrack.audio_url ? <audio ref={audioRef} src={activeTrack.audio_url} loop={activeTrack.loop} preload="auto" /> : null}
       {outgoingTrack?.audio_url ? <audio ref={outgoingAudioRef} src={outgoingTrack.audio_url} loop={outgoingTrack.loop} preload="auto" /> : null}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="player-audio-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-brass/25 bg-brass/10 text-brass">
-            <Music2 size={18} />
-          </div>
-          <div className="min-w-0">
-            <p className="player-audio-kicker">Atmosfera locale</p>
-            <p className="truncate text-sm font-semibold text-white">{activeTrack.title}</p>
-            <p className="text-xs text-slate-400">{activeTrack.loop ? "Loop attivo" : "Loop disattivato"} · volume locale{outgoingTrack ? " · crossfade" : ""}</p>
-          </div>
-        </div>
 
-        <div className="player-audio-controls flex items-center gap-2">
-          <button
-            type="button"
-            title={playing ? "Pausa locale" : "Riproduci locale"}
-            aria-label={playing ? "Pausa locale" : "Riproduci locale"}
-            onClick={togglePlayback}
-            disabled={!activeTrack.audio_url}
-            className="flex h-10 w-10 items-center justify-center rounded-lg btn-iron-premium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            {playing ? <Pause size={17} /> : <Play size={17} />}
-          </button>
-          <button
-            type="button"
-            title={muted ? "Riattiva audio" : "Disattiva audio"}
-            aria-label={muted ? "Riattiva audio" : "Disattiva audio"}
-            onClick={() => {
-              const next = !muted;
-              setMuted(next);
-              onMutedChange?.(next);
-            }}
-            className="flex h-10 w-10 items-center justify-center rounded-lg btn-iron-premium transition-all duration-200"
-          >
-            {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-          </button>
-          <input
-            aria-label="Volume locale"
-            className="w-32 accent-ember-500"
-            type="range"
-            min="0"
-            max="100"
-            value={muted ? 0 : volume}
-            onChange={(event) => {
-              const val = Number(event.target.value);
-              setMuted(false);
-              setVolume(val);
-              onMutedChange?.(false);
-              onVolumeChange?.(val);
-            }}
-          />
-        </div>
-      </div>
-      <span className="mysterium-corners-br" />
-    </section>
+      {!isMobile && (
+        <section className="player-audio-dock glass-panel sticky bottom-3 z-20 rounded-lg p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <div className="player-audio-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-brass/25 bg-brass/10 text-brass">
+                <Music2 size={18} />
+              </div>
+              <div className="min-w-0">
+                <p className="player-audio-kicker">Atmosfera locale</p>
+                <p className="truncate text-sm font-semibold text-white">{activeTrack.title}</p>
+                <p className="text-xs text-slate-400">{activeTrack.loop ? "Loop attivo" : "Loop disattivato"} · volume locale{outgoingTrack ? " · crossfade" : ""}</p>
+              </div>
+            </div>
+
+            <div className="player-audio-controls flex items-center gap-2">
+              <button
+                type="button"
+                title={playing ? "Pausa locale" : "Riproduci locale"}
+                aria-label={playing ? "Pausa locale" : "Riproduci locale"}
+                onClick={togglePlayback}
+                disabled={!activeTrack.audio_url}
+                className="flex h-10 w-10 items-center justify-center rounded-lg btn-iron-premium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                {playing ? <Pause size={17} /> : <Play size={17} />}
+              </button>
+              <button
+                type="button"
+                title={muted ? "Riattiva audio" : "Disattiva audio"}
+                aria-label={muted ? "Riattiva audio" : "Disattiva audio"}
+                onClick={() => {
+                  const next = !muted;
+                  setMuted(next);
+                  onMutedChange?.(next);
+                }}
+                className="flex h-10 w-10 items-center justify-center rounded-lg btn-iron-premium transition-all duration-200"
+              >
+                {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
+              </button>
+              <input
+                aria-label="Volume locale"
+                className="w-32 accent-ember-500"
+                type="range"
+                min="0"
+                max="100"
+                value={muted ? 0 : volume}
+                onChange={(event) => {
+                  const val = Number(event.target.value);
+                  setMuted(false);
+                  setVolume(val);
+                  onMutedChange?.(false);
+                  onVolumeChange?.(val);
+                }}
+              />
+            </div>
+          </div>
+          <span className="mysterium-corners-br" />
+        </section>
+      )}
+    </>
   );
 }

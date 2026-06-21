@@ -2641,6 +2641,18 @@ function AppLoading({ status }: { status: string }) {
 }
 
 function StatusBar({ status, error, onSignOut }: { status: string; error: string; onSignOut: () => void }) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  if (isMobile && !error) {
+    return null;
+  }
+
   return (
     <div className={`app-status-bar ${error ? "is-error" : ""}`} role={error ? "alert" : "status"} aria-live={error ? "assertive" : "polite"}>
       <div className="app-status-content">

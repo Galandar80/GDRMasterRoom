@@ -4256,15 +4256,7 @@ button:active {
   }
 
   .player-header-actions {
-    display: flex !important;
-    gap: 0.55rem;
-    margin-inline: -0.15rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    padding: 0 0.15rem 0.45rem;
-    scroll-padding-inline: 0.15rem;
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
+    display: none !important;
   }
 
   .player-header-actions .player-header-action {
@@ -4296,7 +4288,7 @@ button:active {
   }
 
   .player-current-strip {
-    padding: 0.45rem;
+    display: none !important;
   }
 
   .player-current-strip strong {
@@ -4323,9 +4315,66 @@ button:active {
     min-height: 0;
   }
 
+  /* Locked viewport structure for mobile */
+  html:has(.player-room-shell),
+  body:has(.player-room-shell) {
+    overflow: hidden !important;
+    height: 100dvh !important;
+    position: fixed;
+    width: 100%;
+  }
+
+  main:has(.player-room-shell) {
+    min-height: 0 !important;
+    height: 100dvh !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  main:has(.player-room-shell) > div {
+    height: 100dvh !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .player-room-shell {
+    margin: 0 !important;
+    height: 100% !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+  }
+
   .story-chat-panel {
-    height: min(42rem, calc(100vh - 7rem));
-    max-height: calc(100vh - 7rem);
+    height: 100% !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    flex: 1 1 0% !important;
+  }
+
+  /* Hide density selector and realtime badge on mobile/tablet to save header height */
+  .story-chat-header > div:last-child {
+    display: none !important;
+  }
+
+  /* Compact the padding of the chat panel headers and forms */
+  .story-chat-header {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  .story-chat-panel .grid.gap-2.border-b {
+    padding: 0.4rem 0.75rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .story-chat-panel form {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  /* Reduce search bar height and margins */
+  .story-chat-panel input[placeholder="Cerca nella chat..."] {
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.25rem !important;
+    font-size: 0.8rem !important;
   }
 
   .story-chat-panel form textarea {
@@ -4391,8 +4440,24 @@ button:active {
     display: none;
   }
 
+  .mobile-character-strip {
+    gap: 0.4rem !important;
+  }
+
   .mobile-character-strip button {
-    min-width: 11.5rem;
+    min-width: auto !important;
+    padding: 0.25rem !important;
+    border-radius: 9999px !important;
+  }
+
+  .mobile-character-strip button span:first-child {
+    border-radius: 9999px !important;
+  }
+
+  .mobile-character-strip button > span.min-w-0,
+  .mobile-character-strip button strong,
+  .mobile-character-strip button small {
+    display: none !important;
   }
 
   .scene-stage-badge,
