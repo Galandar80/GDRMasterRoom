@@ -234,7 +234,7 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
             onRollDice={onRollDice}
           />
         </div>
-        <div className={mobileTab === "sheet" ? "flex-grow flex-1 min-h-0 overflow-y-auto" : "hidden lg:block lg:h-full"}>
+        <div className={mobileTab === "sheet" ? "flex-grow flex-1 min-h-0 lg:overflow-y-auto" : "hidden lg:block lg:h-full"}>
           <ExportChatButton messages={[...state.messages, ...state.offMessages, ...state.privateMessages]} onLoadAll={onExportMessages} />
           <div className="mt-4">
             <PlayerDrawer
@@ -246,10 +246,10 @@ export function PlayerRoom({ state, currentAudio, onBack, onSend, onPrivateSend,
             />
           </div>
         </div>
-        <div className={mobileTab === "map" ? "flex-grow flex-1 min-h-0 flex flex-col overflow-hidden" : "hidden lg:block lg:h-full"}>
+        <div className={mobileTab === "map" ? "flex-grow flex-1 min-h-0 flex flex-col lg:overflow-hidden" : "hidden lg:block lg:h-full"}>
           <MapToolPanel state={state} isMaster={false} />
         </div>
-        <div className={mobileTab === "private" ? "flex-grow flex-1 min-h-0 overflow-y-auto" : "hidden lg:block lg:h-full"}>
+        <div className={mobileTab === "private" ? "flex-grow flex-1 min-h-0 lg:overflow-y-auto" : "hidden lg:block lg:h-full"}>
           <details className="glass-panel rounded-lg p-4" open>
             <summary className="cursor-pointer text-sm font-semibold text-white">Privati con il Master</summary>
             <div className="mt-4">

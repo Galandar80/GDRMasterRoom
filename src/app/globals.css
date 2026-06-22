@@ -4305,50 +4305,52 @@ button:active {
   }
 
   .mobile-player-tabs {
-    top: 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 30;
     border-color: rgba(var(--color-brass-rgb), 0.28);
-    background: rgba(var(--color-ink-900-rgb), 0.88);
+    background: rgba(var(--color-ink-900-rgb), 0.96);
     backdrop-filter: blur(18px);
+    margin-bottom: 0.5rem;
   }
 
   .player-room-shell section.glass-panel.flex.min-h-\[34rem\] {
     min-height: 0;
   }
 
-  /* Locked viewport structure for mobile */
+  /* Unlocked natural page viewport structure for mobile */
   html:has(.player-room-shell),
   body:has(.player-room-shell) {
-    overflow: hidden !important;
-    height: 100dvh !important;
-    position: fixed;
-    width: 100%;
+    overflow-y: auto !important;
+    height: auto !important;
+    position: relative !important;
   }
 
   main:has(.player-room-shell) {
-    min-height: 0 !important;
-    height: 100dvh !important;
+    min-height: 100vh !important;
+    height: auto !important;
     padding: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   main:has(.player-room-shell) > div {
-    height: 100dvh !important;
+    height: auto !important;
     gap: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
   }
 
   .player-room-shell {
     margin: 0 !important;
-    height: 100% !important;
-    flex: 1 1 0% !important;
-    min-height: 0 !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow: visible !important;
   }
 
-  .story-chat-panel {
-    height: 100% !important;
+  .story-chat-panel,
+  .off-chat-panel {
+    height: calc(100dvh - 125px) !important;
+    min-height: 480px !important;
     max-height: none !important;
-    min-height: 0 !important;
-    flex: 1 1 0% !important;
   }
 
   /* Hide density selector and realtime badge on mobile/tablet to save header height */
