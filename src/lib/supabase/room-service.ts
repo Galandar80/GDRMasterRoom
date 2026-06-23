@@ -3,6 +3,7 @@
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { demoRoomState } from "@/lib/demo-data";
 import { encodeDiceReason } from "@/lib/game-random";
+import { APP_LIMITS, validateMessageContent, validateUploadFile } from "@/lib/app-limits";
 import type {
   AudioTrack,
   Campaign,
@@ -30,6 +31,7 @@ import { hasSuperadminClaim, isConfiguredSuperadmin } from "@/lib/superadmin";
 
 type DatabaseClient = SupabaseClient;
 const ROOM_MESSAGE_PAGE_SIZE = 150;
+const SUPERADMIN_MEDIA_QUERY_LIMIT = 500;
 
 export type AdminRoomOverview = {
   id: string;
@@ -313,10 +315,28 @@ export async function listAllMediaForSuperAdmin(supabase: DatabaseClient, profil
 
   const [{ data: scenes, error: scenesError }, { data: audioTracks, error: audioError }, { data: soundEffects, error: soundError }, { data: mediaAssets, error: mediaError }] =
     await Promise.all([
-      supabase.from("scenes").select("*, rooms!scenes_room_id_fkey(name,campaigns(title))").order("created_at", { ascending: false }),
-      supabase.from("audio_tracks").select("*, rooms!audio_tracks_room_id_fkey(name,campaigns(title))").neq("audio_url", "").order("created_at", { ascending: false }),
-      supabase.from("sound_effects").select("*, rooms!sound_effects_room_id_fkey(name,campaigns(title))").neq("audio_url", "").order("created_at", { ascending: false }),
-      supabase.from("media_assets").select("*, rooms(name,campaigns(title))").order("created_at", { ascending: false })
+      supabase
+        .from("scenes")
+        .select("id,room_id,title,image_url,video_url,created_at,rooms!scenes_room_id_fkey(name,campaigns(title))")
+        .order("created_at", { ascending: false })
+        .limit(SUPERADMIN_MEDIA_QUERY_LIMIT),
+      supabase
+        .from("audio_tracks")
+        .select("id,room_id,title,audio_url,created_at,rooms!audio_tracks_room_id_fkey(name,campaigns(title))")
+        .neq("audio_url", "")
+        .order("created_at", { ascending: false })
+        .limit(SUPERADMIN_MEDIA_QUERY_LIMIT),
+      supabase
+        .from("sound_effects")
+        .select("id,room_id,title,audio_url,created_at,rooms!sound_effects_room_id_fkey(name,campaigns(title))")
+        .neq("audio_url", "")
+        .order("created_at", { ascending: false })
+        .limit(SUPERADMIN_MEDIA_QUERY_LIMIT),
+      supabase
+        .from("media_assets")
+        .select("id,room_id,title,asset_type,url,created_at,visibility,approval_status,file_size,owner_id,created_by,rooms(name,campaigns(title))")
+        .order("created_at", { ascending: false })
+        .limit(SUPERADMIN_MEDIA_QUERY_LIMIT)
     ]);
 
   if (scenesError) throw scenesError;
@@ -587,42 +607,14 @@ export async function enterMasterRoomByCode(supabase: DatabaseClient, code: stri
 }
 
 export async function joinRoomByCode(supabase: DatabaseClient, code: string, profile: Profile) {
-  const { data: room, error } = await supabase
-    .rpc("lookup_room_by_invite_code", { lookup_code: code.trim().toUpperCase() })
-    .maybeSingle();
+  const { data: claimedRoomId, error } = await supabase.rpc("claim_room_by_invite_code", {
+    lookup_code: code.trim().toUpperCase()
+  });
 
   if (error) throw error;
-  if (!room) return null;
-  const lookup = room as InviteRoomLookup;
+  if (!claimedRoomId) return null;
 
-  const { data: existingCharacter } = await supabase
-    .from("player_characters")
-    .select("*")
-    .eq("room_id", lookup.id)
-    .eq("user_id", profile.id)
-    .maybeSingle();
-
-  if (!existingCharacter) {
-    if ((lookup.player_count ?? 0) >= (lookup.max_players ?? 4)) {
-      throw new Error("La stanza ha raggiunto il numero massimo di giocatori disponibili.");
-    }
-
-    await supabase.from("player_characters").insert({
-      room_id: lookup.id,
-      user_id: profile.id,
-      character_name: profile.username || "Nuovo",
-      character_surname: "Viandante",
-      portrait_url: demoRoomState.characters[0].portrait_url,
-      color: "#f59e0b",
-      hp: 10,
-      mental_state: "Stabile",
-      public_background: "Personaggio appena entrato nella stanza.",
-      visible_status: "stabile",
-      is_setup_complete: false
-    });
-  }
-
-  return loadRoomState(supabase, lookup.id, profile);
+  return loadRoomState(supabase, claimedRoomId as string, profile);
 }
 
 export async function createOrUpdateCharacter(
@@ -643,23 +635,20 @@ export async function createOrUpdateCharacter(
 ) {
   const { data, error } = await supabase
     .from("player_characters")
-    .upsert(
-      {
-        room_id: roomId,
-        user_id: profile.id,
-        character_name: values.characterName,
-        character_surname: values.characterSurname,
-        portrait_url: values.portraitUrl,
-        color: values.color,
-        hp: values.hp,
-        mental_state: values.mentalState,
-        visible_status: values.visibleStatus,
-        public_background: values.publicBackground,
-        conditions: values.conditions ?? [],
-        is_setup_complete: true
-      },
-      { onConflict: "room_id,user_id" }
-    )
+    .update({
+      character_name: values.characterName,
+      character_surname: values.characterSurname,
+      portrait_url: values.portraitUrl,
+      color: values.color,
+      hp: values.hp,
+      mental_state: values.mentalState,
+      visible_status: values.visibleStatus,
+      public_background: values.publicBackground,
+      conditions: values.conditions ?? [],
+      is_setup_complete: true
+    })
+    .eq("room_id", roomId)
+    .eq("user_id", profile.id)
     .select("*")
     .single();
 
@@ -853,9 +842,27 @@ export async function loadOlderRoomMessages(supabase: DatabaseClient, roomId: st
 }
 
 export async function exportRoomMessages(supabase: DatabaseClient, roomId: string) {
-  const { data, error } = await supabase.from("messages").select("*").eq("room_id", roomId).order("created_at", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as Message[];
+  const { count, error: countError } = await supabase
+    .from("messages")
+    .select("id", { count: "exact", head: true })
+    .eq("room_id", roomId);
+  if (countError) throw countError;
+  if ((count ?? 0) > APP_LIMITS.messageExportMaxRows) {
+    throw new Error(`L'esportazione supera il limite operativo di ${APP_LIMITS.messageExportMaxRows.toLocaleString("it-IT")} messaggi.`);
+  }
+
+  const messages: Message[] = [];
+  for (let offset = 0; offset < (count ?? 0); offset += APP_LIMITS.messageExportPageSize) {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("room_id", roomId)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + APP_LIMITS.messageExportPageSize - 1);
+    if (error) throw error;
+    messages.push(...((data ?? []) as Message[]));
+  }
+  return messages;
 }
 
 export async function createScene(
@@ -1216,9 +1223,13 @@ export async function deleteSoundEffect(supabase: DatabaseClient, effect: SoundE
 }
 
 export async function uploadPublicFile(supabase: DatabaseClient, bucket: string, file: File, folder: string) {
+  validateUploadFile(bucket, file);
   const extension = file.name.split(".").pop() || "bin";
   const path = `${folder}/${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: false });
+  const { error } = await supabase.storage.from(bucket).upload(path, file, {
+    upsert: false,
+    contentType: file.type || undefined
+  });
 
   if (error) throw error;
 
@@ -1240,6 +1251,7 @@ export async function deleteRoom(supabase: DatabaseClient, roomId: string) {
 }
 
 export async function insertMessage(supabase: DatabaseClient, message: Omit<Message, "id" | "created_at">) {
+  validateMessageContent(message.content);
   const { data, error } = await supabase.from("messages").insert(message).select("*").single();
   if (error) throw error;
   return data as Message;
@@ -1251,6 +1263,7 @@ export async function deleteMessage(supabase: DatabaseClient, messageId: string)
 }
 
 export async function updateMessageContent(supabase: DatabaseClient, messageId: string, content: string) {
+  validateMessageContent(content);
   const { data, error } = await supabase
     .from("messages")
     .update({ content, edited_at: new Date().toISOString() })
@@ -1320,13 +1333,13 @@ export async function createMediaAsset(
 
 export async function listReusableMediaAssets(supabase: DatabaseClient, profile: Profile, roomId?: string): Promise<MediaAsset[]> {
   const queries = [
-    supabase.from("media_assets").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false }),
-    supabase.from("media_assets").select("*").eq("visibility", "shared").order("created_at", { ascending: false }),
-    supabase.from("media_assets").select("*").eq("visibility", "global").eq("approval_status", "approved").order("created_at", { ascending: false })
+    supabase.from("media_assets").select("*").eq("owner_id", profile.id).order("created_at", { ascending: false }).limit(APP_LIMITS.reusableMediaPerScope),
+    supabase.from("media_assets").select("*").eq("visibility", "shared").order("created_at", { ascending: false }).limit(APP_LIMITS.reusableMediaPerScope),
+    supabase.from("media_assets").select("*").eq("visibility", "global").eq("approval_status", "approved").order("created_at", { ascending: false }).limit(APP_LIMITS.reusableMediaPerScope)
   ];
 
   if (roomId) {
-    queries.push(supabase.from("media_assets").select("*").eq("room_id", roomId).order("created_at", { ascending: false }));
+    queries.push(supabase.from("media_assets").select("*").eq("room_id", roomId).order("created_at", { ascending: false }).limit(APP_LIMITS.reusableMediaPerScope));
   }
 
   const results = await Promise.all(queries);

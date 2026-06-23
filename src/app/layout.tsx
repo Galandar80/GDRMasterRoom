@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./ui-effects.css";
+import "./theme-experience.css";
 
 export const metadata: Metadata = {
   title: "GDR Master Room",

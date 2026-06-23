@@ -1,0 +1,558 @@
+/* Final theme layer. Imported after globals.css so each genre owns the UI. */
+
+.theme-fantasy {
+  --experience-name: "CLASSIC FANTASY";
+  --experience-code: "ARCANUM / I";
+  --experience-accent: 200, 163, 93;
+  --experience-secondary: 180, 83, 38;
+  --experience-surface: 15, 11, 7;
+  --experience-raised: 32, 23, 14;
+  --experience-font-display: "Cinzel", Georgia, serif;
+  --experience-font-data: Georgia, serif;
+  --experience-radius: 0.85rem;
+  --experience-control-radius: 0.55rem;
+  --experience-texture: var(--atlas-texture-parchment);
+  --experience-world: url("/assets/master/director-room-bg.png");
+}
+
+.theme-cyberpunk {
+  --experience-name: "CYBERPUNK NEON";
+  --experience-code: "NET//77";
+  --experience-accent: 6, 182, 212;
+  --experience-secondary: 244, 63, 94;
+  --experience-surface: 3, 0, 8;
+  --experience-raised: 16, 3, 29;
+  --experience-font-display: "Orbitron", "Share Tech Mono", monospace;
+  --experience-font-data: "Share Tech Mono", monospace;
+  --experience-radius: 0;
+  --experience-control-radius: 0;
+  --experience-texture: url("/assets/atlas/themes/cyberpunk-texture-bg.png");
+  --experience-world: url("/assets/menu/theme-cyberpunk.png");
+}
+
+.theme-lovecraft {
+  --experience-name: "ELDRITCH TERROR";
+  --experience-code: "R'LYEH / IX";
+  --experience-accent: 45, 212, 191;
+  --experience-secondary: 139, 92, 246;
+  --experience-surface: 3, 9, 8;
+  --experience-raised: 9, 24, 19;
+  --experience-font-display: "Creepster", "MedievalSharp", Georgia, serif;
+  --experience-font-data: "MedievalSharp", Georgia, serif;
+  --experience-radius: 1.15rem 0.18rem 1.15rem 0.18rem;
+  --experience-control-radius: 0.72rem 0.12rem 0.72rem 0.12rem;
+  --experience-texture: url("/assets/atlas/themes/lovecraft-texture-bg.png");
+  --experience-world: url("/assets/menu/theme-lovecraft.png");
+}
+
+.theme-scifi {
+  --experience-name: "SPACE ODYSSEY";
+  --experience-code: "ODYSSEY / 2401";
+  --experience-accent: 56, 189, 248;
+  --experience-secondary: 129, 140, 248;
+  --experience-surface: 2, 7, 17;
+  --experience-raised: 8, 20, 38;
+  --experience-font-display: "Orbitron", "Space Grotesk", sans-serif;
+  --experience-font-data: "Share Tech Mono", monospace;
+  --experience-radius: 0.35rem;
+  --experience-control-radius: 0.22rem;
+  --experience-texture: url("/assets/atlas/themes/scifi-texture-bg.png");
+  --experience-world: url("/assets/menu/theme-scifi.png");
+}
+
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi) body {
+  background:
+    linear-gradient(180deg, rgba(var(--experience-surface), 0.48), rgba(var(--experience-surface), 0.96)),
+    var(--experience-world) center / cover fixed !important;
+}
+
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi)
+  :where(.font-serif, h1, h2, h3) {
+  font-family: var(--experience-font-display) !important;
+}
+
+.theme-world-chrome {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(var(--experience-surface), 0.3), rgba(var(--experience-surface), 0.94)),
+    var(--experience-world) center / cover fixed;
+}
+
+.theme-world-chrome::before {
+  content: var(--experience-name);
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1rem;
+  z-index: 3;
+  color: rgba(var(--experience-accent), 0.28);
+  font-family: var(--experience-font-data);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  writing-mode: vertical-rl;
+}
+
+.theme-world-chrome::after {
+  content: var(--experience-code);
+  position: fixed;
+  left: 1.1rem;
+  bottom: 0.9rem;
+  color: rgba(var(--experience-accent), 0.32);
+  font-family: var(--experience-font-data);
+  font-size: 0.62rem;
+  letter-spacing: 0.24em;
+}
+
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi) .app-theme-bg {
+  background:
+    linear-gradient(180deg, rgba(var(--experience-surface), 0.28), rgba(var(--experience-surface), 0.91)),
+    var(--experience-world) center / cover !important;
+  opacity: 0.82 !important;
+}
+
+/* Restore the compact settings popover that existed before the theme pass. */
+.premium-settings-popover {
+  position: absolute !important;
+  right: clamp(1.25rem, 4vw, 4rem) !important;
+  top: 5.75rem !important;
+  z-index: 30 !important;
+  width: min(22rem, calc(100vw - 2rem)) !important;
+  padding: 1rem !important;
+  border: 1px solid rgba(var(--color-brass-rgb), 0.28) !important;
+  border-radius: 0.9rem !important;
+  background:
+    linear-gradient(180deg, rgba(13, 14, 20, 0.96), rgba(7, 8, 13, 0.97)),
+    radial-gradient(circle at top right, rgba(147, 51, 234, 0.16), transparent 14rem) !important;
+  background-size: auto !important;
+  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(14px) !important;
+  clip-path: none !important;
+  transform: none !important;
+  animation: premium-rise 180ms ease both !important;
+}
+
+.premium-settings-popover::before,
+.premium-settings-popover::after {
+  display: none !important;
+}
+
+.premium-settings-popover h2 {
+  margin-bottom: 0.8rem !important;
+  color: rgb(215, 173, 91) !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 0.95rem !important;
+  letter-spacing: 0.18em !important;
+  text-shadow: none !important;
+}
+
+.premium-settings-popover .premium-setting-row {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0.7rem !important;
+  background: rgba(255, 255, 255, 0.035) !important;
+  box-shadow: none !important;
+}
+
+.premium-settings-popover :where(input, select, .field) {
+  border-radius: 0.45rem !important;
+  font-family: var(--font-space) !important;
+}
+
+/* Authentication is part of the same world, before AppShell mounts. */
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi) .auth-gate-card {
+  border-color: rgba(var(--experience-accent), 0.46) !important;
+  border-radius: var(--experience-radius) !important;
+  background:
+    linear-gradient(145deg, rgba(var(--experience-accent), 0.08), transparent 36%),
+    rgba(var(--experience-surface), 0.96) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.74), 0 0 32px rgba(var(--experience-accent), 0.1) !important;
+}
+
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi) .auth-gate-vignette {
+  background-image:
+    linear-gradient(90deg, transparent, rgba(var(--experience-surface), 0.72)),
+    var(--experience-world) !important;
+}
+
+.theme-cyberpunk .auth-gate-card {
+  clip-path: polygon(0 0, calc(100% - 1.5rem) 0, 100% 1.5rem, 100% 100%, 1.5rem 100%, 0 calc(100% - 1.5rem));
+}
+
+.theme-cyberpunk .auth-gate-vignette::after {
+  content: "IDENTITY GATE // SECURE CHANNEL";
+  position: absolute;
+  left: 1.5rem;
+  bottom: 1.2rem;
+  color: #67e8f9;
+  font: 700 0.65rem/1 var(--experience-font-data);
+  letter-spacing: 0.2em;
+}
+
+.theme-lovecraft .auth-gate-card {
+  transform: rotate(-0.16deg);
+}
+
+.theme-lovecraft .auth-gate-vignette {
+  filter: hue-rotate(48deg) saturate(0.7) contrast(1.12);
+}
+
+.theme-scifi .auth-gate-card {
+  clip-path: polygon(0.8rem 0, calc(100% - 0.8rem) 0, 100% 0.8rem, 100% calc(100% - 0.8rem), calc(100% - 0.8rem) 100%, 0.8rem 100%, 0 calc(100% - 0.8rem), 0 0.8rem);
+}
+
+.theme-scifi .auth-gate-vignette::after {
+  content: "CREW AUTHORIZATION / DECK 01";
+  position: absolute;
+  left: 1.5rem;
+  bottom: 1.2rem;
+  color: rgba(125, 211, 252, 0.82);
+  font: 700 0.65rem/1 var(--experience-font-data);
+  letter-spacing: 0.2em;
+}
+
+/* Shared panel material; genre-specific sections below reshape it. */
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi)
+  .atlas-app-shell
+  :where(
+    .glass-panel,
+    .ui-panel-window,
+    .director-card,
+    .director-tool-panel,
+    .story-chat-panel,
+    .master-command-panel,
+    .player-room-header,
+    .player-utility-modal,
+    .map-tool-panel,
+    .off-chat-panel,
+    .private-thread-panel,
+    .soundbar-modal-content,
+    .premium-menu-panel
+  ) {
+  border: 1px solid rgba(var(--experience-accent), 0.42) !important;
+  border-radius: var(--experience-radius) !important;
+  background:
+    linear-gradient(145deg, rgba(var(--experience-accent), 0.09), transparent 34%),
+    linear-gradient(180deg, rgba(var(--experience-raised), 0.91), rgba(var(--experience-surface), 0.97)),
+    var(--experience-texture) center / cover !important;
+  background-blend-mode: normal, normal, soft-light !important;
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.62),
+    inset 0 1px rgba(255, 255, 255, 0.045),
+    0 0 28px rgba(var(--experience-accent), 0.1) !important;
+}
+
+:where(.theme-fantasy, .theme-cyberpunk, .theme-lovecraft, .theme-scifi)
+  .atlas-app-shell
+  :where(.field, input.field, textarea.field, select.field) {
+  border-color: rgba(var(--experience-accent), 0.34) !important;
+  border-radius: var(--experience-control-radius) !important;
+  background: rgba(var(--experience-surface), 0.82) !important;
+}
+
+/* Cyberpunk: asymmetrical terminal architecture, neon rails and scanlines. */
+.theme-cyberpunk .premium-start-menu {
+  font-family: var(--experience-font-data);
+}
+
+.theme-cyberpunk .premium-start-menu::after,
+.theme-cyberpunk .director-control-room::after,
+.theme-cyberpunk .player-room-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(6, 182, 212, 0.035) 3px 4px),
+    linear-gradient(90deg, rgba(244, 63, 94, 0.08), transparent 18%, transparent 82%, rgba(6, 182, 212, 0.08));
+  mix-blend-mode: screen;
+}
+
+.theme-cyberpunk .premium-start-menu > .relative {
+  max-width: 1680px;
+  margin-inline: auto;
+}
+
+.theme-cyberpunk .premium-menu-panel,
+.theme-cyberpunk .director-card,
+.theme-cyberpunk .player-room-header,
+.theme-cyberpunk .story-chat-panel,
+.theme-cyberpunk .map-tool-panel {
+  clip-path: polygon(0 0, calc(100% - 1.4rem) 0, 100% 1.4rem, 100% 100%, 1.4rem 100%, 0 calc(100% - 1.4rem));
+  border-color: rgba(6, 182, 212, 0.72) !important;
+  background:
+    repeating-linear-gradient(0deg, rgba(6, 182, 212, 0.025) 0 1px, transparent 1px 5px),
+    linear-gradient(120deg, rgba(244, 63, 94, 0.13), transparent 28%),
+    rgba(3, 0, 10, 0.94) !important;
+  box-shadow:
+    8px 8px 0 rgba(244, 63, 94, 0.09),
+    -5px -5px 0 rgba(6, 182, 212, 0.06),
+    0 0 28px rgba(6, 182, 212, 0.16) !important;
+}
+
+.theme-cyberpunk .premium-menu-panel {
+  transform: translateY(1.4rem);
+}
+
+.theme-cyberpunk .premium-logo-mark,
+.theme-cyberpunk .player-logo-mark {
+  clip-path: polygon(12% 0, 100% 0, 100% 72%, 72% 100%, 0 100%, 0 28%);
+  border-color: #06b6d4 !important;
+  color: #f43f5e !important;
+}
+
+.theme-cyberpunk .premium-action,
+.theme-cyberpunk .director-nav-link,
+.theme-cyberpunk .player-header-action,
+.theme-cyberpunk .story-message {
+  position: relative;
+  border-radius: 0 !important;
+  border-color: rgba(6, 182, 212, 0.34) !important;
+  font-family: var(--experience-font-data);
+}
+
+.theme-cyberpunk .premium-action::after,
+.theme-cyberpunk .director-nav-link::after,
+.theme-cyberpunk .player-header-action::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, #f43f5e, transparent 48%, #06b6d4);
+  opacity: 0.76;
+}
+
+.theme-cyberpunk .director-workbench:not(.is-immersive) {
+  grid-template-columns: 13rem minmax(0, 1fr) 23rem !important;
+}
+
+.theme-cyberpunk .director-sidebar {
+  border-left: 3px solid #f43f5e !important;
+}
+
+.theme-cyberpunk .director-nav-link.is-active {
+  color: #071018 !important;
+  background: linear-gradient(90deg, #06b6d4, #67e8f9) !important;
+  box-shadow: 0 0 22px rgba(6, 182, 212, 0.35) !important;
+}
+
+.theme-cyberpunk .map-canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(6, 182, 212, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px);
+  background-size: 2rem 2rem;
+  mix-blend-mode: screen;
+}
+
+/* Eldritch: organic asymmetry, occult typography and submerged depth. */
+.theme-lovecraft .premium-start-menu::after,
+.theme-lovecraft .director-control-room::after,
+.theme-lovecraft .player-room-shell::after {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 12% 18%, rgba(45, 212, 191, 0.1), transparent 18%),
+    radial-gradient(ellipse at 86% 72%, rgba(139, 92, 246, 0.14), transparent 24%),
+    repeating-radial-gradient(ellipse at 50% 120%, transparent 0 5rem, rgba(45, 212, 191, 0.025) 5.1rem 5.25rem);
+  filter: blur(1px);
+}
+
+.theme-lovecraft .premium-menu-panel {
+  transform: rotate(0.35deg) translateY(0.6rem);
+}
+
+.theme-lovecraft .premium-menu-panel,
+.theme-lovecraft .director-card,
+.theme-lovecraft .player-room-header,
+.theme-lovecraft .story-chat-panel,
+.theme-lovecraft .map-tool-panel {
+  border-color: rgba(45, 212, 191, 0.38) !important;
+  border-radius: 1.4rem 0.15rem 1.4rem 0.15rem !important;
+  background:
+    radial-gradient(ellipse at 92% 8%, rgba(139, 92, 246, 0.16), transparent 35%),
+    linear-gradient(170deg, rgba(10, 28, 22, 0.94), rgba(2, 7, 6, 0.98)),
+    url("/assets/atlas/themes/lovecraft-texture-bg.png") center / cover !important;
+  background-blend-mode: screen, normal, soft-light !important;
+  box-shadow:
+    inset 0 0 48px rgba(45, 212, 191, 0.06),
+    0 22px 55px rgba(0, 0, 0, 0.75),
+    0 0 34px rgba(139, 92, 246, 0.1) !important;
+}
+
+.theme-lovecraft .premium-logo-mark {
+  clip-path: circle(48% at 50% 50%);
+  transform: rotate(-7deg);
+  filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.34));
+}
+
+.theme-lovecraft .premium-action,
+.theme-lovecraft .director-nav-link,
+.theme-lovecraft .player-header-action,
+.theme-lovecraft .story-message {
+  border-radius: 0.9rem 0.12rem 0.9rem 0.12rem !important;
+  font-family: var(--experience-font-data);
+}
+
+.theme-lovecraft .premium-action:hover,
+.theme-lovecraft .director-nav-link:hover {
+  transform: translateX(3px) rotate(-0.18deg);
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.13), rgba(139, 92, 246, 0.09)) !important;
+}
+
+.theme-lovecraft .director-sidebar {
+  transform: translateY(0.65rem);
+}
+
+.theme-lovecraft .director-nav-link.is-active {
+  border-left: 3px solid #2dd4bf !important;
+  background:
+    radial-gradient(circle at 10% 50%, rgba(45, 212, 191, 0.2), transparent 45%),
+    rgba(139, 92, 246, 0.08) !important;
+  box-shadow: inset 18px 0 24px rgba(45, 212, 191, 0.05) !important;
+}
+
+.theme-lovecraft .story-message:nth-child(even) {
+  transform: translateX(0.28rem);
+}
+
+.theme-lovecraft .map-canvas {
+  filter: saturate(0.72) hue-rotate(24deg) contrast(1.08);
+}
+
+/* Space Odyssey: modular cockpit, telemetry labels and hard technical frames. */
+.theme-scifi .premium-start-menu::after,
+.theme-scifi .director-control-room::after,
+.theme-scifi .player-room-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 75% 20%, rgba(129, 140, 248, 0.15), transparent 24rem);
+  background-size: 4rem 4rem, 4rem 4rem, auto;
+}
+
+.theme-scifi .premium-menu-panel,
+.theme-scifi .director-card,
+.theme-scifi .player-room-header,
+.theme-scifi .story-chat-panel,
+.theme-scifi .map-tool-panel {
+  clip-path: polygon(0.8rem 0, calc(100% - 0.8rem) 0, 100% 0.8rem, 100% calc(100% - 0.8rem), calc(100% - 0.8rem) 100%, 0.8rem 100%, 0 calc(100% - 0.8rem), 0 0.8rem);
+  border-color: rgba(56, 189, 248, 0.48) !important;
+  background:
+    linear-gradient(90deg, rgba(56, 189, 248, 0.07) 1px, transparent 1px),
+    linear-gradient(rgba(56, 189, 248, 0.05) 1px, transparent 1px),
+    linear-gradient(145deg, rgba(129, 140, 248, 0.12), transparent 36%),
+    rgba(4, 12, 25, 0.95) !important;
+  background-size: 2rem 2rem, 2rem 2rem, auto, auto !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+    0 18px 45px rgba(0, 0, 0, 0.72),
+    0 0 28px rgba(56, 189, 248, 0.12) !important;
+}
+
+.theme-scifi .premium-menu-panel {
+  transform: translateY(-0.5rem);
+}
+
+.theme-scifi .premium-menu-panel::before,
+.theme-scifi .director-card::before,
+.theme-scifi .player-room-header::before,
+.theme-scifi .story-chat-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 0 !important;
+  background:
+    linear-gradient(90deg, #38bdf8 0 3.5rem, transparent 3.5rem) top left / 7rem 2px no-repeat,
+    linear-gradient(180deg, #38bdf8 0 2rem, transparent 2rem) top left / 2px 5rem no-repeat,
+    linear-gradient(270deg, #818cf8 0 3.5rem, transparent 3.5rem) bottom right / 7rem 2px no-repeat,
+    linear-gradient(0deg, #818cf8 0 2rem, transparent 2rem) bottom right / 2px 5rem no-repeat !important;
+  opacity: 0.72;
+}
+
+.theme-scifi .premium-logo-mark,
+.theme-scifi .player-logo-mark {
+  clip-path: polygon(50% 0, 92% 18%, 100% 62%, 72% 100%, 28% 100%, 0 62%, 8% 18%);
+}
+
+.theme-scifi .premium-action,
+.theme-scifi .director-nav-link,
+.theme-scifi .player-header-action,
+.theme-scifi .story-message {
+  border-radius: 0.22rem !important;
+  font-family: var(--experience-font-data);
+  letter-spacing: 0.035em;
+}
+
+.theme-scifi .director-workbench:not(.is-immersive) {
+  grid-template-columns: 14rem minmax(0, 1fr) 24rem !important;
+}
+
+.theme-scifi .director-sidebar {
+  border-top: 3px solid #38bdf8 !important;
+}
+
+.theme-scifi .director-nav-link.is-active {
+  color: #e0f2fe !important;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.22), rgba(129, 140, 248, 0.08)) !important;
+  box-shadow: inset 3px 0 #38bdf8, 0 0 16px rgba(56, 189, 248, 0.12) !important;
+}
+
+.theme-scifi .player-header-actions {
+  gap: 0.25rem !important;
+}
+
+.theme-scifi .map-canvas::after {
+  content: "NAV GRID  /  LIVE TELEMETRY";
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.55rem;
+  color: rgba(56, 189, 248, 0.5);
+  font: 700 0.58rem/1 var(--experience-font-data);
+  letter-spacing: 0.18em;
+  pointer-events: none;
+}
+
+@media (max-width: 1535px) {
+  .theme-cyberpunk .director-workbench:not(.is-immersive),
+  .theme-scifi .director-workbench:not(.is-immersive) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .theme-world-chrome::before,
+  .theme-world-chrome::after {
+    display: none;
+  }
+
+  .theme-cyberpunk .premium-menu-panel,
+  .theme-lovecraft .premium-menu-panel,
+  .theme-scifi .premium-menu-panel {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-cyberpunk *,
+  .theme-lovecraft *,
+  .theme-scifi * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

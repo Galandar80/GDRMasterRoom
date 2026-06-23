@@ -2,12 +2,12 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, Loader2, LogOut, MessageSquareText, Sparkles, X } from "lucide-react";
-import { CharacterSetupForm, type CharacterSetupValues } from "@/components/lobby/character-setup-form";
-import { CreateGameForm, type CreateGameValues } from "@/components/lobby/create-game-form";
-import { JoinRoomForm, type JoinMode } from "@/components/lobby/join-room-form";
-import { SessionSwitcher } from "@/components/lobby/session-switcher";
+import { MessageSquareText, X } from "lucide-react";
+import { AppLoading, StatusBar } from "@/components/app-shell-status";
 import { StartMenu } from "@/components/lobby/start-menu";
+import type { CharacterSetupValues } from "@/components/lobby/character-setup-form";
+import type { CreateGameValues } from "@/components/lobby/create-game-form";
+import type { JoinMode } from "@/components/lobby/join-room-form";
 import { demoRoomState } from "@/lib/demo-data";
 import { cardDeckLabel, drawCard, encodeDiceReason, getDiceCount, rollDice as rollDiceValues, stripDiceCountMarker, type CardDeckType } from "@/lib/game-random";
 import { clearSupabaseAuthStorage, createClient, demoMode } from "@/lib/supabase/client";
@@ -73,10 +73,53 @@ import {
 } from "@/lib/supabase/room-service";
 import type { AdminMediaOverview, AdminRoomOverview, UserSessionSummary } from "@/lib/supabase/room-service";
 import type { AudioTrack, DiceRequest, InventoryItem, MapCharacterPosition, MapFogArea, MediaAsset, Message, NarrativeMap, Npc, Room, RoomState, Scene, SceneMediaType, SceneVisibility, SoundEffect } from "@/lib/types";
+import { applyVisualTheme, readVisualTheme } from "@/lib/visual-theme";
+import {
+  addMessageToState,
+  createLocalNarrativeMap,
+  generateInviteCode,
+  isMapSchemaError,
+  mergeMessagePages,
+  readError,
+  updateMessageInState,
+  upsertLocalMapPosition,
+  withClientTimeout
+} from "@/lib/app-shell-utils";
+import {
+  applyMapSyncState,
+  buildMapSyncPayload,
+  isValidMapSyncPayload,
+  MAP_SYNC_PREFIX,
+  parseMapSyncMessage,
+  type MapSyncPayload
+} from "@/lib/map-sync";
+import { applyInventorySync, updateCollectionEvent } from "@/lib/room-state-events";
+import {
+  isMapRealtimeEvent,
+  isValidDirectorCuePayload,
+  isValidInventorySyncPayload,
+  isValidMapRealtimePayload
+} from "@/lib/realtime-payloads";
 
 const MasterControlRoom = dynamic(
   () => import("@/components/master-control-room").then((module) => module.MasterControlRoom),
   { loading: () => <AppLoading status="Caricamento cabina di regia..." /> }
+);
+const CharacterSetupForm = dynamic(
+  () => import("@/components/lobby/character-setup-form").then((module) => module.CharacterSetupForm),
+  { loading: () => <AppLoading status="Caricamento scheda personaggio..." /> }
+);
+const CreateGameForm = dynamic(
+  () => import("@/components/lobby/create-game-form").then((module) => module.CreateGameForm),
+  { loading: () => <AppLoading status="Caricamento creazione partita..." /> }
+);
+const JoinRoomForm = dynamic(
+  () => import("@/components/lobby/join-room-form").then((module) => module.JoinRoomForm),
+  { loading: () => <AppLoading status="Caricamento accesso stanza..." /> }
+);
+const SessionSwitcher = dynamic(
+  () => import("@/components/lobby/session-switcher").then((module) => module.SessionSwitcher),
+  { loading: () => <AppLoading status="Caricamento sessioni..." /> }
 );
 const PlayerRoom = dynamic(
   () => import("@/components/player-room").then((module) => module.PlayerRoom),
@@ -101,17 +144,6 @@ type CinematicEventPayload =
   | { kind: "npc"; title: string; detail: string; imageUrl?: string }
   | { kind: "sound"; title: string; detail: string }
   | { kind: "whisper"; title: string; detail: string };
-type MapSyncPayload = {
-  kind: "map-sync";
-  roomId: string;
-  revision: string;
-  maps: NarrativeMap[];
-  mapCharacterPositions: MapCharacterPosition[];
-  mapFogAreas?: MapFogArea[];
-};
-
-const MAP_SYNC_PREFIX = "__gdr_map_sync__:";
-
 export function AppShell() {
   const [view, setView] = useState<View>("menu");
   const [activeCue, setActiveCue] = useState<{ cueId: string; tone: string; message: string } | null>(null);
@@ -129,10 +161,7 @@ export function AppShell() {
   const cueTimeoutRef = useRef<number | null>(null);
   
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const theme = localStorage.getItem("gdr_visual_theme") || "fantasy";
-      document.documentElement.className = `theme-${theme}`;
-    }
+    applyVisualTheme(readVisualTheme(), false);
   }, []);
 
   const [roomState, setRoomState] = useState<RoomState>(demoRoomState);
@@ -341,8 +370,15 @@ export function AppShell() {
   useEffect(() => {
     if (!supabase || demoMode || !hasCurrentSession || !roomState.room.id) return;
 
+    const forwardMapBroadcast = (event: string, payload: unknown) => {
+      if (!isMapRealtimeEvent(event) || !isValidMapRealtimePayload(event, payload)) return;
+      window.dispatchEvent(new CustomEvent("local-map-broadcast", {
+        detail: { event, payload }
+      }));
+    };
+
     let channel = supabase
-      .channel(`room-${roomState.room.id}`)
+      .channel(`room-${roomState.room.id}`, { config: { private: true } })
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter: `room_id=eq.${roomState.room.id}` },
@@ -470,7 +506,7 @@ export function AppShell() {
         { event: "map-sync" },
         (response) => {
           const payload = response.payload as MapSyncPayload;
-          if (payload && payload.revision !== mapSyncRevisionRef.current) {
+          if (isValidMapSyncPayload(payload, roomState.room.id) && payload.revision !== mapSyncRevisionRef.current) {
             mapSyncRevisionRef.current = payload.revision;
             setRoomState((state) => applyMapSyncState(state, payload));
           }
@@ -480,8 +516,8 @@ export function AppShell() {
         "broadcast",
         { event: "director-cue" },
         (response) => {
-          const payload = response.payload as { cueId: string; tone: string; message: string };
-          if (payload) {
+          const payload = response.payload;
+          if (isValidDirectorCuePayload(payload)) {
             triggerDirectorCueLocally(payload.cueId, payload.tone, payload.message);
           }
         }
@@ -490,17 +526,38 @@ export function AppShell() {
         "broadcast",
         { event: "inventory-sync" },
         (response) => {
-          const payload = response.payload as { action?: "upsert" | "delete"; item?: InventoryItem };
-          if (payload?.item) {
-            setRoomState((state) => applyInventorySync(state, payload.action ?? "upsert", payload.item!));
+          const payload = response.payload;
+          if (isValidInventorySyncPayload(payload)) {
+            setRoomState((state) => applyInventorySync(state, payload.action ?? "upsert", payload.item as InventoryItem));
           }
         }
+      )
+      .on("broadcast", { event: "ping" }, ({ payload }) => forwardMapBroadcast("ping", payload))
+      .on("broadcast", { event: "drag" }, ({ payload }) => forwardMapBroadcast("drag", payload))
+      .on("broadcast", { event: "drag-stop" }, ({ payload }) => forwardMapBroadcast("drag-stop", payload))
+      .on("broadcast", { event: "map-state" }, ({ payload }) => forwardMapBroadcast("map-state", payload))
+      .on("broadcast", { event: "request-map-state" }, ({ payload }) => forwardMapBroadcast("request-map-state", payload)
       );
 
     realtimeChannelRef.current = channel;
-    channel.subscribe();
+    const handleRealtimeSend = (event: Event) => {
+      const detail = (event as CustomEvent<{ event?: string; payload?: unknown }>).detail;
+      if (!isMapRealtimeEvent(detail?.event) || !isValidMapRealtimePayload(detail.event, detail.payload)) return;
+      channel.send({
+        type: "broadcast",
+        event: detail.event,
+        payload: detail.payload ?? {}
+      });
+    };
+    window.addEventListener("room-realtime-send", handleRealtimeSend);
+    channel.subscribe((subscriptionStatus) => {
+      if (subscriptionStatus === "CHANNEL_ERROR" || subscriptionStatus === "TIMED_OUT") {
+        setError("Connessione realtime temporaneamente non disponibile. Riprovo automaticamente.");
+      }
+    });
 
     return () => {
+      window.removeEventListener("room-realtime-send", handleRealtimeSend);
       realtimeChannelRef.current = null;
       supabase.removeChannel(channel);
     };
@@ -2425,7 +2482,11 @@ export function AppShell() {
   }
 
   return (
-    <div className={view === "master" ? "flex min-h-screen flex-col" : "mx-auto flex max-w-[1800px] flex-col gap-4"}>
+    <div
+      className={`atlas-app-shell app-experience-shell ${view === "master" ? "flex min-h-screen flex-col" : "mx-auto flex max-w-[1800px] flex-col gap-4"}`}
+      data-view={view}
+    >
+      <div className="theme-world-chrome" aria-hidden="true" />
       <div className="vignette-overlay-cinematic" />
       {(view !== "menu" && view !== "master") || error ? <StatusBar status={status} error={error} onSignOut={signOut} /> : null}
       {view === "menu" ? (
@@ -2622,321 +2683,6 @@ function CinematicEventOverlay({ event, onClose }: { event: CinematicEvent; onCl
       </section>
     </div>
   );
-}
-
-function AppLoading({ status }: { status: string }) {
-  return (
-    <main className="app-loading-shell">
-      <div className="app-loading-card">
-        <div className="app-loading-orb" aria-hidden="true">
-          <Loader2 size={28} />
-        </div>
-        <p className="app-loading-kicker">GDR Master Room</p>
-        <h1>Preparazione della stanza</h1>
-        <p>{status}</p>
-        <div className="app-loading-line" aria-hidden="true" />
-      </div>
-    </main>
-  );
-}
-
-function StatusBar({ status, error, onSignOut }: { status: string; error: string; onSignOut: () => void }) {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 1024);
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  if (isMobile && !error) {
-    return null;
-  }
-
-  return (
-    <div className={`app-status-bar ${error ? "is-error" : ""}`} role={error ? "alert" : "status"} aria-live={error ? "assertive" : "polite"}>
-      <div className="app-status-content">
-        <span className="app-status-icon" aria-hidden="true">
-          {error ? <AlertTriangle size={16} /> : status.toLowerCase().includes("caric") ? <Sparkles size={16} /> : <CheckCircle2 size={16} />}
-        </span>
-        <span>{error || status}</span>
-      </div>
-      <button type="button" onClick={onSignOut} className="app-status-logout">
-        <LogOut size={14} aria-hidden="true" />
-        Logout
-      </button>
-    </div>
-  );
-}
-
-function addMessageToState(state: RoomState, message: Message) {
-  if (message.is_private) {
-    return state.privateMessages.some((item) => item.id === message.id)
-      ? state
-      : { ...state, privateMessages: [...state.privateMessages, message] };
-  }
-
-  if (message.channel === "off") {
-    return state.offMessages.some((item) => item.id === message.id)
-      ? state
-      : { ...state, offMessages: [...state.offMessages, message] };
-  }
-
-  return state.messages.some((item) => item.id === message.id)
-    ? state
-    : { ...state, messages: [...state.messages, message] };
-}
-
-function updateMessageInState(state: RoomState, message: Message) {
-  const update = (items: Message[]) => items.map((item) => (item.id === message.id ? message : item));
-
-  return {
-    ...state,
-    messages: update(state.messages),
-    offMessages: update(state.offMessages),
-    privateMessages: update(state.privateMessages)
-  };
-}
-
-function mergeMessagePages(olderMessages: Message[], currentMessages: Message[]) {
-  const seen = new Set<string>();
-  return [...olderMessages, ...currentMessages]
-    .filter((message) => {
-      if (seen.has(message.id)) return false;
-      seen.add(message.id);
-      return true;
-    })
-    .sort((a, b) => a.created_at.localeCompare(b.created_at));
-}
-
-type CollectionKey =
-  | "diceRequests"
-  | "mediaAssets"
-  | "scenes"
-  | "audioTracks"
-  | "soundEffects"
-  | "characters"
-  | "inventory";
-
-function updateCollectionEvent(
-  state: RoomState,
-  key: CollectionKey,
-  payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> },
-  sortKey: string,
-  ascending: boolean
-) {
-  const items = state[key] as unknown as Array<{ id: string } & Record<string, unknown>>;
-
-  if (payload.eventType === "DELETE") {
-    return { ...state, [key]: items.filter((item) => item.id !== payload.old.id) };
-  }
-
-  const incoming = payload.new as { id: string } & Record<string, unknown>;
-  const merged = items.some((item) => item.id === incoming.id) ? items.map((item) => (item.id === incoming.id ? incoming : item)) : [...items, incoming];
-  const sorted = merged.sort((a, b) => {
-    const left = String((a as Record<string, unknown>)[sortKey] ?? "");
-    const right = String((b as Record<string, unknown>)[sortKey] ?? "");
-    return ascending ? left.localeCompare(right) : right.localeCompare(left);
-  });
-
-  return { ...state, [key]: sorted };
-}
-
-function updateInventoryEvent(
-  state: RoomState,
-  payload: { eventType: string; new: Record<string, unknown>; old: Record<string, unknown> }
-) {
-  if (payload.eventType === "DELETE") {
-    return applyInventorySync(state, "delete", payload.old as InventoryItem);
-  }
-
-  return applyInventorySync(state, "upsert", payload.new as InventoryItem);
-}
-
-function applyInventorySync(state: RoomState, action: "upsert" | "delete", incoming: InventoryItem) {
-  const characterIds = new Set(state.characters.map((character) => character.id));
-  const currentCharacter = state.characters.find((character) => character.user_id === state.profile.id);
-  const isMaster = state.profile.role === "master" || state.campaigns.some((campaign) => campaign.master_id === state.profile.id);
-
-  if (action === "delete") {
-    return { ...state, inventory: state.inventory.filter((item) => item.id !== incoming.id) };
-  }
-
-  if (!characterIds.has(incoming.character_id)) return state;
-  if (!isMaster && incoming.character_id !== currentCharacter?.id && !incoming.is_public) {
-    return { ...state, inventory: state.inventory.filter((item) => item.id !== incoming.id) };
-  }
-
-  const merged = state.inventory.some((item) => item.id === incoming.id)
-    ? state.inventory.map((item) => (item.id === incoming.id ? incoming : item))
-    : [...state.inventory, incoming];
-
-  return { ...state, inventory: merged.sort((a, b) => a.name.localeCompare(b.name)) };
-}
-
-function buildMapSyncPayload(state: RoomState): MapSyncPayload {
-  const visibleMaps = state.maps.filter((map) => map.is_visible_to_players);
-  const visibleMapIds = new Set(visibleMaps.map((map) => map.id));
-  const syncedPositions = state.mapCharacterPositions.filter(
-    (position) => visibleMapIds.has(position.map_id) && position.is_visible_to_players !== false
-  );
-  const positionKeys = new Set(syncedPositions.map((position) => `${position.map_id}:${position.character_id}`));
-  const fallbackPositions = visibleMaps.flatMap((map) =>
-    state.characters
-      .filter((character) => !positionKeys.has(`${map.id}:${character.id}`))
-      .map((character, index) => ({
-        id: `sync-position:${map.id}:${character.id}`,
-        map_id: map.id,
-        character_id: character.id,
-        x: Math.min(82, Math.max(18, 22 + (index % 4) * 16)),
-        y: Math.min(82, Math.max(18, 24 + Math.floor(index / 4) * 14)),
-        narrative_location: map.title,
-        is_visible_to_players: true,
-        is_locked: false,
-        updated_at: new Date(0).toISOString()
-      }))
-  );
-
-  const syncedFogAreas = state.mapFogAreas.filter((area) => visibleMapIds.has(area.map_id));
-
-  return {
-    kind: "map-sync",
-    roomId: state.room.id,
-    revision: new Date().toISOString(),
-    maps: visibleMaps,
-    mapCharacterPositions: [...syncedPositions, ...fallbackPositions],
-    mapFogAreas: syncedFogAreas
-  };
-}
-
-function parseMapSyncMessage(message: Message): MapSyncPayload | null {
-  if (!message.content.startsWith(MAP_SYNC_PREFIX)) return null;
-
-  try {
-    const payload = JSON.parse(message.content.slice(MAP_SYNC_PREFIX.length)) as Partial<MapSyncPayload>;
-    if (payload.kind !== "map-sync" || !payload.roomId || !payload.revision) return null;
-    return {
-      kind: "map-sync",
-      roomId: payload.roomId,
-      revision: payload.revision,
-      maps: Array.isArray(payload.maps) ? (payload.maps as NarrativeMap[]) : [],
-      mapCharacterPositions: Array.isArray(payload.mapCharacterPositions) ? (payload.mapCharacterPositions as MapCharacterPosition[]) : [],
-      mapFogAreas: Array.isArray(payload.mapFogAreas) ? (payload.mapFogAreas as MapFogArea[]) : []
-    };
-  } catch {
-    return null;
-  }
-}
-
-function applyMapSyncState(state: RoomState, payload: MapSyncPayload): RoomState {
-  if (payload.roomId !== state.room.id) return state;
-
-  const syncedMapIds = new Set(payload.maps.map((map) => map.id));
-  const activeSyncedMap = payload.maps.find((map) => map.is_active);
-  const privateLocalMaps = state.maps.filter((map) => !map.is_visible_to_players && !syncedMapIds.has(map.id));
-  const nextMaps = [...payload.maps, ...privateLocalMaps].sort((a, b) => {
-    if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
-    return String(b.updated_at ?? b.created_at).localeCompare(String(a.updated_at ?? a.created_at));
-  });
-
-  return {
-    ...state,
-    maps: nextMaps,
-    mapCharacterPositions: [
-      ...payload.mapCharacterPositions,
-      ...state.mapCharacterPositions.filter((position) => !syncedMapIds.has(position.map_id))
-    ],
-    mapFogAreas: [
-      ...(payload.mapFogAreas ?? []),
-      ...state.mapFogAreas.filter((area) => !syncedMapIds.has(area.map_id))
-    ],
-    room: activeSyncedMap ? { ...state.room } : state.room
-  };
-}
-
-
-function generateInviteCode(title: string) {
-  const prefix = title
-    .replace(/[^a-zA-Z]/g, "")
-    .slice(0, 3)
-    .toUpperCase()
-    .padEnd(3, "G");
-  return `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
-}
-
-function readError(error: unknown) {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "object" && error && "message" in error
-        ? String(error.message)
-        : "";
-
-  if (isMapSchemaError(error)) {
-    return "Schema mappe Supabase non applicato. Esegui supabase/schema.sql o le migration mappe nel SQL Editor di Supabase.";
-  }
-
-  if (message.includes("public.users") || message.includes("schema cache") || message.includes("PGRST205")) {
-    return "Login riuscito, ma manca lo schema database. Esegui supabase/schema.sql nel SQL Editor di Supabase.";
-  }
-
-  if (message) return message;
-  return "Operazione non riuscita. Controlla schema Supabase e permessi RLS.";
-}
-
-function isMapSchemaError(error: unknown) {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === "object" && error && "message" in error
-        ? String(error.message)
-        : "";
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("maps") ||
-    normalized.includes("map_") ||
-    normalized.includes("map character") ||
-    normalized.includes("schema cache") && normalized.includes("map")
-  );
-}
-
-function createLocalNarrativeMap(
-  room: Room,
-  profileId: string,
-  values: { title: string; description: string; imageUrl: string; parentMapId?: string | null; levelType: NarrativeMap["level_type"]; isVisibleToPlayers: boolean },
-  imageUrl: string
-): NarrativeMap {
-  const now = new Date().toISOString();
-  return {
-    id: crypto.randomUUID(),
-    campaign_id: room.campaign_id,
-    room_id: room.id,
-    parent_map_id: values.parentMapId ?? null,
-    title: values.title,
-    description: values.description,
-    image_url: imageUrl || values.imageUrl || demoRoomState.scene.image_url,
-    level_type: values.levelType,
-    is_active: false,
-    is_visible_to_players: values.isVisibleToPlayers,
-    created_by: profileId,
-    created_at: now,
-    updated_at: now
-  };
-}
-
-function upsertLocalMapPosition(positions: MapCharacterPosition[], position: MapCharacterPosition) {
-  return positions.some((item) => item.id === position.id)
-    ? positions.map((item) => (item.id === position.id ? position : item))
-    : [position, ...positions];
-}
-
-function withClientTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
-  return Promise.race([
-    promise,
-    new Promise<T>((_, reject) => {
-      window.setTimeout(() => reject(new Error(message)), timeoutMs);
-    })
-  ]);
 }
 
 function ActiveCueOverlay({
