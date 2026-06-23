@@ -20,6 +20,7 @@ import {
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { playUiClick, playUiHover, isUiSoundsEnabled, toggleUiSounds } from "@/lib/sound-generator";
+import { applyVisualTheme, readVisualTheme, VISUAL_THEMES, type VisualThemeId } from "@/lib/visual-theme";
 
 type StartMenuProps = {
   onCreate: () => void;
@@ -45,28 +46,25 @@ export function StartMenu({
   onResumePlayer
 }: StartMenuProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const ambienceEnabledRef = useRef(true);
+  const ambienceVolumeRef = useRef(34);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [ambienceEnabled, setAmbienceEnabled] = useState(true);
   const [ambienceVolume, setAmbienceVolume] = useState(34);
   const [moonMode, setMoonMode] = useState(false);
-  const [selectedTheme, setSelectedTheme] = useState("fantasy");
+  const [selectedTheme, setSelectedTheme] = useState<VisualThemeId>("fantasy");
   const [uiSoundsEnabled, setUiSoundsEnabled] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const theme = localStorage.getItem("gdr_visual_theme") || "fantasy";
-      setSelectedTheme(theme);
-      document.documentElement.className = `theme-${theme}`;
-      setUiSoundsEnabled(isUiSoundsEnabled());
-    }
+    const theme = readVisualTheme();
+    setSelectedTheme(theme);
+    applyVisualTheme(theme, false);
+    setUiSoundsEnabled(isUiSoundsEnabled());
   }, []);
 
-  const handleThemeChange = (theme: string) => {
+  const handleThemeChange = (theme: VisualThemeId) => {
     setSelectedTheme(theme);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("gdr_visual_theme", theme);
-      document.documentElement.className = `theme-${theme}`;
-    }
+    applyVisualTheme(theme);
   };
 
   const handleUiSoundsChange = (enabled: boolean) => {
@@ -78,6 +76,8 @@ export function StartMenu({
     const audio = audioRef.current;
     if (!audio) return;
 
+    ambienceEnabledRef.current = ambienceEnabled;
+    ambienceVolumeRef.current = ambienceVolume;
     audio.volume = ambienceEnabled ? ambienceVolume / 100 : 0;
     audio.muted = !ambienceEnabled;
     if (!ambienceEnabled) {
@@ -89,6 +89,52 @@ export function StartMenu({
       // Browser autoplay may wait for the first user interaction.
     });
   }, [ambienceEnabled, ambienceVolume]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const nextSource = VISUAL_THEMES[selectedTheme].music;
+    const isEnabled = ambienceEnabledRef.current;
+    const targetVolume = isEnabled ? ambienceVolumeRef.current / 100 : 0;
+    let frame = 0;
+    let cancelled = false;
+    const startVolume = audio.volume;
+    const fadeStartedAt = performance.now();
+
+    const fadeOut = (now: number) => {
+      if (cancelled) return;
+      const progress = Math.min(1, (now - fadeStartedAt) / 220);
+      audio.volume = startVolume * (1 - progress);
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(fadeOut);
+        return;
+      }
+
+      audio.src = nextSource;
+      audio.load();
+      audio.currentTime = 0;
+      audio.volume = 0;
+      if (!isEnabled) return;
+
+      audio.play().catch(() => {});
+      const fadeInStartedAt = performance.now();
+      const fadeIn = (fadeNow: number) => {
+        if (cancelled) return;
+        const fadeProgress = Math.min(1, (fadeNow - fadeInStartedAt) / 420);
+        audio.volume = targetVolume * fadeProgress;
+        if (fadeProgress < 1) frame = requestAnimationFrame(fadeIn);
+      };
+      frame = requestAnimationFrame(fadeIn);
+    };
+
+    frame = requestAnimationFrame(fadeOut);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [selectedTheme]);
 
   useEffect(() => {
     const unlockAudio = () => {
@@ -113,7 +159,7 @@ export function StartMenu({
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  const THEME_VIDEOS: Record<string, { local: string; fallback: string }> = {
+  const THEME_VIDEOS: Record<VisualThemeId, { local: string; fallback: string }> = {
     fantasy: {
       local: "/assets/menu/theme-master-room-hero.mp4",
       fallback: "https://assets.mixkit.co/videos/preview/mixkit-fire-burning-in-a-forest-close-up-42826-large.mp4"
@@ -140,12 +186,12 @@ export function StartMenu({
 
   return (
     <section className={`premium-start-menu relative -m-4 min-h-screen overflow-hidden px-5 py-6 text-white sm:-m-6 sm:px-10 lg:px-16 ${moonMode ? "premium-start-menu--moon" : ""}`}>
-      <audio ref={audioRef} src="/assets/audio/master-room-ambience-2.mp3" loop preload="auto" />
+      <audio ref={audioRef} src={VISUAL_THEMES[selectedTheme].music} loop preload="auto" />
       
       {/* Static Image Background (Always behind as loading / error fallback) */}
       <div 
         className="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out" 
-        style={{ backgroundImage: `url('/assets/menu/theme-${selectedTheme}.png')` }}
+        style={{ backgroundImage: `url('${VISUAL_THEMES[selectedTheme].menuImage}')` }}
       />
 
       {/* Looping Atmospheric Video Background */}
@@ -256,7 +302,7 @@ export function StartMenu({
                 <span>Tema Visivo (Genere)</span>
                 <select
                   value={selectedTheme}
-                  onChange={(e) => handleThemeChange(e.target.value)}
+                  onChange={(e) => handleThemeChange(e.target.value as VisualThemeId)}
                   className="field px-2.5 py-1.5 text-xs bg-ink-950 border border-brass/30 text-slate-200 rounded-md focus:border-brass outline-none"
                 >
                   <option value="fantasy">Classic Fantasy (Default)</option>

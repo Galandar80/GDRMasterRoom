@@ -5,7 +5,7 @@ import { Compass, Copy, Crosshair, DoorOpen, Expand, Eye, EyeOff, Flag, ImageUp,
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Character, MapCharacterPosition, MapCustomMarker, MapHotspot, MapNpcMarker, MapFogArea, NarrativeMap, Npc, RoomState } from "@/lib/types";
-import { createClient } from "@/lib/supabase/client";
+import { isValidMapRealtimePayload, type MapRealtimeEvent } from "@/lib/realtime-payloads";
 
 type MapToolPanelProps = {
   state: RoomState;
@@ -442,10 +442,8 @@ function MapViewer({
   const visibleNpcMarkers = isMaster ? npcMarkers : npcMarkers.filter((marker) => marker.is_visible_to_players);
   const visibleCustomMarkers = isMaster ? customMarkers : customMarkers.filter((marker) => marker.is_visible_to_players);
 
-  const supabase = useMemo(() => createClient(), []);
   const [pings, setPings] = useState<{ id: string; x: number; y: number; color: string }[]>([]);
   const [remoteDrags, setRemoteDrags] = useState<Record<string, { x: number; y: number }>>({});
-  const mapChannelRef = useRef<any>(null);
   const lastBroadcastRef = useRef<number>(0);
   const clickStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const [radialMenu, setRadialMenu] = useState<{ positionId: string; x: number; y: number } | null>(null);
@@ -475,20 +473,17 @@ function MapViewer({
   }, []);
 
   // Broadcast degli eventi a impatto DB ZERO
-  const broadcastEvent = useCallback((event: string, payload: any) => {
+  const broadcastEvent = useCallback((event: MapRealtimeEvent, payload: unknown) => {
+    if (!isValidMapRealtimePayload(event, payload)) return;
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("local-map-broadcast", {
         detail: { event, payload }
       }));
+      window.dispatchEvent(new CustomEvent("room-realtime-send", {
+        detail: { event, payload }
+      }));
     }
-    if (supabase && mapChannelRef.current) {
-      mapChannelRef.current.send({
-        type: "broadcast",
-        event,
-        payload
-      });
-    }
-  }, [supabase]);
+  }, []);
 
   // Se giocatore, richiedi lo stato della mappa corrente all'ingresso
   useEffect(() => {
@@ -503,23 +498,27 @@ function MapViewer({
   // Iscrizione ai canali di rete
   useEffect(() => {
     const handleLocalBroadcast = (e: Event) => {
-      const { event, payload } = (e as CustomEvent).detail;
+      const { event, payload } = (e as CustomEvent<{ event?: MapRealtimeEvent; payload?: unknown }>).detail ?? {};
+      if (!event || !isValidMapRealtimePayload(event, payload)) return;
       if (event === "ping") {
-        triggerPing(payload);
+        triggerPing(payload as { x: number; y: number; color: string });
       } else if (event === "drag") {
+        const drag = payload as { id: string; x: number; y: number };
         setRemoteDrags((current) => ({
           ...current,
-          [payload.id]: { x: payload.x, y: payload.y }
+          [drag.id]: { x: drag.x, y: drag.y }
         }));
       } else if (event === "drag-stop") {
+        const dragStop = payload as { id: string };
         setRemoteDrags((current) => {
           const next = { ...current };
-          delete next[payload.id];
+          delete next[dragStop.id];
           return next;
         });
       } else if (event === "map-state") {
-        setWeather(payload.weather);
-        setAtmosphere(payload.atmosphere);
+        const mapState = payload as { weather: typeof weather; atmosphere: typeof atmosphere };
+        setWeather(mapState.weather);
+        setAtmosphere(mapState.atmosphere);
       } else if (event === "request-map-state" && isMaster) {
         broadcastEvent("map-state", {
           weather: weatherRef.current,
@@ -529,49 +528,10 @@ function MapViewer({
     };
     window.addEventListener("local-map-broadcast", handleLocalBroadcast);
 
-    if (supabase && map.room_id) {
-      const channel = supabase.channel(`room:${map.room_id}:map`);
-      mapChannelRef.current = channel;
-
-      channel
-        .on("broadcast", { event: "ping" }, ({ payload }) => {
-          triggerPing(payload);
-        })
-        .on("broadcast", { event: "drag" }, ({ payload }) => {
-          setRemoteDrags((current) => ({
-            ...current,
-            [payload.id]: { x: payload.x, y: payload.y }
-          }));
-        })
-        .on("broadcast", { event: "drag-stop" }, ({ payload }) => {
-          setRemoteDrags((current) => {
-            const next = { ...current };
-            delete next[payload.id];
-            return next;
-          });
-        })
-        .on("broadcast", { event: "map-state" }, ({ payload }) => {
-          setWeather(payload.weather);
-          setAtmosphere(payload.atmosphere);
-        })
-        .on("broadcast", { event: "request-map-state" }, () => {
-          if (isMaster) {
-            broadcastEvent("map-state", {
-              weather: weatherRef.current,
-              atmosphere: atmosphereRef.current
-            });
-          }
-        })
-        .subscribe();
-    }
-
     return () => {
       window.removeEventListener("local-map-broadcast", handleLocalBroadcast);
-      if (supabase && mapChannelRef.current) {
-        supabase.removeChannel(mapChannelRef.current);
-      }
     };
-  }, [broadcastEvent, isMaster, map.room_id, supabase, triggerPing]);
+  }, [broadcastEvent, isMaster, triggerPing]);
 
   // Rilevamento automatico del meteo (Solo per il Master, che poi lo trasmette)
   useEffect(() => {
@@ -1002,7 +962,7 @@ function MapViewer({
 
                   // Trasmissione drag a intervalli regolari
                   const now = Date.now();
-                  if (now - lastBroadcastRef.current > 60) {
+                  if (now - lastBroadcastRef.current > 120) {
                     broadcastEvent("drag", { id: position.id, x: next.x, y: next.y });
                     lastBroadcastRef.current = now;
                   }

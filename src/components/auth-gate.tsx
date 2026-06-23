@@ -1,15 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { LogIn, Shield, UserPlus } from "lucide-react";
 import { getAuthRedirectUrl } from "@/lib/auth-config";
 import { clearSupabaseAuthStorage, createClient, demoMode } from "@/lib/supabase/client";
+import { applyVisualTheme, readVisualTheme } from "@/lib/visual-theme";
 
-type AuthGateProps = {
-  children: React.ReactNode;
-};
+const AppShell = dynamic(
+  () => import("@/components/app-shell").then((module) => module.AppShell),
+  { loading: () => <AuthAppLoading /> }
+);
 
-export function AuthGate({ children }: AuthGateProps) {
+export function AuthGate() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState(demoMode ? "master@example.com" : "");
   const [password, setPassword] = useState(demoMode ? "demo-master-room" : "");
@@ -17,6 +20,10 @@ export function AuthGate({ children }: AuthGateProps) {
   const [message, setMessage] = useState(demoMode ? "Modalita demo attiva" : "");
   const [isBusy, setIsBusy] = useState(false);
   const supabase = createClient();
+
+  useEffect(() => {
+    applyVisualTheme(readVisualTheme(), false);
+  }, []);
 
   useEffect(() => {
     const handleRejectedSession = (event: PromiseRejectionEvent) => {
@@ -123,6 +130,15 @@ export function AuthGate({ children }: AuthGateProps) {
     setIsBusy(true);
     setMessage("");
 
+    if (mode === "register") {
+      const passwordError = validateRegistrationPassword(password);
+      if (passwordError) {
+        setMessage(passwordError);
+        setIsBusy(false);
+        return;
+      }
+    }
+
     if (!supabase) {
       setIsAuthed(true);
       setIsBusy(false);
@@ -222,13 +238,13 @@ export function AuthGate({ children }: AuthGateProps) {
   }
 
   if (isAuthed) {
-    return <>{children}</>;
+    return <AppShell />;
   }
 
   return (
     <section className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl items-center justify-center p-4">
       <div className="auth-gate-card grid w-full overflow-hidden rounded-xl border border-brass/30 bg-ink-950/95 shadow-2xl md:grid-cols-[1.05fr_0.95fr] relative">
-        <div className="auth-gate-vignette relative min-h-[32rem] bg-[url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1400&q=80')] bg-cover bg-center">
+        <div className="auth-gate-vignette relative min-h-[32rem] bg-[url('/assets/menu/theme-fantasy.png')] bg-cover bg-center">
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/10 to-black/85" />
           <div className="absolute inset-x-0 bottom-0 p-8 z-10">
             <p className="mb-3 text-xs uppercase tracking-[0.24em] text-brass">GDR Master Room</p>
@@ -274,10 +290,15 @@ export function AuthGate({ children }: AuthGateProps) {
               type="password"
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               required
-              minLength={6}
+              minLength={mode === "register" ? 10 : 6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
+            {mode === "register" ? (
+              <span className="block normal-case tracking-normal text-[0.7rem] font-normal leading-5 text-stone-400">
+                Minimo 10 caratteri, con maiuscola, minuscola, numero e simbolo.
+              </span>
+            ) : null}
           </label>
 
           <button
@@ -321,6 +342,19 @@ export function AuthGate({ children }: AuthGateProps) {
   );
 }
 
+function AuthAppLoading() {
+  return (
+    <main className="app-loading-shell">
+      <div className="app-loading-card">
+        <p className="app-loading-kicker">GDR Master Room</p>
+        <h1>Preparazione della stanza</h1>
+        <p>Caricamento applicazione...</p>
+        <div className="app-loading-line" aria-hidden="true" />
+      </div>
+    </main>
+  );
+}
+
 function readAuthError(message: string) {
   const normalized = message.toLowerCase();
 
@@ -349,6 +383,15 @@ function readAuthError(message: string) {
   }
 
   return message;
+}
+
+function validateRegistrationPassword(password: string) {
+  if (password.length < 10) return "La password deve contenere almeno 10 caratteri.";
+  if (!/[a-z]/.test(password)) return "La password deve contenere almeno una lettera minuscola.";
+  if (!/[A-Z]/.test(password)) return "La password deve contenere almeno una lettera maiuscola.";
+  if (!/\d/.test(password)) return "La password deve contenere almeno un numero.";
+  if (!/[^A-Za-z0-9]/.test(password)) return "La password deve contenere almeno un simbolo.";
+  return "";
 }
 
 function isInvalidRefreshTokenError(error: unknown) {

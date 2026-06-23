@@ -164,6 +164,18 @@ create table if not exists public.messages (
 alter table public.messages add column if not exists channel text not null default 'gdr';
 alter table public.messages add column if not exists is_pinned boolean not null default false;
 alter table public.messages add column if not exists edited_at timestamptz;
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conrelid = 'public.messages'::regclass
+      and conname = 'messages_content_length_check'
+  ) then
+    alter table public.messages
+      add constraint messages_content_length_check
+      check (char_length(content) between 1 and 8000);
+  end if;
+end $$;
 
 create table if not exists public.media_assets (
   id uuid primary key default gen_random_uuid(),
@@ -379,6 +391,211 @@ as $$
   group by r.id, c.master_id;
 $$;
 
+create or replace function public.claim_room_by_invite_code(lookup_code text)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  target_room public.rooms%rowtype;
+  existing_character_id uuid;
+  current_player_count integer;
+  profile_username text;
+begin
+  if auth.uid() is null then
+    raise exception 'Authentication required';
+  end if;
+
+  select r.*
+  into target_room
+  from public.rooms r
+  where r.invite_code = upper(trim(lookup_code))
+  for update;
+
+  if not found then
+    return null;
+  end if;
+
+  select pc.id
+  into existing_character_id
+  from public.player_characters pc
+  where pc.room_id = target_room.id
+    and pc.user_id = (select auth.uid());
+
+  if existing_character_id is not null then
+    return target_room.id;
+  end if;
+
+  select count(*)
+  into current_player_count
+  from public.player_characters pc
+  where pc.room_id = target_room.id;
+
+  if current_player_count >= target_room.max_players then
+    raise exception 'La stanza ha raggiunto il numero massimo di giocatori disponibili.';
+  end if;
+
+  select coalesce(nullif(u.username, ''), 'Nuovo')
+  into profile_username
+  from public.users u
+  where u.id = (select auth.uid());
+
+  insert into public.player_characters (
+    room_id, user_id, character_name, character_surname, portrait_url, color,
+    hp, mental_state, public_background, visible_status, is_setup_complete
+  )
+  values (
+    target_room.id, (select auth.uid()), coalesce(profile_username, 'Nuovo'),
+    'Viandante', '', '#f59e0b', 10, 'Stabile',
+    'Personaggio appena entrato nella stanza.', 'stabile', false
+  );
+
+  return target_room.id;
+end;
+$$;
+
+create or replace function public.enforce_player_character_update_scope()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if public.is_room_master(old.room_id) or public.is_superadmin() then
+    return new;
+  end if;
+
+  if old.user_id is distinct from (select auth.uid()) then
+    raise exception 'Character update not authorized';
+  end if;
+
+  if new.room_id is distinct from old.room_id
+    or new.user_id is distinct from old.user_id then
+    raise exception 'Character ownership cannot be changed';
+  end if;
+
+  if old.is_setup_complete = false and new.is_setup_complete = true then
+    return new;
+  end if;
+
+  if new.hp is distinct from old.hp
+    or new.mental_state is distinct from old.mental_state
+    or new.visible_status is distinct from old.visible_status
+    or new.conditions is distinct from old.conditions
+    or new.is_setup_complete is distinct from old.is_setup_complete then
+    raise exception 'Only the Master can update protected character fields';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_player_character_update_scope on public.player_characters;
+create trigger enforce_player_character_update_scope
+before update on public.player_characters
+for each row execute function public.enforce_player_character_update_scope();
+
+create or replace function public.enforce_message_update_scope()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if public.is_room_master(old.room_id) then
+    return new;
+  end if;
+
+  if old.sender_user_id is distinct from (select auth.uid())
+    or not public.is_room_player(old.room_id) then
+    raise exception 'Message update not authorized';
+  end if;
+
+  if new.room_id is distinct from old.room_id
+    or new.sender_user_id is distinct from old.sender_user_id
+    or new.sender_type is distinct from old.sender_type
+    or new.sender_display_name is distinct from old.sender_display_name
+    or new.sender_color is distinct from old.sender_color
+    or new.npc_id is distinct from old.npc_id
+    or new.is_private is distinct from old.is_private
+    or new.channel is distinct from old.channel
+    or new.is_pinned is distinct from old.is_pinned
+    or new.recipient_user_id is distinct from old.recipient_user_id
+    or new.created_at is distinct from old.created_at then
+    raise exception 'Only message content can be edited by its sender';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_message_update_scope on public.messages;
+create trigger enforce_message_update_scope
+before update on public.messages
+for each row execute function public.enforce_message_update_scope();
+
+create or replace function public.enforce_dice_request_update_scope()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if public.is_room_master(old.room_id) then
+    return new;
+  end if;
+
+  if not public.is_room_player(old.room_id)
+    or (old.target_user_id is not null and old.target_user_id is distinct from (select auth.uid())) then
+    raise exception 'Dice request update not authorized';
+  end if;
+
+  if new.room_id is distinct from old.room_id
+    or new.requested_by is distinct from old.requested_by
+    or new.target_user_id is distinct from old.target_user_id
+    or new.dice_sides is distinct from old.dice_sides
+    or new.reason is distinct from old.reason
+    or new.visibility is distinct from old.visibility
+    or new.created_at is distinct from old.created_at then
+    raise exception 'Dice request definition cannot be changed by players';
+  end if;
+
+  if old.status <> 'pending' or new.status <> 'rolled' or new.result is null then
+    raise exception 'Invalid dice request state transition';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists enforce_dice_request_update_scope on public.dice_requests;
+create trigger enforce_dice_request_update_scope
+before update on public.dice_requests
+for each row execute function public.enforce_dice_request_update_scope();
+
+create or replace function public.can_access_realtime_room_topic(requested_topic text)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1
+    from public.rooms r
+    join public.campaigns c on c.id = r.campaign_id
+    where requested_topic = 'room-' || r.id::text
+      and (
+        c.master_id = (select auth.uid())
+        or exists (
+          select 1
+          from public.player_characters pc
+          where pc.room_id = r.id
+            and pc.user_id = (select auth.uid())
+        )
+        or public.is_superadmin()
+      )
+  );
+$$;
+
 alter table public.users enable row level security;
 alter table public.campaigns enable row level security;
 alter table public.rooms enable row level security;
@@ -420,20 +637,20 @@ drop policy if exists "profiles are visible to authenticated users" on public.us
 drop policy if exists "users create their profile" on public.users;
 drop policy if exists "users update their profile" on public.users;
 create policy "profiles are visible to authenticated users" on public.users for select to authenticated using (true);
-create policy "users create their profile" on public.users for insert to authenticated with check (id = auth.uid());
-create policy "users update their profile" on public.users for update to authenticated using (id = auth.uid()) with check (id = auth.uid());
+create policy "users create their profile" on public.users for insert to authenticated with check (id = (select auth.uid()));
+create policy "users update their profile" on public.users for update to authenticated using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
 drop policy if exists "masters manage their campaigns" on public.campaigns;
 drop policy if exists "players read joined campaigns" on public.campaigns;
 create policy "masters manage their campaigns" on public.campaigns for all to authenticated
-  using (master_id = auth.uid() or public.is_superadmin())
-  with check (master_id = auth.uid() or public.is_superadmin());
+  using (master_id = (select auth.uid()) or public.is_superadmin())
+  with check (master_id = (select auth.uid()) or public.is_superadmin());
 create policy "players read joined campaigns" on public.campaigns for select to authenticated using (
   exists (
     select 1
     from rooms r
     join player_characters pc on pc.room_id = r.id
-    where r.campaign_id = campaigns.id and pc.user_id = auth.uid()
+    where r.campaign_id = campaigns.id and pc.user_id = (select auth.uid())
   )
 );
 
@@ -449,7 +666,7 @@ create policy "room members read rooms" on public.rooms for select to authentica
   or public.is_room_player(id)
 );
 create policy "masters insert rooms" on public.rooms for insert to authenticated with check (
-  exists (select 1 from campaigns c where c.id = rooms.campaign_id and c.master_id = auth.uid())
+  exists (select 1 from campaigns c where c.id = rooms.campaign_id and c.master_id = (select auth.uid()))
 );
 create policy "masters update rooms" on public.rooms for update to authenticated
   using (public.is_room_master(id) or public.is_superadmin())
@@ -461,18 +678,16 @@ drop policy if exists "room members read characters" on public.player_characters
 drop policy if exists "masters manage characters" on public.player_characters;
 drop policy if exists "players create own character" on public.player_characters;
 drop policy if exists "players update own character notes fields" on public.player_characters;
+drop policy if exists "players update own character profile" on public.player_characters;
 create policy "room members read characters" on public.player_characters for select to authenticated using (
   public.is_room_master(room_id) or public.is_room_player(room_id) or public.is_superadmin()
 );
 create policy "masters manage characters" on public.player_characters for all to authenticated
   using (public.is_room_master(room_id))
   with check (public.is_room_master(room_id));
-create policy "players create own character" on public.player_characters for insert to authenticated with check (
-  user_id = auth.uid()
-);
-create policy "players update own character notes fields" on public.player_characters for update to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
+create policy "players update own character profile" on public.player_characters for update to authenticated
+  using (user_id = (select auth.uid()) and public.is_room_player(room_id))
+  with check (user_id = (select auth.uid()) and public.is_room_player(room_id));
 
 drop policy if exists "room members read scenes" on public.scenes;
 drop policy if exists "masters manage scenes" on public.scenes;
@@ -483,7 +698,7 @@ create policy "room members read scenes" on public.scenes for select to authenti
     public.is_room_player(room_id)
     and (
       visibility = 'public'
-      or auth.uid() = any(visible_user_ids)
+      or (select auth.uid()) = any(visible_user_ids)
     )
   )
 );
@@ -521,22 +736,58 @@ create policy "masters manage sound effects" on public.sound_effects for all to 
 drop policy if exists "read public messages and own private messages" on public.messages;
 drop policy if exists "members create messages" on public.messages;
 drop policy if exists "masters delete messages" on public.messages;
-create policy "read public messages and own private messages" on public.messages for select to authenticated using (
-  public.is_room_master(room_id)
-  or (not is_private and public.is_room_player(room_id))
-  or (is_private and (sender_user_id = auth.uid() or recipient_user_id = auth.uid()))
-);
-create policy "members create messages" on public.messages for insert to authenticated with check (
-  public.is_room_master(room_id)
-  or (public.is_room_player(room_id) and sender_user_id = auth.uid() and sender_type = 'player')
-);
-create policy "masters delete messages" on public.messages for delete to authenticated using (
-  public.is_room_master(room_id) or sender_user_id = auth.uid()
-);
 drop policy if exists "senders update own messages and masters pin" on public.messages;
-create policy "senders update own messages and masters pin" on public.messages for update to authenticated
-  using (public.is_room_master(room_id) or sender_user_id = auth.uid())
-  with check (public.is_room_master(room_id) or sender_user_id = auth.uid());
+drop policy if exists "room members read allowed messages" on public.messages;
+drop policy if exists "room members create valid messages" on public.messages;
+drop policy if exists "room members delete own messages" on public.messages;
+drop policy if exists "room members update allowed messages" on public.messages;
+create policy "room members read allowed messages" on public.messages for select to authenticated using (
+  public.is_room_master(room_id)
+  or (
+    public.is_room_player(room_id)
+    and (not is_private or sender_user_id = (select auth.uid()) or recipient_user_id = (select auth.uid()))
+  )
+);
+create policy "room members create valid messages" on public.messages for insert to authenticated with check (
+  sender_user_id = (select auth.uid())
+  and (
+    (
+      public.is_room_master(room_id)
+      and sender_type in ('master', 'npc', 'system')
+      and (
+        (sender_type = 'npc' and exists (
+          select 1 from public.npcs n where n.id = messages.npc_id and n.room_id = messages.room_id
+        ))
+        or (sender_type <> 'npc' and npc_id is null)
+      )
+    )
+    or (public.is_room_player(room_id) and sender_type = 'player' and npc_id is null)
+  )
+  and (
+    (is_private = false and recipient_user_id is null)
+    or (
+      is_private = true
+      and recipient_user_id is not null
+      and (
+        recipient_user_id = (
+          select c.master_id from public.rooms r join public.campaigns c on c.id = r.campaign_id
+          where r.id = messages.room_id
+        )
+        or exists (
+          select 1 from public.player_characters pc
+          where pc.room_id = messages.room_id and pc.user_id = messages.recipient_user_id
+        )
+      )
+    )
+  )
+);
+create policy "room members delete own messages" on public.messages for delete to authenticated using (
+  public.is_room_master(room_id)
+  or (public.is_room_player(room_id) and sender_user_id = (select auth.uid()))
+);
+create policy "room members update allowed messages" on public.messages for update to authenticated
+  using (public.is_room_master(room_id) or (public.is_room_player(room_id) and sender_user_id = (select auth.uid())))
+  with check (public.is_room_master(room_id) or (public.is_room_player(room_id) and sender_user_id = (select auth.uid())));
 
 drop policy if exists "room members read media assets" on public.media_assets;
 drop policy if exists "masters manage media assets" on public.media_assets;
@@ -585,12 +836,12 @@ create policy "room members read presence" on public.room_presence for select to
   public.is_room_master(room_id) or public.is_room_player(room_id)
 );
 create policy "members upsert own presence" on public.room_presence for insert to authenticated with check (
-  user_id = auth.uid() and (public.is_room_master(room_id) or public.is_room_player(room_id))
+  user_id = (select auth.uid()) and (public.is_room_master(room_id) or public.is_room_player(room_id))
 );
 create policy "members update own presence" on public.room_presence for update to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
-create policy "members delete own presence" on public.room_presence for delete to authenticated using (user_id = auth.uid());
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+create policy "members delete own presence" on public.room_presence for delete to authenticated using (user_id = (select auth.uid()));
 
 drop policy if exists "room members read typing" on public.room_typing;
 drop policy if exists "members upsert own typing" on public.room_typing;
@@ -600,27 +851,27 @@ create policy "room members read typing" on public.room_typing for select to aut
   public.is_room_master(room_id) or public.is_room_player(room_id)
 );
 create policy "members upsert own typing" on public.room_typing for insert to authenticated with check (
-  user_id = auth.uid() and (public.is_room_master(room_id) or public.is_room_player(room_id))
+  user_id = (select auth.uid()) and (public.is_room_master(room_id) or public.is_room_player(room_id))
 );
 create policy "members update own typing" on public.room_typing for update to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
-create policy "members delete own typing" on public.room_typing for delete to authenticated using (user_id = auth.uid());
+  using (user_id = (select auth.uid()))
+  with check (user_id = (select auth.uid()));
+create policy "members delete own typing" on public.room_typing for delete to authenticated using (user_id = (select auth.uid()));
 
 drop policy if exists "members read dice requests" on public.dice_requests;
 drop policy if exists "masters create dice requests" on public.dice_requests;
 drop policy if exists "targets roll dice requests" on public.dice_requests;
 create policy "members read dice requests" on public.dice_requests for select to authenticated using (
   public.is_room_master(room_id)
-  or (public.is_room_player(room_id) and (target_user_id is null or target_user_id = auth.uid()))
+  or (public.is_room_player(room_id) and (target_user_id is null or target_user_id = (select auth.uid())))
 );
 create policy "masters create dice requests" on public.dice_requests for insert to authenticated with check (
-  public.is_room_master(room_id)
+  public.is_room_master(room_id) and requested_by = (select auth.uid())
 );
 create policy "targets roll dice requests" on public.dice_requests for update to authenticated using (
-  status = 'pending' and public.is_room_player(room_id) and (target_user_id is null or target_user_id = auth.uid())
+  status = 'pending' and public.is_room_player(room_id) and (target_user_id is null or target_user_id = (select auth.uid()))
 ) with check (
-  public.is_room_player(room_id) and (target_user_id is null or target_user_id = auth.uid())
+  status = 'rolled' and public.is_room_player(room_id) and (target_user_id is null or target_user_id = (select auth.uid()))
 );
 
 drop policy if exists "inventory visible when allowed" on public.inventory_items;
@@ -630,7 +881,7 @@ create policy "inventory visible when allowed" on public.inventory_items for sel
   exists (
     select 1 from player_characters pc
     where pc.id = inventory_items.character_id
-    and (public.is_room_master(pc.room_id) or pc.user_id = auth.uid() or inventory_items.is_public)
+    and (public.is_room_master(pc.room_id) or pc.user_id = (select auth.uid()) or inventory_items.is_public)
   )
 );
 create policy "masters manage inventory" on public.inventory_items for all to authenticated using (
@@ -639,20 +890,20 @@ create policy "masters manage inventory" on public.inventory_items for all to au
   exists (select 1 from player_characters pc where pc.id = inventory_items.character_id and public.is_room_master(pc.room_id))
 );
 create policy "players update own inventory notes" on public.inventory_items for update to authenticated using (
-  exists (select 1 from player_characters pc where pc.id = inventory_items.character_id and pc.user_id = auth.uid())
+  exists (select 1 from player_characters pc where pc.id = inventory_items.character_id and pc.user_id = (select auth.uid()))
 ) with check (
-  exists (select 1 from player_characters pc where pc.id = inventory_items.character_id and pc.user_id = auth.uid())
+  exists (select 1 from player_characters pc where pc.id = inventory_items.character_id and pc.user_id = (select auth.uid()))
 );
 
 drop policy if exists "players read own notes" on public.player_notes;
 drop policy if exists "players manage own notes" on public.player_notes;
 create policy "players read own notes" on public.player_notes for select to authenticated using (
-  exists (select 1 from player_characters pc where pc.id = player_notes.character_id and pc.user_id = auth.uid())
+  exists (select 1 from player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
 );
 create policy "players manage own notes" on public.player_notes for all to authenticated using (
-  exists (select 1 from player_characters pc where pc.id = player_notes.character_id and pc.user_id = auth.uid())
+  exists (select 1 from player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
 ) with check (
-  exists (select 1 from player_characters pc where pc.id = player_notes.character_id and pc.user_id = auth.uid())
+  exists (select 1 from player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
 );
 
 create table if not exists public.maps (
@@ -893,6 +1144,19 @@ values
   ('audio-tracks', 'audio-tracks', true)
 on conflict (id) do update set public = excluded.public;
 
+update storage.buckets
+set file_size_limit = 4 * 1024 * 1024,
+    allowed_mime_types = array['image/jpeg','image/png','image/webp','image/gif','image/avif']::text[]
+where id = 'portraits';
+update storage.buckets
+set file_size_limit = 20 * 1024 * 1024,
+    allowed_mime_types = array['image/jpeg','image/png','image/webp','image/gif','image/avif','video/mp4','video/webm','video/quicktime']::text[]
+where id = 'scene-images';
+update storage.buckets
+set file_size_limit = 12 * 1024 * 1024,
+    allowed_mime_types = array['audio/mpeg','audio/mp3','audio/wav','audio/x-wav','audio/ogg','audio/mp4','audio/aac','audio/flac']::text[]
+where id = 'audio-tracks';
+
 drop policy if exists "public can read app storage" on storage.objects;
 drop policy if exists "authenticated users upload app storage" on storage.objects;
 drop policy if exists "authenticated users update app storage" on storage.objects;
@@ -907,55 +1171,55 @@ create policy "members upload app storage" on storage.objects for insert to auth
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
   and (
     (
-      (storage.foldername(name))[1] = 'rooms'
+      (storage.foldername(storage.objects.name))[1] = 'rooms'
       and exists (
         select 1 from public.rooms r
-        where r.id::text = (storage.foldername(name))[2]
+        where r.id::text = (storage.foldername(storage.objects.name))[2]
           and (public.is_room_master(r.id) or public.is_room_player(r.id) or public.is_superadmin())
       )
     )
-    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+    or ((storage.foldername(storage.objects.name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(storage.objects.name))[2] = (select auth.uid())::text)
   )
 );
 create policy "members update app storage" on storage.objects for update to authenticated using (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
   and (
     (
-      (storage.foldername(name))[1] = 'rooms'
+      (storage.foldername(storage.objects.name))[1] = 'rooms'
       and exists (
         select 1 from public.rooms r
-        where r.id::text = (storage.foldername(name))[2]
+        where r.id::text = (storage.foldername(storage.objects.name))[2]
           and (public.is_room_master(r.id) or public.is_superadmin())
       )
     )
-    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+    or ((storage.foldername(storage.objects.name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(storage.objects.name))[2] = (select auth.uid())::text)
   )
 ) with check (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
   and (
     (
-      (storage.foldername(name))[1] = 'rooms'
+      (storage.foldername(storage.objects.name))[1] = 'rooms'
       and exists (
         select 1 from public.rooms r
-        where r.id::text = (storage.foldername(name))[2]
+        where r.id::text = (storage.foldername(storage.objects.name))[2]
           and (public.is_room_master(r.id) or public.is_superadmin())
       )
     )
-    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+    or ((storage.foldername(storage.objects.name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(storage.objects.name))[2] = (select auth.uid())::text)
   )
 );
 create policy "members delete app storage" on storage.objects for delete to authenticated using (
   bucket_id in ('scene-images', 'portraits', 'audio-tracks')
   and (
     (
-      (storage.foldername(name))[1] = 'rooms'
+      (storage.foldername(storage.objects.name))[1] = 'rooms'
       and exists (
         select 1 from public.rooms r
-        where r.id::text = (storage.foldername(name))[2]
+        where r.id::text = (storage.foldername(storage.objects.name))[2]
           and (public.is_room_master(r.id) or public.is_superadmin())
       )
     )
-    or ((storage.foldername(name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(name))[2] = auth.uid()::text)
+    or ((storage.foldername(storage.objects.name))[1] in ('campaign-covers', 'initial-scenes') and (storage.foldername(storage.objects.name))[2] = (select auth.uid())::text)
   )
 );
 
@@ -971,6 +1235,37 @@ grant execute on function public.is_room_player(uuid) to authenticated;
 revoke execute on function public.lookup_room_by_invite_code(text) from public;
 revoke execute on function public.lookup_room_by_invite_code(text) from anon;
 grant execute on function public.lookup_room_by_invite_code(text) to authenticated;
+revoke execute on function public.claim_room_by_invite_code(text) from public;
+revoke execute on function public.claim_room_by_invite_code(text) from anon;
+grant execute on function public.claim_room_by_invite_code(text) to authenticated;
+revoke execute on function public.enforce_player_character_update_scope() from public;
+revoke execute on function public.enforce_player_character_update_scope() from anon;
+revoke execute on function public.enforce_player_character_update_scope() from authenticated;
+revoke execute on function public.enforce_message_update_scope() from public;
+revoke execute on function public.enforce_message_update_scope() from anon;
+revoke execute on function public.enforce_message_update_scope() from authenticated;
+revoke execute on function public.enforce_dice_request_update_scope() from public;
+revoke execute on function public.enforce_dice_request_update_scope() from anon;
+revoke execute on function public.enforce_dice_request_update_scope() from authenticated;
+revoke execute on function public.can_access_realtime_room_topic(text) from public;
+revoke execute on function public.can_access_realtime_room_topic(text) from anon;
+grant execute on function public.can_access_realtime_room_topic(text) to authenticated;
+
+alter table realtime.messages enable row level security;
+drop policy if exists "room members receive private broadcasts" on realtime.messages;
+drop policy if exists "room members send private broadcasts" on realtime.messages;
+create policy "room members receive private broadcasts" on realtime.messages
+for select to authenticated
+using (
+  realtime.messages.extension = 'broadcast'
+  and public.can_access_realtime_room_topic((select realtime.topic()))
+);
+create policy "room members send private broadcasts" on realtime.messages
+for insert to authenticated
+with check (
+  realtime.messages.extension = 'broadcast'
+  and public.can_access_realtime_room_topic((select realtime.topic()))
+);
 
 do $$
 begin
@@ -1023,3 +1318,112 @@ begin
     alter publication supabase_realtime drop table public.map_custom_markers;
   end if;
 end $$;
+
+-- Consolidated RLS policies (2026-06-22)
+drop policy if exists "masters manage their campaigns" on public.campaigns;
+drop policy if exists "players read joined campaigns" on public.campaigns;
+create policy "campaign members read campaigns" on public.campaigns for select to authenticated using (
+  master_id = (select auth.uid()) or public.is_superadmin()
+  or exists (
+    select 1 from public.rooms r
+    join public.player_characters pc on pc.room_id = r.id
+    where r.campaign_id = campaigns.id and pc.user_id = (select auth.uid())
+  )
+);
+create policy "masters insert campaigns" on public.campaigns for insert to authenticated
+  with check (master_id = (select auth.uid()) or public.is_superadmin());
+create policy "masters update campaigns" on public.campaigns for update to authenticated
+  using (master_id = (select auth.uid()) or public.is_superadmin())
+  with check (master_id = (select auth.uid()) or public.is_superadmin());
+create policy "masters delete campaigns" on public.campaigns for delete to authenticated
+  using (master_id = (select auth.uid()) or public.is_superadmin());
+
+do $$
+declare item record;
+begin
+  for item in select * from (values
+    ('audio_tracks','masters manage audio'),
+    ('npcs','masters manage npcs'),
+    ('scenes','masters manage scenes'),
+    ('sound_effects','masters manage sound effects')
+  ) as policies(table_name, old_policy)
+  loop
+    execute format('drop policy if exists %I on public.%I', item.old_policy, item.table_name);
+    execute format('create policy %I on public.%I for insert to authenticated with check (public.is_room_master(room_id))', 'masters insert ' || item.table_name, item.table_name);
+    execute format('create policy %I on public.%I for update to authenticated using (public.is_room_master(room_id)) with check (public.is_room_master(room_id))', 'masters update ' || item.table_name, item.table_name);
+    execute format('create policy %I on public.%I for delete to authenticated using (public.is_room_master(room_id))', 'masters delete ' || item.table_name, item.table_name);
+  end loop;
+end $$;
+
+drop policy if exists "masters manage maps" on public.maps;
+create policy "masters insert maps" on public.maps for insert to authenticated
+  with check (public.is_room_master(room_id) or public.is_superadmin());
+create policy "masters update maps" on public.maps for update to authenticated
+  using (public.is_room_master(room_id) or public.is_superadmin())
+  with check (public.is_room_master(room_id) or public.is_superadmin());
+create policy "masters delete maps" on public.maps for delete to authenticated
+  using (public.is_room_master(room_id) or public.is_superadmin());
+
+do $$
+declare item record;
+begin
+  for item in select * from (values
+    ('map_character_positions','masters manage map character positions'),
+    ('map_custom_markers','masters manage map custom markers'),
+    ('map_events','masters manage map events'),
+    ('map_fog_areas','masters manage map fog areas'),
+    ('map_hotspots','masters manage map hotspots'),
+    ('map_npc_markers','masters manage map npc markers')
+  ) as policies(table_name, old_policy)
+  loop
+    execute format('drop policy if exists %I on public.%I', item.old_policy, item.table_name);
+    execute format('create policy %I on public.%I for insert to authenticated with check (exists (select 1 from public.maps m where m.id = map_id and (public.is_room_master(m.room_id) or public.is_superadmin())))', 'masters insert ' || item.table_name, item.table_name);
+    execute format('create policy %I on public.%I for update to authenticated using (exists (select 1 from public.maps m where m.id = map_id and (public.is_room_master(m.room_id) or public.is_superadmin()))) with check (exists (select 1 from public.maps m where m.id = map_id and (public.is_room_master(m.room_id) or public.is_superadmin())))', 'masters update ' || item.table_name, item.table_name);
+    execute format('create policy %I on public.%I for delete to authenticated using (exists (select 1 from public.maps m where m.id = map_id and (public.is_room_master(m.room_id) or public.is_superadmin())))', 'masters delete ' || item.table_name, item.table_name);
+  end loop;
+end $$;
+
+drop policy if exists "masters manage characters" on public.player_characters;
+drop policy if exists "players update own character profile" on public.player_characters;
+create policy "masters insert characters" on public.player_characters for insert to authenticated
+  with check (public.is_room_master(room_id));
+create policy "authorized users update characters" on public.player_characters for update to authenticated
+  using (public.is_room_master(room_id) or (user_id = (select auth.uid()) and public.is_room_player(room_id)))
+  with check (public.is_room_master(room_id) or (user_id = (select auth.uid()) and public.is_room_player(room_id)));
+create policy "masters delete characters" on public.player_characters for delete to authenticated
+  using (public.is_room_master(room_id));
+
+drop policy if exists "masters manage inventory" on public.inventory_items;
+drop policy if exists "players update own inventory notes" on public.inventory_items;
+create policy "masters insert inventory" on public.inventory_items for insert to authenticated with check (
+  exists (select 1 from public.player_characters pc where pc.id = inventory_items.character_id and public.is_room_master(pc.room_id))
+);
+create policy "authorized users update inventory" on public.inventory_items for update to authenticated using (
+  exists (
+    select 1 from public.player_characters pc
+    where pc.id = inventory_items.character_id
+      and (public.is_room_master(pc.room_id) or pc.user_id = (select auth.uid()))
+  )
+) with check (
+  exists (
+    select 1 from public.player_characters pc
+    where pc.id = inventory_items.character_id
+      and (public.is_room_master(pc.room_id) or pc.user_id = (select auth.uid()))
+  )
+);
+create policy "masters delete inventory" on public.inventory_items for delete to authenticated using (
+  exists (select 1 from public.player_characters pc where pc.id = inventory_items.character_id and public.is_room_master(pc.room_id))
+);
+
+drop policy if exists "players manage own notes" on public.player_notes;
+create policy "players insert own notes" on public.player_notes for insert to authenticated with check (
+  exists (select 1 from public.player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
+);
+create policy "players update own notes" on public.player_notes for update to authenticated using (
+  exists (select 1 from public.player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
+) with check (
+  exists (select 1 from public.player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
+);
+create policy "players delete own notes" on public.player_notes for delete to authenticated using (
+  exists (select 1 from public.player_characters pc where pc.id = player_notes.character_id and pc.user_id = (select auth.uid()))
+);

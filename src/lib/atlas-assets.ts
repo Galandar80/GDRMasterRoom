@@ -8,7 +8,6 @@ export const atlasEmptyStates = {
 } as const;
 
 export const atlasUiOrnaments = {
-  panelCorner: "/assets/atlas/ui/panel-corner.png",
   divider: "/assets/atlas/ui/ornate-divider.png",
   panelFrame: "/assets/atlas/ui/panel-frame.png",
   navbarPlaque: "/assets/atlas/ui/navbar-plaque.png",
