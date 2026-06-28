@@ -40,7 +40,9 @@ export function mergeMessagePages(olderMessages: Message[], currentMessages: Mes
 
 export function generateInviteCode(title: string) {
   const prefix = title.replace(/[^a-zA-Z]/g, "").slice(0, 3).toUpperCase().padEnd(3, "G");
-  return `${prefix}-${Math.floor(100 + Math.random() * 900)}`;
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const token = Array.from({ length: 4 }, () => alphabet[Math.floor(Math.random() * alphabet.length)]).join("");
+  return `${prefix}-${token}`;
 }
 
 export function readError(error: unknown) {
