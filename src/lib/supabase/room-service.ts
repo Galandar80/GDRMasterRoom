@@ -456,6 +456,11 @@ export function isSuperAdmin(profile: Profile) {
   return isConfiguredSuperadmin(profile);
 }
 
+type CreatedCampaignRoom = {
+  campaign_id: string;
+  room_id: string;
+};
+
 export async function isInviteCodeTaken(supabase: DatabaseClient, code: string) {
   const normalizedCode = code.trim().toUpperCase();
   if (!normalizedCode) return false;
@@ -484,40 +489,26 @@ export async function createGameInSupabase(
     sceneImageUrl: string;
   }
 ) {
-  await supabase.from("users").update({ role: "master" }).eq("id", profile.id);
-
-  const { data: campaign, error: campaignError } = await supabase
-    .from("campaigns")
-    .insert({
-      master_id: profile.id,
-      title: values.campaignTitle,
-      genre: values.genre,
-      description: values.description,
-      cover_image_url: values.coverImageUrl,
-      status: "active"
+  const { data: created, error: createRoomError } = await supabase
+    .rpc("create_owned_campaign_room", {
+      p_campaign_title: values.campaignTitle,
+      p_genre: values.genre,
+      p_description: values.description,
+      p_cover_image_url: values.coverImageUrl,
+      p_room_name: values.roomName,
+      p_invite_code: values.inviteCode,
+      p_max_players: values.maxPlayers
     })
-    .select("*")
     .single();
 
-  if (campaignError) throw campaignError;
+  if (createRoomError) throw createRoomError;
 
-  const { data: room, error: roomError } = await supabase
-    .from("rooms")
-    .insert({
-      campaign_id: campaign.id,
-      name: values.roomName,
-      invite_code: values.inviteCode,
-      max_players: values.maxPlayers
-    })
-    .select("*")
-    .single();
-
-  if (roomError) throw roomError;
+  const { campaign_id: campaignId, room_id: roomId } = created as CreatedCampaignRoom;
 
   const { data: scene, error: sceneError } = await supabase
     .from("scenes")
     .insert({
-      room_id: room.id,
+      room_id: roomId,
       title: values.sceneTitle,
       description: values.sceneDescription,
       image_url: values.sceneImageUrl,
@@ -530,7 +521,7 @@ export async function createGameInSupabase(
   if (sceneError) throw sceneError;
 
   if (values.sceneImageUrl) {
-    await createMediaAsset(supabase, room.id, profile, {
+    await createMediaAsset(supabase, roomId, profile, {
       title: `${values.sceneTitle} - scena iniziale`,
       assetType: "image",
       url: values.sceneImageUrl,
@@ -542,8 +533,8 @@ export async function createGameInSupabase(
     await supabase
       .from("maps")
       .insert({
-        campaign_id: campaign.id,
-        room_id: room.id,
+        campaign_id: campaignId,
+        room_id: roomId,
         title: `${values.roomName} - mappa iniziale`,
         description: "Prima mappa narrativa della stanza.",
         image_url: values.sceneImageUrl || values.coverImageUrl,
@@ -560,7 +551,7 @@ export async function createGameInSupabase(
   const { data: audio, error: audioError } = await supabase
     .from("audio_tracks")
     .insert({
-      room_id: room.id,
+      room_id: roomId,
       title: "Silenzio di scena",
       audio_url: "",
       loop: true
@@ -573,13 +564,13 @@ export async function createGameInSupabase(
   const { error: updateError } = await supabase
     .from("rooms")
     .update({ current_scene_id: scene.id, current_audio_id: audio.id })
-    .eq("id", room.id);
+    .eq("id", roomId);
 
   if (updateError) throw updateError;
 
   await supabase.from("npcs").insert([
     {
-      room_id: room.id,
+      room_id: roomId,
       name: "Narratore Ombra",
       color: "#84cc16",
       description: "NPC temporaneo pronto per la prima sessione."
@@ -588,19 +579,19 @@ export async function createGameInSupabase(
 
   // Insert default ambient sound effects
   await supabase.from("sound_effects").insert([
-    { room_id: room.id, title: "Pioggia", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/rain.mp3", loop: true },
-    { room_id: room.id, title: "Vento", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/wind.mp3", loop: true },
-    { room_id: room.id, title: "Fuoco", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/fireplace.mp3", loop: true },
-    { room_id: room.id, title: "Taverna", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/coffee-shop.mp3", loop: true },
-    { room_id: room.id, title: "Oceano", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/ocean.mp3", loop: true },
-    { room_id: room.id, title: "Temporale", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/thunder.mp3", loop: true },
-    { room_id: room.id, title: "Foresta", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/forest.mp3", loop: true },
-    { room_id: room.id, title: "Notte Stellata", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/night.mp3", loop: true },
-    { room_id: room.id, title: "Passi", audio_url: "/assets/audio/distant_footsteps_on_wood.mp3", loop: false },
-    { room_id: room.id, title: "Porta", audio_url: "/assets/audio/creaking_wooden_door.mp3", loop: false }
+    { room_id: roomId, title: "Pioggia", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/rain.mp3", loop: true },
+    { room_id: roomId, title: "Vento", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/wind.mp3", loop: true },
+    { room_id: roomId, title: "Fuoco", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/fireplace.mp3", loop: true },
+    { room_id: roomId, title: "Taverna", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/coffee-shop.mp3", loop: true },
+    { room_id: roomId, title: "Oceano", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/ocean.mp3", loop: true },
+    { room_id: roomId, title: "Temporale", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/thunder.mp3", loop: true },
+    { room_id: roomId, title: "Foresta", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/forest.mp3", loop: true },
+    { room_id: roomId, title: "Notte Stellata", audio_url: "https://raw.githubusercontent.com/bradtraversy/ambient-sound-mixer/main/sounds/night.mp3", loop: true },
+    { room_id: roomId, title: "Passi", audio_url: "/assets/audio/distant_footsteps_on_wood.mp3", loop: false },
+    { room_id: roomId, title: "Porta", audio_url: "/assets/audio/creaking_wooden_door.mp3", loop: false }
   ]);
 
-  return loadRoomState(supabase, room.id, profile);
+  return loadRoomState(supabase, roomId, { ...profile, role: "master" });
 }
 
 export async function enterMasterRoomByCode(supabase: DatabaseClient, code: string, profile: Profile) {

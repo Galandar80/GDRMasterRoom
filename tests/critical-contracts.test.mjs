@@ -64,6 +64,8 @@ test("le migrazioni di sicurezza mantengono RPC, RLS e policy Storage", () => {
   const membership = read("supabase/migrations/20260622120518_harden_room_membership_messages_storage.sql");
   const realtime = read("supabase/migrations/20260622121019_authorize_private_room_realtime.sql");
   const roomInsertRls = read("supabase/migrations/20260628123000_fix_room_insert_campaign_rls.sql");
+  const roomCreateRpc = read("supabase/migrations/20260628124500_create_owned_campaign_room_rpc.sql");
+  const roomService = read("src/lib/supabase/room-service.ts");
 
   assert.match(membership, /claim_room_by_invite_code/);
   assert.match(membership, /enforce_player_character_update_scope/);
@@ -75,6 +77,12 @@ test("le migrazioni di sicurezza mantengono RPC, RLS e policy Storage", () => {
   assert.match(roomInsertRls, /security definer/);
   assert.match(roomInsertRls, /with check \(public\.can_create_room_for_campaign\(campaign_id\)\)/);
   assert.match(read("supabase/schema.sql"), /with check \(\s*public\.can_create_room_for_campaign\(campaign_id\)\s*\)/);
+  assert.match(roomCreateRpc, /create_owned_campaign_room/);
+  assert.match(roomCreateRpc, /current_user_id uuid := auth\.uid\(\)/);
+  assert.match(roomCreateRpc, /current_user_id,/);
+  assert.match(roomCreateRpc, /grant execute on function public\.create_owned_campaign_room/);
+  assert.match(roomService, /\.rpc\("create_owned_campaign_room"/);
+  assert.doesNotMatch(roomService, /\.from\("rooms"\)\s*\n\s*\.insert\(\{/);
 });
 
 test("l'autorizzazione superadmin frontend richiesta resta presente", () => {
