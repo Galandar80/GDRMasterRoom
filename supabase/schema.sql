@@ -332,6 +332,21 @@ as $$
     or coalesce(auth.jwt()->'app_metadata'->>'is_superadmin' = 'true', false);
 $$;
 
+create or replace function public.can_create_room_for_campaign(target_campaign_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.campaigns c
+    where c.id = target_campaign_id
+      and (c.master_id = (select auth.uid()) or public.is_superadmin())
+  );
+$$;
+
 create or replace function public.lookup_room_by_invite_code(lookup_code text)
 returns table (
   id uuid,
@@ -666,7 +681,7 @@ create policy "room members read rooms" on public.rooms for select to authentica
   or public.is_room_player(id)
 );
 create policy "masters insert rooms" on public.rooms for insert to authenticated with check (
-  exists (select 1 from campaigns c where c.id = rooms.campaign_id and c.master_id = (select auth.uid()))
+  public.can_create_room_for_campaign(campaign_id)
 );
 create policy "masters update rooms" on public.rooms for update to authenticated
   using (public.is_room_master(id) or public.is_superadmin())
@@ -1232,6 +1247,9 @@ grant execute on function public.is_room_master(uuid) to authenticated;
 revoke execute on function public.is_room_player(uuid) from public;
 revoke execute on function public.is_room_player(uuid) from anon;
 grant execute on function public.is_room_player(uuid) to authenticated;
+revoke execute on function public.can_create_room_for_campaign(uuid) from public;
+revoke execute on function public.can_create_room_for_campaign(uuid) from anon;
+grant execute on function public.can_create_room_for_campaign(uuid) to authenticated;
 revoke execute on function public.lookup_room_by_invite_code(text) from public;
 revoke execute on function public.lookup_room_by_invite_code(text) from anon;
 grant execute on function public.lookup_room_by_invite_code(text) to authenticated;
