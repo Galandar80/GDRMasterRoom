@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageSquareText, X } from "lucide-react";
-import { AppLoading, StatusBar } from "@/components/app-shell-status";
+import { AppLoading } from "@/components/app-shell-status";
 import { StartMenu } from "@/components/lobby/start-menu";
 import type { CharacterSetupValues } from "@/components/lobby/character-setup-form";
 import type { CreateGameValues } from "@/components/lobby/create-game-form";
@@ -39,6 +39,7 @@ import {
   enterMasterRoomByCode,
   ensureProfile,
   insertMessage,
+  isInviteCodeTaken,
   joinRoomByCode,
   listAllRoomsForSuperAdmin,
   listAllMediaForSuperAdmin,
@@ -165,6 +166,7 @@ export function AppShell() {
   }, []);
 
   const [roomState, setRoomState] = useState<RoomState>(demoRoomState);
+  const [draftInviteCode, setDraftInviteCode] = useState(() => generateInviteCode(demoRoomState.campaigns[0].title));
   const [identityId, setIdentityId] = useState("master");
   const [status, setStatus] = useState("Caricamento dati...");
   const [isLoading, setIsLoading] = useState(!demoMode);
@@ -653,24 +655,57 @@ export function AppShell() {
     }
   }, [hasCurrentSession, roomState.room.current_sound_effect_id, roomState.soundEffects, view]);
 
+  async function resolveAvailableInviteCode(title: string, preferredCode?: string) {
+    const normalizedPreferred = preferredCode?.trim().toUpperCase();
+    const candidates = normalizedPreferred ? [normalizedPreferred] : [];
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const candidate = candidates[attempt] ?? generateInviteCode(title);
+      if (!supabase || demoMode) return candidate;
+      if (!(await isInviteCodeTaken(supabase, candidate))) return candidate;
+    }
+
+    return generateInviteCode(title);
+  }
+
+  async function openCreateGameForm() {
+    try {
+      setError("");
+      const inviteCode = await resolveAvailableInviteCode(roomState.campaigns[0]?.title ?? "GDR Master Room");
+      setDraftInviteCode(inviteCode);
+      setView("create");
+    } catch (inviteError) {
+      setError(readError(inviteError));
+      setDraftInviteCode(generateInviteCode(roomState.campaigns[0]?.title ?? "GDR Master Room"));
+      setView("create");
+    }
+  }
+
   async function createGame(values: CreateGameValues) {
-    const inviteCode = values.inviteCode.trim().toUpperCase() || generateInviteCode(values.campaignTitle);
+    let inviteCode: string;
+    try {
+      inviteCode = await resolveAvailableInviteCode(values.campaignTitle, values.inviteCode);
+    } catch (inviteError) {
+      setError(readError(inviteError));
+      return;
+    }
+    const createValues = { ...values, inviteCode };
 
     if (supabase && !demoMode) {
       try {
         setError("");
-        let coverImageUrl = values.coverImageUrl;
-        let sceneImageUrl = values.sceneImageUrl;
+        let coverImageUrl = createValues.coverImageUrl;
+        let sceneImageUrl = createValues.sceneImageUrl;
 
-        if (values.coverImageFile) {
-          coverImageUrl = await uploadPublicFile(supabase, "scene-images", values.coverImageFile, `campaign-covers/${roomState.profile.id}`);
+        if (createValues.coverImageFile) {
+          coverImageUrl = await uploadPublicFile(supabase, "scene-images", createValues.coverImageFile, `campaign-covers/${roomState.profile.id}`);
         }
 
-        if (values.sceneImageFile) {
-          sceneImageUrl = await uploadPublicFile(supabase, "scene-images", values.sceneImageFile, `initial-scenes/${roomState.profile.id}`);
+        if (createValues.sceneImageFile) {
+          sceneImageUrl = await uploadPublicFile(supabase, "scene-images", createValues.sceneImageFile, `initial-scenes/${roomState.profile.id}`);
         }
 
-        const nextState = await createGameInSupabase(supabase, roomState.profile, { ...values, inviteCode, coverImageUrl, sceneImageUrl });
+        const nextState = await createGameInSupabase(supabase, roomState.profile, { ...createValues, coverImageUrl, sceneImageUrl });
         setRoomState(nextState);
         setStatus("Partita creata su Supabase");
         setView("master");
@@ -684,9 +719,9 @@ export function AppShell() {
       ...roomState.scene,
       id: crypto.randomUUID(),
       room_id: roomState.room.id,
-      title: values.sceneTitle,
-      description: values.sceneDescription,
-      image_url: values.sceneImageUrl || roomState.scene.image_url,
+      title: createValues.sceneTitle,
+      description: createValues.sceneDescription,
+      image_url: createValues.sceneImageUrl || roomState.scene.image_url,
       media_type: "image",
       video_url: null,
       loop_video: true,
@@ -700,18 +735,18 @@ export function AppShell() {
       campaigns: [
         {
           ...state.campaigns[0],
-          title: values.campaignTitle,
-          genre: values.genre,
-          description: values.description,
-          cover_image_url: values.coverImageUrl || state.campaigns[0].cover_image_url,
+          title: createValues.campaignTitle,
+          genre: createValues.genre,
+          description: createValues.description,
+          cover_image_url: createValues.coverImageUrl || state.campaigns[0].cover_image_url,
           created_at: new Date().toISOString()
         }
       ],
       room: {
         ...state.room,
-        name: values.roomName,
+        name: createValues.roomName,
         invite_code: inviteCode,
-        max_players: values.maxPlayers,
+        max_players: createValues.maxPlayers,
         current_scene_id: nextScene.id
       },
       scene: nextScene,
@@ -2488,10 +2523,14 @@ export function AppShell() {
     >
       <div className="theme-world-chrome" aria-hidden="true" />
       <div className="vignette-overlay-cinematic" />
-      {(view !== "menu" && view !== "master") || error ? <StatusBar status={status} error={error} onSignOut={signOut} /> : null}
+      {error ? (
+        <div className="pointer-events-none fixed bottom-4 left-1/2 z-[120] w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 rounded-xl border border-rose-300/25 bg-rose-950/85 px-4 py-3 text-sm text-rose-50 shadow-[0_0_32px_rgba(244,63,94,0.22)] backdrop-blur-xl" role="alert">
+          {error}
+        </div>
+      ) : null}
       {view === "menu" ? (
         <StartMenu
-          onCreate={() => setView("create")}
+          onCreate={openCreateGameForm}
           onJoin={() => setView("join")}
           onSignOut={signOut}
           isSuperAdmin={isSuperAdmin}
@@ -2536,7 +2575,7 @@ export function AppShell() {
         />
       ) : null}
 
-      {view === "create" ? <CreateGameForm state={roomState} onBack={() => setView("menu")} onCreate={createGame} /> : null}
+      {view === "create" ? <CreateGameForm state={roomState} initialInviteCode={draftInviteCode} onBack={() => setView("menu")} onCreate={createGame} /> : null}
 
       {view === "join" ? (
         <JoinRoomForm

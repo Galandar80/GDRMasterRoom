@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check, Clapperboard, Copy, ImageIcon, Sparkles } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { RoomState } from "@/lib/types";
 import { campaignPresets, type CampaignPreset } from "@/lib/campaign-presets";
 
@@ -23,11 +23,12 @@ export type CreateGameValues = {
 
 type CreateGameFormProps = {
   state: RoomState;
+  initialInviteCode: string;
   onBack: () => void;
   onCreate: (values: CreateGameValues) => void;
 };
 
-export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps) {
+export function CreateGameForm({ state, initialInviteCode, onBack, onCreate }: CreateGameFormProps) {
   const [selectedPresetId, setSelectedPresetId] = useState<string>("");
   const [values, setValues] = useState<CreateGameValues>({
     campaignTitle: state.campaigns[0].title,
@@ -35,12 +36,16 @@ export function CreateGameForm({ state, onBack, onCreate }: CreateGameFormProps)
     description: state.campaigns[0].description,
     coverImageUrl: state.campaigns[0].cover_image_url,
     roomName: state.room.name,
-    inviteCode: state.room.invite_code,
+    inviteCode: initialInviteCode,
     maxPlayers: state.room.max_players ?? 4,
     sceneTitle: state.scene.title,
     sceneDescription: state.scene.description,
     sceneImageUrl: state.scene.image_url
   });
+
+  useEffect(() => {
+    setValues((current) => ({ ...current, inviteCode: initialInviteCode }));
+  }, [initialInviteCode]);
 
   function update(field: keyof CreateGameValues, value: string | number | File | undefined) {
     setValues((current) => ({ ...current, [field]: value }));

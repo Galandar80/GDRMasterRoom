@@ -456,6 +456,18 @@ export function isSuperAdmin(profile: Profile) {
   return isConfiguredSuperadmin(profile);
 }
 
+export async function isInviteCodeTaken(supabase: DatabaseClient, code: string) {
+  const normalizedCode = code.trim().toUpperCase();
+  if (!normalizedCode) return false;
+
+  const { data, error } = await supabase
+    .rpc("lookup_room_by_invite_code", { lookup_code: normalizedCode })
+    .maybeSingle();
+
+  if (error) throw error;
+  return Boolean(data);
+}
+
 export async function createGameInSupabase(
   supabase: DatabaseClient,
   profile: Profile,
