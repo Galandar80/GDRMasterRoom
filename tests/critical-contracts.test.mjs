@@ -63,6 +63,7 @@ test("i limiti applicativi coincidono con i limiti della migrazione Supabase", (
 test("le migrazioni di sicurezza mantengono RPC, RLS e policy Storage", () => {
   const membership = read("supabase/migrations/20260622120518_harden_room_membership_messages_storage.sql");
   const realtime = read("supabase/migrations/20260622121019_authorize_private_room_realtime.sql");
+  const roomInsertRls = read("supabase/migrations/20260628123000_fix_room_insert_campaign_rls.sql");
 
   assert.match(membership, /claim_room_by_invite_code/);
   assert.match(membership, /enforce_player_character_update_scope/);
@@ -70,6 +71,10 @@ test("le migrazioni di sicurezza mantengono RPC, RLS e policy Storage", () => {
   assert.match(membership, /storage\.foldername\(storage\.objects\.name\)/);
   assert.match(realtime, /alter table realtime\.messages enable row level security/);
   assert.match(realtime, /can_access_realtime_room_topic/);
+  assert.match(roomInsertRls, /can_create_room_for_campaign/);
+  assert.match(roomInsertRls, /security definer/);
+  assert.match(roomInsertRls, /with check \(public\.can_create_room_for_campaign\(campaign_id\)\)/);
+  assert.match(read("supabase/schema.sql"), /with check \(\s*public\.can_create_room_for_campaign\(campaign_id\)\s*\)/);
 });
 
 test("l'autorizzazione superadmin frontend richiesta resta presente", () => {
